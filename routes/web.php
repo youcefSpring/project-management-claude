@@ -1,18 +1,14 @@
 <?php
 
-use App\Http\Controllers\Admin\BlogPostController as AdminBlogPostController;
-use App\Http\Controllers\Admin\ContactMessageController;
-use App\Http\Controllers\Admin\CourseController as AdminCourseController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\ProjectController as AdminProjectController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Public\BlogController;
-use App\Http\Controllers\Public\ContactController;
-use App\Http\Controllers\Public\CourseController;
-use App\Http\Controllers\Public\HomeController;
-use App\Http\Controllers\Public\ProjectController;
-use App\Http\Controllers\Public\PublicationController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\ProjectController;
+use App\Http\Controllers\Web\TaskController;
+use App\Http\Controllers\Web\TimeEntryController;
+use App\Http\Controllers\Web\ReportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,141 +21,173 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// =========================================================================
-// PUBLIC ROUTES (No Authentication Required)
-// =========================================================================
+// Public Routes
+Route::get('/', function () {
+    return redirect()->route('dashboard');
+})->name('home');
 
-// Homepage and About
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
-Route::get('/download-cv', [HomeController::class, 'downloadCV'])->name('download-cv');
-
-// Courses
-Route::name('courses.')->group(function () {
-    Route::get('/courses', [CourseController::class, 'index'])->name('index');
-    Route::get('/courses/{course:slug}', [CourseController::class, 'show'])->name('show');
-    Route::get('/courses/{course:slug}/syllabus', [CourseController::class, 'downloadSyllabus'])->name('syllabus');
-});
-
-// Projects Portfolio
-Route::name('projects.')->group(function () {
-    Route::get('/projects', [ProjectController::class, 'index'])->name('index');
-    Route::get('/projects/{project:slug}', [ProjectController::class, 'show'])->name('show');
-});
-
-// Publications
-Route::name('publications.')->group(function () {
-    Route::get('/publications', [PublicationController::class, 'index'])->name('index');
-    Route::get('/publications/{publication}', [PublicationController::class, 'show'])->name('show');
-    Route::get('/publications/{publication}/download', [PublicationController::class, 'download'])->name('download');
-});
-
-// Blog
-Route::name('blog.')->group(function () {
-    Route::get('/blog', [BlogController::class, 'index'])->name('index');
-    Route::get('/blog/{blogPost:slug}', [BlogController::class, 'show'])->name('show');
-});
-
-// Contact
-Route::name('contact.')->group(function () {
-    Route::get('/contact', [ContactController::class, 'show'])->name('show');
-    Route::post('/contact', [ContactController::class, 'store'])->name('store');
-});
-
-// =========================================================================
-// AUTHENTICATION ROUTES
-// =========================================================================
-
+// Authentication Routes (Guest only)
 Route::middleware('guest')->group(function () {
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
+
+    Route::get('/register', [RegisterController::class, 'show'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
 });
 
+// Authenticated Routes
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
-});
 
-// =========================================================================
-// ADMIN ROUTES (Authentication Required)
-// =========================================================================
-
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    // Logout
+    Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Courses Management
-    Route::resource('courses', AdminCourseController::class)->except(['show']);
-
-    // Projects Management
-    Route::resource('projects', AdminProjectController::class);
-
-    // Blog Posts Management
-    Route::resource('blog', AdminBlogPostController::class);
-
-    // Contact Messages Management
-    Route::name('contact.')->group(function () {
-        Route::get('/contact', [ContactMessageController::class, 'index'])->name('index');
-        Route::get('/contact/{contactMessage}', [ContactMessageController::class, 'show'])->name('show');
-        Route::put('/contact/{contactMessage}/status', [ContactMessageController::class, 'updateStatus'])->name('update-status');
-        Route::delete('/contact/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('destroy');
-
-        // Bulk Operations
-        Route::post('/contact/bulk-status', [ContactMessageController::class, 'bulkUpdateStatus'])->name('bulk-status');
-        Route::delete('/contact/bulk-delete', [ContactMessageController::class, 'bulkDelete'])->name('bulk-delete');
+    // Projects
+    Route::prefix('projects')->name('projects.')->group(function () {
+        Route::get('/', [ProjectController::class, 'index'])->name('index');
+        Route::get('/create', [ProjectController::class, 'create'])
+            ->middleware('role:admin,manager')
+            ->name('create');
+        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+        Route::get('/{project}/edit', [ProjectController::class, 'edit'])
+            ->middleware('role:admin,manager')
+            ->name('edit');
     });
 
-    // Publications Management
-    Route::resource('publications', \App\Http\Controllers\Admin\PublicationController::class);
-
-    // Tags Management
-    Route::resource('tags', \App\Http\Controllers\Admin\TagController::class)->except(['show']);
-
-    // Profile Management
-    Route::name('profile.')->group(function () {
-        Route::get('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'edit'])->name('edit');
-        Route::put('/profile', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('update');
-        Route::post('/profile/cv', [\App\Http\Controllers\Admin\ProfileController::class, 'uploadCV'])->name('upload-cv');
-        Route::delete('/profile/cv', [\App\Http\Controllers\Admin\ProfileController::class, 'deleteCV'])->name('delete-cv');
+    // Tasks
+    Route::prefix('tasks')->name('tasks.')->group(function () {
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+        Route::get('/create', [TaskController::class, 'create'])
+            ->middleware('role:admin,manager')
+            ->name('create');
+        Route::get('/{task}', [TaskController::class, 'show'])->name('show');
+        Route::get('/{task}/edit', [TaskController::class, 'edit'])->name('edit');
     });
 
-    // Media Management
-    Route::name('media.')->group(function () {
-        Route::post('/media/upload', [\App\Http\Controllers\Admin\MediaController::class, 'upload'])->name('upload');
-        Route::delete('/media/{file}', [\App\Http\Controllers\Admin\MediaController::class, 'delete'])->name('delete');
+    // Time Tracking (Timesheet)
+    Route::prefix('timesheet')->name('timesheet.')->group(function () {
+        Route::get('/', [TimeEntryController::class, 'index'])->name('index');
+        Route::get('/create', [TimeEntryController::class, 'create'])->name('create');
+        Route::get('/{timeEntry}/edit', [TimeEntryController::class, 'edit'])->name('edit');
     });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])
+            ->middleware('role:admin,manager')
+            ->name('index');
+
+        Route::get('/projects', [ReportController::class, 'projects'])
+            ->middleware('role:admin,manager')
+            ->name('projects');
+
+        Route::get('/users', [ReportController::class, 'users'])
+            ->middleware('role:admin,manager')
+            ->name('users');
+
+        Route::get('/time-tracking', [ReportController::class, 'timeTracking'])
+            ->name('time-tracking');
+    });
+
+    // User Profile & Settings
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', function () {
+            return view('profile.index');
+        })->name('index');
+
+        Route::get('/settings', function () {
+            return view('profile.settings');
+        })->name('settings');
+    });
+
+    // Admin Routes
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+
+        // User Management
+        Route::prefix('users')->name('users.')->group(function () {
+            Route::get('/', function () {
+                return view('admin.users.index');
+            })->name('index');
+
+            Route::get('/create', function () {
+                return view('admin.users.create');
+            })->name('create');
+
+            Route::get('/{user}/edit', function ($user) {
+                return view('admin.users.edit', compact('user'));
+            })->name('edit');
+        });
+
+        // Translation Management
+        Route::prefix('translations')->name('translations.')->group(function () {
+            Route::get('/', function () {
+                return view('admin.translations.index');
+            })->name('index');
+
+            Route::get('/create', function () {
+                return view('admin.translations.create');
+            })->name('create');
+
+            Route::get('/{key}/edit', function ($key) {
+                return view('admin.translations.edit', compact('key'));
+            })->name('edit');
+        });
+
+        // System Settings
+        Route::get('/settings', function () {
+            return view('admin.settings.index');
+        })->name('settings');
+    });
+
+    // Help & Documentation
+    Route::get('/help', function () {
+        return view('help.index');
+    })->name('help');
+
+    // Search (Global)
+    Route::get('/search', function () {
+        $query = request('q');
+        return view('search.results', compact('query'));
+    })->name('search');
 });
 
-// =========================================================================
-// FALLBACK ROUTES
-// =========================================================================
+// Language Switching (for authenticated users)
+Route::middleware('auth')->post('/language', function () {
+    $language = request('language');
 
-// Catch-all route for SPA-like behavior (optional)
-// Route::fallback(function () {
-//     return view('errors.404');
-// });
+    if (in_array($language, ['fr', 'en', 'ar'])) {
+        auth()->user()->update(['language' => $language]);
+        session(['language' => $language]);
+        app()->setLocale($language);
+    }
 
-// =========================================================================
-// PASSWORD RESET ROUTES (if implementing custom password reset)
-// =========================================================================
+    return back()->with('success', 'Langue mise à jour avec succès');
+})->name('language.switch');
 
-// Route::middleware('guest')->group(function () {
-//     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-//     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-//     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-//     Route::post('reset-password', [NewPasswordController::class, 'store'])->name('password.store');
-// });
+// File Downloads (for reports)
+Route::middleware('auth')->get('/downloads/{file}', function ($file) {
+    $path = storage_path('app/reports/' . $file);
 
-// =========================================================================
-// EMAIL VERIFICATION ROUTES (if implementing email verification)
-// =========================================================================
+    if (!file_exists($path)) {
+        abort(404);
+    }
 
-// Route::middleware('auth')->group(function () {
-//     Route::get('verify-email', EmailVerificationPromptController::class)->name('verification.notice');
-//     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-//         ->middleware(['signed', 'throttle:6,1'])
-//         ->name('verification.verify');
-//     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
-//         ->middleware('throttle:6,1')
-//         ->name('verification.send');
-// });
+    return response()->download($path);
+})->where('file', '.*')->name('download');
+
+// Health Check for Web
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toISOString(),
+        'app' => config('app.name'),
+        'version' => config('app.version', '1.0.0')
+    ]);
+})->name('health');
+
+// Fallback for 404 pages
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
+});

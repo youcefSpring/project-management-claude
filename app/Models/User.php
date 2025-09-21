@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,11 +20,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'status',
-        'bio',
-        'profile_picture',
-        'contact_info',
-        'cv_file_path',
+        'language',
     ];
 
     /**
@@ -48,79 +43,108 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'contact_info' => 'array',
         ];
     }
 
     /**
-     * Get the courses for the user.
+     * Define role constants
      */
-    public function courses(): HasMany
+    const ROLE_ADMIN = 'admin';
+    const ROLE_MANAGER = 'manager';
+    const ROLE_MEMBER = 'member';
+
+    /**
+     * Get all available roles
+     */
+    public static function getRoles(): array
     {
-        return $this->hasMany(Course::class);
+        return [
+            self::ROLE_ADMIN,
+            self::ROLE_MANAGER,
+            self::ROLE_MEMBER,
+        ];
     }
 
     /**
-     * Get the projects for the user.
+     * Check if user has specific role
      */
-    public function projects(): HasMany
+    public function hasRole(string $role): bool
     {
-        return $this->hasMany(Project::class);
+        return $this->role === $role;
     }
 
     /**
-     * Get the publications for the user.
-     */
-    public function publications(): HasMany
-    {
-        return $this->hasMany(Publication::class);
-    }
-
-    /**
-     * Get the blog posts for the user.
-     */
-    public function blogPosts(): HasMany
-    {
-        return $this->hasMany(BlogPost::class);
-    }
-
-    /**
-     * Get the credentials for the user.
-     */
-    public function credentials(): HasMany
-    {
-        return $this->hasMany(Credential::class);
-    }
-
-    /**
-     * Check if user is admin.
+     * Check if user is admin
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->hasRole(self::ROLE_ADMIN);
     }
 
     /**
-     * Check if user is teacher.
+     * Check if user is manager
      */
-    public function isTeacher(): bool
+    public function isManager(): bool
     {
-        return $this->role === 'teacher';
+        return $this->hasRole(self::ROLE_MANAGER);
     }
 
     /**
-     * Check if user is editor.
+     * Check if user is member
      */
-    public function isEditor(): bool
+    public function isMember(): bool
     {
-        return $this->role === 'editor';
+        return $this->hasRole(self::ROLE_MEMBER);
     }
 
     /**
-     * Check if user is active.
+     * Get projects where user is manager
      */
-    public function isActive(): bool
+    public function managedProjects()
     {
-        return $this->status === 'active';
+        return $this->hasMany(Project::class, 'manager_id');
+    }
+
+    /**
+     * Get tasks assigned to user
+     */
+    public function assignedTasks()
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    /**
+     * Get time entries created by user
+     */
+    public function timeEntries()
+    {
+        return $this->hasMany(TimeEntry::class);
+    }
+
+    /**
+     * Get notes created by user
+     */
+    public function taskNotes()
+    {
+        return $this->hasMany(TaskNote::class);
+    }
+
+    /**
+     * Get all projects user has access to (managed or has assigned tasks)
+     */
+    public function accessibleProjects()
+    {
+        if ($this->isAdmin()) {
+            return Project::query();
+        }
+
+        if ($this->isManager()) {
+            return $this->managedProjects();
+        }
+
+        // For members, get projects where they have assigned tasks
+        return Project::whereHas('tasks', function ($query) {
+            $query->where('assigned_to', $this->id);
+        });
     }
 }

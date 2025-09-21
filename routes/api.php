@@ -1,9 +1,17 @@
 <?php
 
-use App\Http\Controllers\Api\ContactController;
-use App\Http\Controllers\Api\PublicationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TimeEntryController;
+use App\Http\Controllers\Api\TaskNoteController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\LanguageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,40 +24,98 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// =========================================================================
-// API AUTHENTICATION (if needed for future mobile app or SPA)
-// =========================================================================
+// Authentication Routes (Public)
+Route::post('/login', [LoginController::class, 'authenticate'])->name('api.login');
+Route::post('/register', [RegisterController::class, 'register'])->name('api.register');
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+// Authenticated Routes
+Route::middleware('auth:sanctum')->group(function () {
+
+    // Authentication
+    Route::post('/logout', [LogoutController::class, 'logout'])->name('api.logout');
+
+    // User info
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    // Ajax Routes Group (matches frontend expectations)
+    Route::prefix('ajax')->group(function () {
+
+        // Projects
+        Route::apiResource('projects', ProjectController::class);
+
+        // Tasks
+        Route::apiResource('tasks', TaskController::class);
+        Route::patch('tasks/{task}/status', [TaskController::class, 'updateStatus'])
+            ->name('api.tasks.update-status');
+
+        // Time Entries
+        Route::apiResource('time-entries', TimeEntryController::class);
+
+        // Task Notes (nested resource)
+        Route::get('tasks/{task}/notes', [TaskNoteController::class, 'index'])
+            ->name('api.tasks.notes.index');
+        Route::post('tasks/{task}/notes', [TaskNoteController::class, 'store'])
+            ->name('api.tasks.notes.store');
+        Route::get('notes/{note}', [TaskNoteController::class, 'show'])
+            ->name('api.notes.show');
+        Route::put('notes/{note}', [TaskNoteController::class, 'update'])
+            ->name('api.notes.update');
+        Route::delete('notes/{note}', [TaskNoteController::class, 'destroy'])
+            ->name('api.notes.destroy');
+
+        // Reports
+        Route::middleware(['role:admin,manager'])->group(function () {
+            Route::get('reports/projects', [ReportController::class, 'projects'])
+                ->name('api.reports.projects');
+            Route::get('reports/users', [ReportController::class, 'users'])
+                ->name('api.reports.users');
+            Route::post('reports/export', [ReportController::class, 'export'])
+                ->name('api.reports.export');
+        });
+
+        Route::get('reports/time-tracking', [ReportController::class, 'timeTracking'])
+            ->name('api.reports.time-tracking');
+
+        // Dashboard
+        Route::get('dashboard/stats', [DashboardController::class, 'stats'])
+            ->name('api.dashboard.stats');
+        Route::get('dashboard/recent-activity', [DashboardController::class, 'recentActivity'])
+            ->name('api.dashboard.recent-activity');
+        Route::get('dashboard/notifications', [DashboardController::class, 'notifications'])
+            ->name('api.dashboard.notifications');
+
+        // Language & Translations
+        Route::post('language', [LanguageController::class, 'setLanguage'])
+            ->name('api.language.set');
+        Route::get('translations', [LanguageController::class, 'getTranslations'])
+            ->name('api.translations.get');
+
+        // Translation Management (Admin only)
+        Route::middleware(['role:admin'])->group(function () {
+            Route::post('translations', [LanguageController::class, 'createTranslation'])
+                ->name('api.translations.create');
+            Route::put('translations', [LanguageController::class, 'updateTranslation'])
+                ->name('api.translations.update');
+        });
+    });
 });
 
-// =========================================================================
-// PUBLIC API ENDPOINTS (no authentication required)
-// =========================================================================
+// Health Check
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'timestamp' => now()->toISOString(),
+        'version' => config('app.version', '1.0.0')
+    ]);
+})->name('api.health');
 
-// Contact form submission (alternative endpoint)
-Route::post('/contact', [ContactController::class, 'store'])->name('api.contact.store');
-
-// Public read-only endpoints for publications (for academic networks integration)
-Route::prefix('publications')->name('api.publications.')->group(function () {
-    Route::get('/', [PublicationController::class, 'index'])->name('index');
-    Route::get('/{publication}', [PublicationController::class, 'show'])->name('show');
-    Route::get('/search/{query}', [PublicationController::class, 'search'])->name('search');
-});
-
-// =========================================================================
-// FUTURE API ROUTES (placeholder for potential expansion)
-// =========================================================================
-
-// If implementing mobile app or SPA in the future:
-// Route::middleware('auth:sanctum')->group(function () {
-//     Route::apiResource('courses', App\Http\Controllers\Api\CourseController::class);
-//     Route::apiResource('projects', App\Http\Controllers\Api\ProjectController::class);
-//     Route::apiResource('blog', App\Http\Controllers\Api\BlogController::class);
-// });
-
-// Rate limiting for API endpoints
-Route::middleware(['throttle:api'])->group(function () {
-    // API routes that need rate limiting would go here
+// Fallback for 404 API routes
+Route::fallback(function () {
+    return response()->json([
+        'success' => false,
+        'message' => 'Endpoint non trouvé',
+        'code' => 404
+    ], 404);
 });
