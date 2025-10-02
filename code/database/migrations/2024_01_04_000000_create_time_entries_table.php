@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->dateTime('start_time');
             $table->dateTime('end_time');
-            $table->decimal('duration', 5, 2)->storedAs('TIMESTAMPDIFF(MINUTE, start_time, end_time) / 60');
+            $table->decimal('duration_hours', 5, 2)->storedAs('TIMESTAMPDIFF(MINUTE, start_time, end_time) / 60');
             $table->text('comment')->nullable();
             $table->timestamps();
 
@@ -26,8 +26,6 @@ return new class extends Migration
             $table->index('user_id', 'idx_time_entries_user');
             $table->index(['start_time', 'end_time'], 'idx_time_entries_dates');
 
-            // Check constraint for time entries
-            $table->rawCheck('end_time > start_time', 'chk_time_entry_dates');
         });
     }
 

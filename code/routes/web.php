@@ -33,6 +33,25 @@ Route::middleware('guest')->group(function () {
 
     Route::get('/register', [RegisterController::class, 'show'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+    // Password Reset Routes
+    Route::get('/forgot-password', function () {
+        return view('auth.forgot-password');
+    })->name('password.request');
+
+    Route::post('/forgot-password', function () {
+        // Password reset logic would go here
+        return back()->with('status', 'Password reset link sent!');
+    })->name('password.email');
+
+    Route::get('/reset-password/{token}', function ($token) {
+        return view('auth.reset-password', ['token' => $token]);
+    })->name('password.reset');
+
+    Route::post('/reset-password', function () {
+        // Password reset logic would go here
+        return redirect()->route('login')->with('status', 'Password has been reset!');
+    })->name('password.update');
 });
 
 // Authenticated Routes

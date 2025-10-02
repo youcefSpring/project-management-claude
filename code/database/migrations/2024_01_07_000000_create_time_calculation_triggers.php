@@ -18,7 +18,7 @@ return new class extends Migration
             BEGIN
                 UPDATE tasks
                 SET total_hours = (
-                    SELECT COALESCE(SUM(duration), 0)
+                    SELECT COALESCE(SUM(duration_hours), 0)
                     FROM time_entries
                     WHERE task_id = NEW.task_id
                 )
@@ -34,7 +34,7 @@ return new class extends Migration
             BEGIN
                 UPDATE tasks
                 SET total_hours = (
-                    SELECT COALESCE(SUM(duration), 0)
+                    SELECT COALESCE(SUM(duration_hours), 0)
                     FROM time_entries
                     WHERE task_id = NEW.task_id
                 )
@@ -44,7 +44,7 @@ return new class extends Migration
                 IF OLD.task_id != NEW.task_id THEN
                     UPDATE tasks
                     SET total_hours = (
-                        SELECT COALESCE(SUM(duration), 0)
+                        SELECT COALESCE(SUM(duration_hours), 0)
                         FROM time_entries
                         WHERE task_id = OLD.task_id
                     )
@@ -61,7 +61,7 @@ return new class extends Migration
             BEGIN
                 UPDATE tasks
                 SET total_hours = (
-                    SELECT COALESCE(SUM(duration), 0)
+                    SELECT COALESCE(SUM(duration_hours), 0)
                     FROM time_entries
                     WHERE task_id = OLD.task_id
                 )

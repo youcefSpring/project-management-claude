@@ -26,8 +26,6 @@ return new class extends Migration
             $table->index('manager_id', 'idx_projects_manager');
             $table->index(['start_date', 'end_date'], 'idx_projects_dates');
 
-            // Check constraint for dates
-            $table->rawCheck('end_date >= start_date', 'chk_project_dates');
         });
     }
 

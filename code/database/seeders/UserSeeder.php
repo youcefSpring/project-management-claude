@@ -20,8 +20,6 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'admin',
             'language' => 'en',
-            'timezone' => 'UTC',
-            'hourly_rate' => 75.00,
             'email_verified_at' => now(),
         ]);
 
@@ -32,8 +30,6 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'manager',
             'language' => 'en',
-            'timezone' => 'UTC',
-            'hourly_rate' => 50.00,
             'email_verified_at' => now(),
         ]);
 
@@ -43,25 +39,21 @@ class UserSeeder extends Seeder
                 'name' => 'John Developer',
                 'email' => 'john@example.com',
                 'role' => 'member',
-                'hourly_rate' => 40.00,
             ],
             [
                 'name' => 'Jane Designer',
                 'email' => 'jane@example.com',
                 'role' => 'member',
-                'hourly_rate' => 45.00,
             ],
             [
                 'name' => 'Mike Tester',
                 'email' => 'mike@example.com',
                 'role' => 'member',
-                'hourly_rate' => 35.00,
             ],
             [
                 'name' => 'Sarah Frontend',
                 'email' => 'sarah@example.com',
                 'role' => 'member',
-                'hourly_rate' => 42.00,
             ],
         ];
 
@@ -72,21 +64,17 @@ class UserSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => $member['role'],
                 'language' => 'en',
-                'timezone' => 'UTC',
-                'hourly_rate' => $member['hourly_rate'],
                 'email_verified_at' => now(),
             ]);
         }
 
-        // Create client user
+        // Create another member user
         User::create([
             'name' => 'Client User',
             'email' => 'client@example.com',
             'password' => Hash::make('password'),
-            'role' => 'client',
+            'role' => 'member',
             'language' => 'en',
-            'timezone' => 'UTC',
-            'hourly_rate' => 0.00,
             'email_verified_at' => now(),
         ]);
     }

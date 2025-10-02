@@ -2,7 +2,6 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schedule;
 
 /*
 |--------------------------------------------------------------------------
@@ -125,21 +124,3 @@ Artisan::command('cache:warm', function () {
 
     $this->info('Application cache warmed successfully.');
 })->purpose('Warm up application caches for better performance');
-
-// Scheduled tasks (these would typically be in app/Console/Kernel.php)
-Schedule::command('tasks:notify-overdue')
-    ->daily()
-    ->at('09:00')
-    ->timezone('Europe/Paris');
-
-Schedule::command('time:calculate-totals')
-    ->hourly();
-
-Schedule::command('project:cleanup-completed')
-    ->weekly()
-    ->sundays()
-    ->at('02:00');
-
-Schedule::command('reports:generate-daily')
-    ->daily()
-    ->at('23:30');

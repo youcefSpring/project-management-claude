@@ -38,7 +38,6 @@ class TaskNoteSeeder extends Seeder
                     'task_id' => $task->id,
                     'user_id' => $users->random()->id,
                     'content' => $sampleNotes[array_rand($sampleNotes)],
-                    'is_internal' => rand(0, 1),
                 ]);
             }
         }

@@ -20,22 +20,53 @@ class TimeEntrySeeder extends Seeder
         }
 
         // Create sample time entries for the last 30 days
+        // Track user schedules to avoid overlaps
+        $userSchedules = [];
+
         for ($i = 0; $i < 50; $i++) {
             $task = $tasks->random();
             $user = $users->random();
-            $date = Carbon::now()->subDays(rand(0, 30));
+            $date = Carbon::now()->subDays(rand(1, 30)); // Start from yesterday to avoid future dates
 
-            TimeEntry::create([
-                'task_id' => $task->id,
-                'project_id' => $task->project_id,
-                'user_id' => $user->id,
-                'date' => $date->toDateString(),
-                'start_time' => $date->setTime(rand(8, 16), rand(0, 59)),
-                'end_time' => $date->copy()->addHours(rand(1, 4))->addMinutes(rand(0, 59)),
-                'duration' => rand(1, 8) + (rand(0, 59) / 60), // Random hours with minutes
-                'description' => 'Working on ' . $task->title,
-                'is_billable' => rand(0, 1),
-            ]);
+            // Try to find a non-overlapping time slot
+            $attempts = 0;
+            do {
+                $startHour = rand(8, 15); // 8 AM to 3 PM start times
+                $startTime = $date->copy()->setTime($startHour, rand(0, 59));
+                $endTime = $startTime->copy()->addHours(rand(1, 3))->addMinutes(rand(0, 59));
+
+                $hasOverlap = false;
+                if (isset($userSchedules[$user->id])) {
+                    foreach ($userSchedules[$user->id] as $existingEntry) {
+                        if (($startTime >= $existingEntry['start'] && $startTime < $existingEntry['end']) ||
+                            ($endTime > $existingEntry['start'] && $endTime <= $existingEntry['end']) ||
+                            ($startTime <= $existingEntry['start'] && $endTime >= $existingEntry['end'])) {
+                            $hasOverlap = true;
+                            break;
+                        }
+                    }
+                }
+
+                $attempts++;
+                if ($attempts > 10) break; // Avoid infinite loop
+
+            } while ($hasOverlap);
+
+            if (!$hasOverlap) {
+                // Store the schedule
+                if (!isset($userSchedules[$user->id])) {
+                    $userSchedules[$user->id] = [];
+                }
+                $userSchedules[$user->id][] = ['start' => $startTime, 'end' => $endTime];
+
+                TimeEntry::create([
+                    'task_id' => $task->id,
+                    'user_id' => $user->id,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'comment' => 'Working on ' . $task->title,
+                ]);
+            }
         }
     }
 }
