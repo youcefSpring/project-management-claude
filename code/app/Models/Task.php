@@ -42,9 +42,13 @@ class Task extends Model
     /**
      * Define status constants
      */
-    const STATUS_TODO = 'à_faire';
-    const STATUS_IN_PROGRESS = 'en_cours';
-    const STATUS_DONE = 'fait';
+    const STATUS_PENDING = 'pending';
+
+    const STATUS_IN_PROGRESS = 'in_progress';
+
+    const STATUS_COMPLETED = 'completed';
+
+    const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Get all available statuses
@@ -52,9 +56,10 @@ class Task extends Model
     public static function getStatuses(): array
     {
         return [
-            self::STATUS_TODO,
+            self::STATUS_PENDING,
             self::STATUS_IN_PROGRESS,
-            self::STATUS_DONE,
+            self::STATUS_COMPLETED,
+            self::STATUS_CANCELLED,
         ];
     }
 
@@ -64,9 +69,10 @@ class Task extends Model
     public static function getAllowedTransitions(): array
     {
         return [
-            self::STATUS_TODO => [self::STATUS_IN_PROGRESS],
-            self::STATUS_IN_PROGRESS => [self::STATUS_TODO, self::STATUS_DONE],
-            self::STATUS_DONE => [self::STATUS_IN_PROGRESS],
+            self::STATUS_PENDING => [self::STATUS_IN_PROGRESS],
+            self::STATUS_IN_PROGRESS => [self::STATUS_PENDING, self::STATUS_COMPLETED],
+            self::STATUS_COMPLETED => [self::STATUS_IN_PROGRESS],
+            self::STATUS_CANCELLED => [],
         ];
     }
 
@@ -79,11 +85,11 @@ class Task extends Model
     }
 
     /**
-     * Check if task is todo
+     * Check if task is pending
      */
-    public function isTodo(): bool
+    public function isPending(): bool
     {
-        return $this->hasStatus(self::STATUS_TODO);
+        return $this->hasStatus(self::STATUS_PENDING);
     }
 
     /**
@@ -95,11 +101,19 @@ class Task extends Model
     }
 
     /**
-     * Check if task is done
+     * Check if task is completed
      */
-    public function isDone(): bool
+    public function isCompleted(): bool
     {
-        return $this->hasStatus(self::STATUS_DONE);
+        return $this->hasStatus(self::STATUS_COMPLETED);
+    }
+
+    /**
+     * Check if task is cancelled
+     */
+    public function isCancelled(): bool
+    {
+        return $this->hasStatus(self::STATUS_CANCELLED);
     }
 
     /**
@@ -109,7 +123,7 @@ class Task extends Model
     {
         return $this->due_date &&
                $this->due_date->isPast() &&
-               !$this->isDone();
+               ! $this->isCompleted();
     }
 
     /**
@@ -167,7 +181,7 @@ class Task extends Model
      */
     public function getCompletionPercentageAttribute(): float
     {
-        if ($this->isDone()) {
+        if ($this->isCompleted()) {
             return 100;
         }
 
@@ -184,7 +198,7 @@ class Task extends Model
      */
     public function getDaysUntilDueAttribute(): ?int
     {
-        if (!$this->due_date) {
+        if (! $this->due_date) {
             return null;
         }
 
@@ -204,8 +218,9 @@ class Task extends Model
             return true;
         }
 
-        if ($user->isMember() && $this->assigned_to === $user->id) {
-            return true; // Members can update their own task status
+        // Team members can update their own assigned tasks
+        if ($user->canWorkOnTasks() && $this->assigned_to === $user->id) {
+            return true;
         }
 
         return false;
@@ -224,8 +239,15 @@ class Task extends Model
             return true;
         }
 
-        if ($user->isMember() && $this->assigned_to === $user->id) {
+        // Team members can view their assigned tasks
+        if ($user->canWorkOnTasks() && $this->assigned_to === $user->id) {
             return true;
+        }
+
+        // Clients can view tasks in projects they have access to
+        if ($user->isClient()) {
+            return $this->project->tasks()->where('assigned_to', $user->id)->exists() ||
+                   $this->project->manager_id === $user->id;
         }
 
         return false;
@@ -253,7 +275,7 @@ class Task extends Model
     public function scopeOverdue($query)
     {
         return $query->where('due_date', '<', now())
-                    ->whereNotIn('status', [self::STATUS_DONE]);
+            ->whereNotIn('status', [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
     }
 
     /**
@@ -271,8 +293,13 @@ class Task extends Model
             });
         }
 
-        // For members, show only their assigned tasks
-        return $query->where('assigned_to', $user->id);
+        // For team members (developers, designers, testers, etc.), show only their assigned tasks
+        if ($user->canWorkOnTasks()) {
+            return $query->where('assigned_to', $user->id);
+        }
+
+        // For HR, accountants, and clients, show no tasks by default
+        return $query->whereRaw('1 = 0');
     }
 
     /**
@@ -282,13 +309,13 @@ class Task extends Model
     {
         parent::boot();
 
-        // When task status changes to done, check if all project tasks are done
+        // When task status changes to completed, check if all project tasks are completed
         static::updated(function ($task) {
-            if ($task->isDirty('status') && $task->isDone()) {
+            if ($task->isDirty('status') && $task->isCompleted()) {
                 $project = $task->project;
-                $allTasksDone = $project->tasks()->where('status', '!=', self::STATUS_DONE)->count() === 0;
+                $allTasksCompleted = $project->tasks()->where('status', '!=', self::STATUS_COMPLETED)->count() === 0;
 
-                if ($allTasksDone && $project->isInProgress()) {
+                if ($allTasksCompleted && $project->isActive()) {
                     // Could automatically mark project as completed
                     // $project->update(['status' => Project::STATUS_COMPLETED]);
                 }

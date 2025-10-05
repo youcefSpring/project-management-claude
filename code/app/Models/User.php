@@ -50,8 +50,22 @@ class User extends Authenticatable
      * Define role constants
      */
     const ROLE_ADMIN = 'admin';
+
     const ROLE_MANAGER = 'manager';
-    const ROLE_MEMBER = 'member';
+
+    const ROLE_DEVELOPER = 'developer';
+
+    const ROLE_DESIGNER = 'designer';
+
+    const ROLE_TESTER = 'tester';
+
+    const ROLE_HR = 'hr';
+
+    const ROLE_ACCOUNTANT = 'accountant';
+
+    const ROLE_CLIENT = 'client';
+
+    const ROLE_MEMBER = 'member'; // Keep for backward compatibility
 
     /**
      * Get all available roles
@@ -61,7 +75,31 @@ class User extends Authenticatable
         return [
             self::ROLE_ADMIN,
             self::ROLE_MANAGER,
+            self::ROLE_DEVELOPER,
+            self::ROLE_DESIGNER,
+            self::ROLE_TESTER,
+            self::ROLE_HR,
+            self::ROLE_ACCOUNTANT,
+            self::ROLE_CLIENT,
             self::ROLE_MEMBER,
+        ];
+    }
+
+    /**
+     * Get role labels for display
+     */
+    public static function getRoleLabels(): array
+    {
+        return [
+            self::ROLE_ADMIN => 'Administrator',
+            self::ROLE_MANAGER => 'Project Manager',
+            self::ROLE_DEVELOPER => 'Developer',
+            self::ROLE_DESIGNER => 'Designer',
+            self::ROLE_TESTER => 'QA Tester',
+            self::ROLE_HR => 'Human Resources',
+            self::ROLE_ACCOUNTANT => 'Accountant',
+            self::ROLE_CLIENT => 'Client',
+            self::ROLE_MEMBER => 'Member',
         ];
     }
 
@@ -95,6 +133,80 @@ class User extends Authenticatable
     public function isMember(): bool
     {
         return $this->hasRole(self::ROLE_MEMBER);
+    }
+
+    /**
+     * Check if user is developer
+     */
+    public function isDeveloper(): bool
+    {
+        return $this->hasRole(self::ROLE_DEVELOPER);
+    }
+
+    /**
+     * Check if user is designer
+     */
+    public function isDesigner(): bool
+    {
+        return $this->hasRole(self::ROLE_DESIGNER);
+    }
+
+    /**
+     * Check if user is tester
+     */
+    public function isTester(): bool
+    {
+        return $this->hasRole(self::ROLE_TESTER);
+    }
+
+    /**
+     * Check if user is HR
+     */
+    public function isHR(): bool
+    {
+        return $this->hasRole(self::ROLE_HR);
+    }
+
+    /**
+     * Check if user is accountant
+     */
+    public function isAccountant(): bool
+    {
+        return $this->hasRole(self::ROLE_ACCOUNTANT);
+    }
+
+    /**
+     * Check if user is client
+     */
+    public function isClient(): bool
+    {
+        return $this->hasRole(self::ROLE_CLIENT);
+    }
+
+    /**
+     * Check if user can manage projects (admin or manager)
+     */
+    public function canManageProjects(): bool
+    {
+        return $this->isAdmin() || $this->isManager();
+    }
+
+    /**
+     * Check if user can work on tasks (not just admin/manager)
+     */
+    public function canWorkOnTasks(): bool
+    {
+        return ! $this->isClient() && ! $this->isHR() && ! $this->isAccountant();
+    }
+
+    /**
+     * Get user's role label
+     */
+    public function getRoleLabel(): string
+    {
+        $labels = self::getRoleLabels();
+
+        return $labels[$this->role] ?? ucfirst($this->role);
     }
 
     /**

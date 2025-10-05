@@ -8,8 +8,8 @@ use App\Http\Requests\UpdateTaskRequest;
 use App\Http\Requests\UpdateTaskStatusRequest;
 use App\Models\Task;
 use App\Services\TaskService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -33,13 +33,13 @@ class TaskController extends Controller
                     'last_page' => $tasks->lastPage(),
                     'per_page' => $tasks->perPage(),
                     'total' => $tasks->total(),
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des tâches'
+                'message' => 'Erreur lors de la récupération des tâches',
             ], 500);
         }
     }
@@ -52,13 +52,13 @@ class TaskController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $task->load(['project', 'assignedUser']),
-                'message' => 'Tâche créée avec succès'
+                'message' => 'Tâche créée avec succès',
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création de la tâche'
+                'message' => 'Erreur lors de la création de la tâche',
             ], 500);
         }
     }
@@ -72,26 +72,26 @@ class TaskController extends Controller
                 'project.manager',
                 'assignedUser',
                 'notes.user',
-                'timeEntries.user'
+                'timeEntries.user',
             ]);
 
             return response()->json([
                 'data' => $task,
                 'notes' => $task->notes,
-                'time_entries' => $task->timeEntries
+                'time_entries' => $task->timeEntries,
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Tâche non trouvée'
+                'message' => 'Tâche non trouvée',
             ], 404);
         }
     }
@@ -106,20 +106,20 @@ class TaskController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $updatedTask->load(['project', 'assignedUser']),
-                'message' => 'Tâche mise à jour avec succès'
+                'message' => 'Tâche mise à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour de la tâche'
+                'message' => 'Erreur lors de la mise à jour de la tâche',
             ], 500);
         }
     }
@@ -138,20 +138,20 @@ class TaskController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $updatedTask->load(['project', 'assignedUser']),
-                'message' => 'Statut mis à jour avec succès'
+                'message' => 'Statut mis à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour du statut'
+                'message' => 'Erreur lors de la mise à jour du statut',
             ], 500);
         }
     }
@@ -165,20 +165,20 @@ class TaskController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Tâche supprimée avec succès'
+                'message' => 'Tâche supprimée avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la suppression de la tâche'
+                'message' => 'Erreur lors de la suppression de la tâche',
             ], 500);
         }
     }

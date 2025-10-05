@@ -38,7 +38,7 @@ class UpdateProjectRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('projects', 'title')->ignore($project->id)
+                Rule::unique('projects', 'title')->ignore($project->id),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'status' => [
@@ -52,7 +52,7 @@ class UpdateProjectRequest extends FormRequest
                         'terminé' => [], // Cannot change from completed
                     ];
 
-                    if (!in_array($value, $allowedTransitions[$project->status] ?? [])) {
+                    if (! in_array($value, $allowedTransitions[$project->status] ?? [])) {
                         $fail('Transition de statut non autorisée.');
                     }
 
@@ -99,7 +99,7 @@ class UpdateProjectRequest extends FormRequest
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
                     $user = \App\Models\User::find($value);
-                    if ($user && !$user->isManager() && !$user->isAdmin()) {
+                    if ($user && ! $user->isManager() && ! $user->isAdmin()) {
                         $fail('Le manager sélectionné doit avoir le rôle manager ou admin.');
                     }
                 },

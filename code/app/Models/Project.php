@@ -41,9 +41,15 @@ class Project extends Model
     /**
      * Define status constants
      */
-    const STATUS_IN_PROGRESS = 'en_cours';
-    const STATUS_COMPLETED = 'terminé';
-    const STATUS_CANCELLED = 'annulé';
+    const STATUS_PLANNING = 'planning';
+
+    const STATUS_ACTIVE = 'active';
+
+    const STATUS_ON_HOLD = 'on_hold';
+
+    const STATUS_COMPLETED = 'completed';
+
+    const STATUS_CANCELLED = 'cancelled';
 
     /**
      * Get all available statuses
@@ -51,7 +57,9 @@ class Project extends Model
     public static function getStatuses(): array
     {
         return [
-            self::STATUS_IN_PROGRESS,
+            self::STATUS_PLANNING,
+            self::STATUS_ACTIVE,
+            self::STATUS_ON_HOLD,
             self::STATUS_COMPLETED,
             self::STATUS_CANCELLED,
         ];
@@ -66,11 +74,27 @@ class Project extends Model
     }
 
     /**
-     * Check if project is in progress
+     * Check if project is planning
      */
-    public function isInProgress(): bool
+    public function isPlanning(): bool
     {
-        return $this->hasStatus(self::STATUS_IN_PROGRESS);
+        return $this->hasStatus(self::STATUS_PLANNING);
+    }
+
+    /**
+     * Check if project is active
+     */
+    public function isActive(): bool
+    {
+        return $this->hasStatus(self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Check if project is on hold
+     */
+    public function isOnHold(): bool
+    {
+        return $this->hasStatus(self::STATUS_ON_HOLD);
     }
 
     /**
@@ -110,7 +134,7 @@ class Project extends Model
      */
     public function completedTasks(): HasMany
     {
-        return $this->tasks()->where('status', Task::STATUS_DONE);
+        return $this->tasks()->where('status', Task::STATUS_COMPLETED);
     }
 
     /**
@@ -118,7 +142,7 @@ class Project extends Model
      */
     public function pendingTasks(): HasMany
     {
-        return $this->tasks()->whereIn('status', [Task::STATUS_TODO, Task::STATUS_IN_PROGRESS]);
+        return $this->tasks()->whereIn('status', [Task::STATUS_PENDING, Task::STATUS_IN_PROGRESS]);
     }
 
     /**
@@ -127,7 +151,7 @@ class Project extends Model
     public function overdueTasks(): HasMany
     {
         return $this->tasks()->where('due_date', '<', now())
-                              ->whereNotIn('status', [Task::STATUS_DONE]);
+            ->whereNotIn('status', [Task::STATUS_COMPLETED]);
     }
 
     /**
@@ -144,6 +168,14 @@ class Project extends Model
         $completedTasks = $this->completedTasks()->count();
 
         return round(($completedTasks / $totalTasks) * 100, 2);
+    }
+
+    /**
+     * Get project progress percentage (alias for completion_percentage)
+     */
+    public function getProgressPercentage(): float
+    {
+        return $this->completion_percentage;
     }
 
     /**
@@ -170,7 +202,34 @@ class Project extends Model
     public function canBeDeleted(): bool
     {
         // Only allow deletion if no time entries exist
-        return !$this->tasks()->whereHas('timeEntries')->exists();
+        return ! $this->tasks()->whereHas('timeEntries')->exists();
+    }
+
+    /**
+     * Check if user can view this project
+     */
+    public function canBeViewedBy(User $user): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($user->isManager() && $this->manager_id === $user->id) {
+            return true;
+        }
+
+        // Team members can view projects where they have assigned tasks
+        if ($user->canWorkOnTasks()) {
+            return $this->tasks()->where('assigned_to', $user->id)->exists();
+        }
+
+        // Clients can view projects they're assigned to
+        if ($user->isClient()) {
+            return $this->tasks()->where('assigned_to', $user->id)->exists() ||
+                   $this->manager_id === $user->id;
+        }
+
+        return false;
     }
 
     /**

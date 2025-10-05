@@ -7,8 +7,8 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Services\ProjectService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
@@ -32,13 +32,13 @@ class ProjectController extends Controller
                     'last_page' => $projects->lastPage(),
                     'per_page' => $projects->perPage(),
                     'total' => $projects->total(),
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des projets'
+                'message' => 'Erreur lors de la récupération des projets',
             ], 500);
         }
     }
@@ -51,13 +51,13 @@ class ProjectController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $project,
-                'message' => 'Projet créé avec succès'
+                'message' => 'Projet créé avec succès',
             ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création du projet'
+                'message' => 'Erreur lors de la création du projet',
             ], 500);
         }
     }
@@ -79,20 +79,20 @@ class ProjectController extends Controller
             return response()->json([
                 'data' => $project,
                 'tasks' => $project->tasks,
-                'stats' => $stats
+                'stats' => $stats,
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Projet non trouvé'
+                'message' => 'Projet non trouvé',
             ], 404);
         }
     }
@@ -107,20 +107,20 @@ class ProjectController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $updatedProject,
-                'message' => 'Projet mis à jour avec succès'
+                'message' => 'Projet mis à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour du projet'
+                'message' => 'Erreur lors de la mise à jour du projet',
             ], 500);
         }
     }
@@ -134,20 +134,20 @@ class ProjectController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Projet supprimé avec succès'
+                'message' => 'Projet supprimé avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la suppression du projet'
+                'message' => 'Erreur lors de la suppression du projet',
             ], 500);
         }
     }

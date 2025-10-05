@@ -4,13 +4,14 @@ namespace App\Services;
 
 use App\Models\Translation;
 use App\Models\User;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\App;
 
 class TranslationService
 {
     private const CACHE_TTL = 3600; // 1 hour
+
     private const CACHE_PREFIX = 'translations';
 
     /**
@@ -19,6 +20,7 @@ class TranslationService
     public function get(string $key, ?string $locale = null, ?string $default = null): string
     {
         $locale = $locale ?? $this->getCurrentLocale();
+
         return Translation::get($key, $locale, $default);
     }
 
@@ -28,6 +30,7 @@ class TranslationService
     public function set(string $key, string $value, ?string $locale = null): Translation
     {
         $locale = $locale ?? $this->getCurrentLocale();
+
         return Translation::set($key, $locale, $value);
     }
 
@@ -37,6 +40,7 @@ class TranslationService
     public function getMultiple(array $keys, ?string $locale = null): array
     {
         $locale = $locale ?? $this->getCurrentLocale();
+
         return Translation::getMultiple($keys, $locale);
     }
 
@@ -46,6 +50,7 @@ class TranslationService
     public function getAllForLocale(?string $locale = null): array
     {
         $locale = $locale ?? $this->getCurrentLocale();
+
         return Translation::getAllForLanguage($locale);
     }
 
@@ -54,7 +59,7 @@ class TranslationService
      */
     public function changeUserLanguage(User $user, string $language): bool
     {
-        if (!Translation::isLanguageSupported($language)) {
+        if (! Translation::isLanguageSupported($language)) {
             return false;
         }
 
@@ -118,6 +123,7 @@ class TranslationService
     public function getDirection(?string $locale = null): string
     {
         $locale = $locale ?? $this->getCurrentLocale();
+
         return Translation::isRtlLanguage($locale) ? 'rtl' : 'ltr';
     }
 
@@ -142,7 +148,7 @@ class TranslationService
      */
     public function getSupportedLanguages(): array
     {
-        return array_map(function($locale) {
+        return array_map(function ($locale) {
             return [
                 'code' => $locale,
                 'name' => $this->getLanguageName($locale),
@@ -199,7 +205,7 @@ class TranslationService
      */
     public function import(array $translations, string $locale): int
     {
-        if (!Translation::isLanguageSupported($locale)) {
+        if (! Translation::isLanguageSupported($locale)) {
             throw new \InvalidArgumentException("Language '{$locale}' is not supported");
         }
 
@@ -211,7 +217,7 @@ class TranslationService
      */
     public function export(string $locale): array
     {
-        if (!Translation::isLanguageSupported($locale)) {
+        if (! Translation::isLanguageSupported($locale)) {
             throw new \InvalidArgumentException("Language '{$locale}' is not supported");
         }
 
@@ -305,9 +311,9 @@ class TranslationService
         $formatted = $this->formatNumber($amount, $locale);
 
         return match ($locale) {
-            'fr' => $formatted . ' €',
-            'en' => '$' . $formatted,
-            'ar' => $formatted . ' د.م.',
+            'fr' => $formatted.' €',
+            'en' => '$'.$formatted,
+            'ar' => $formatted.' د.م.',
             default => $formatted,
         };
     }
@@ -334,9 +340,9 @@ class TranslationService
      */
     public function suggestKeys(string $partial): array
     {
-        $cacheKey = self::CACHE_PREFIX . '.suggestions.' . md5($partial);
+        $cacheKey = self::CACHE_PREFIX.'.suggestions.'.md5($partial);
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function() use ($partial) {
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($partial) {
             $allKeys = [];
 
             foreach (Translation::getSupportedLanguages() as $locale) {
@@ -347,7 +353,7 @@ class TranslationService
             $allKeys = array_unique($allKeys);
 
             // Filter keys that start with the partial
-            $suggestions = array_filter($allKeys, function($key) use ($partial) {
+            $suggestions = array_filter($allKeys, function ($key) use ($partial) {
                 return str_starts_with($key, $partial);
             });
 
@@ -362,7 +368,7 @@ class TranslationService
     {
         $acceptLanguage = request()->header('Accept-Language');
 
-        if (!$acceptLanguage) {
+        if (! $acceptLanguage) {
             return Translation::DEFAULT_LANGUAGE;
         }
 
@@ -372,7 +378,7 @@ class TranslationService
 
         foreach ($matches as $match) {
             $lang = strtolower(substr($match[1], 0, 2));
-            $quality = isset($match[2]) ? (float)$match[2] : 1.0;
+            $quality = isset($match[2]) ? (float) $match[2] : 1.0;
             $languages[$lang] = $quality;
         }
 

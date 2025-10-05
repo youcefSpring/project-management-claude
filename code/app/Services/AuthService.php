@@ -19,14 +19,14 @@ class AuthService
         // Validate credentials
         $user = User::where('email', $email)->first();
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
         // Check if user account is active (you could add a status field)
-        if (!$this->isUserActive($user)) {
+        if (! $this->isUserActive($user)) {
             throw new AuthenticationException('Your account has been deactivated.');
         }
 
@@ -93,7 +93,7 @@ class AuthService
      */
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
-        if (!Hash::check($currentPassword, $user->password)) {
+        if (! Hash::check($currentPassword, $user->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['The current password is incorrect.'],
             ]);
@@ -122,7 +122,7 @@ class AuthService
      */
     public function updateUserLanguage(User $user, string $language): bool
     {
-        if (!in_array($language, ['fr', 'en', 'ar'])) {
+        if (! in_array($language, ['fr', 'en', 'ar'])) {
             throw ValidationException::withMessages([
                 'language' => ['The selected language is invalid.'],
             ]);
@@ -228,8 +228,8 @@ class AuthService
     public function getAvailableManagers(): \Illuminate\Database\Eloquent\Collection
     {
         return User::whereIn('role', [User::ROLE_ADMIN, User::ROLE_MANAGER])
-                   ->orderBy('name')
-                   ->get();
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -238,8 +238,8 @@ class AuthService
     public function getAvailableMembers(): \Illuminate\Database\Eloquent\Collection
     {
         return User::where('role', User::ROLE_MEMBER)
-                   ->orderBy('name')
-                   ->get();
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -248,7 +248,7 @@ class AuthService
     public function canChangeUserRole(User $currentUser, User $targetUser, string $newRole): bool
     {
         // Only admin can change roles
-        if (!$currentUser->isAdmin()) {
+        if (! $currentUser->isAdmin()) {
             return false;
         }
 
@@ -258,7 +258,7 @@ class AuthService
         }
 
         // Validate role exists
-        if (!in_array($newRole, User::getRoles())) {
+        if (! in_array($newRole, User::getRoles())) {
             return false;
         }
 
@@ -274,7 +274,7 @@ class AuthService
         // $user->update(['last_login_at' => now()]);
 
         // Log activity (you could create an activity log table)
-        \Log::info("User logged in", [
+        \Log::info('User logged in', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => request()->ip(),
@@ -287,7 +287,7 @@ class AuthService
      */
     private function recordLogoutActivity(User $user): void
     {
-        \Log::info("User logged out", [
+        \Log::info('User logged out', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => request()->ip(),

@@ -22,7 +22,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('project.{projectId}', function ($user, $projectId) {
     $project = App\Models\Project::find($projectId);
 
-    if (!$project) {
+    if (! $project) {
         return false;
     }
 
@@ -44,7 +44,7 @@ Broadcast::channel('project.{projectId}', function ($user, $projectId) {
 Broadcast::channel('task.{taskId}', function ($user, $taskId) {
     $task = App\Models\Task::find($taskId);
 
-    if (!$task) {
+    if (! $task) {
         return false;
     }
 
@@ -66,7 +66,7 @@ Broadcast::channel('task.{taskId}', function ($user, $taskId) {
 Broadcast::channel('team.{projectId}', function ($user, $projectId) {
     $project = App\Models\Project::find($projectId);
 
-    if (!$project) {
+    if (! $project) {
         return false;
     }
 
@@ -81,7 +81,7 @@ Broadcast::channel('team.{projectId}', function ($user, $projectId) {
             'id' => $user->id,
             'name' => $user->name,
             'role' => 'manager',
-            'avatar' => $user->avatar ?? null
+            'avatar' => $user->avatar ?? null,
         ];
     }
 
@@ -91,7 +91,7 @@ Broadcast::channel('team.{projectId}', function ($user, $projectId) {
             'id' => $user->id,
             'name' => $user->name,
             'role' => 'member',
-            'avatar' => $user->avatar ?? null
+            'avatar' => $user->avatar ?? null,
         ];
     }
 
@@ -103,7 +103,7 @@ Broadcast::channel('notifications.global', function ($user) {
     return $user->isAdmin() ? [
         'id' => $user->id,
         'name' => $user->name,
-        'role' => 'admin'
+        'role' => 'admin',
     ] : false;
 });
 
@@ -113,6 +113,6 @@ Broadcast::channel('presence.time-tracking', function ($user) {
         'id' => $user->id,
         'name' => $user->name,
         'role' => $user->role,
-        'active_task' => $user->getActiveTask() ?? null
+        'active_task' => $user->getActiveTask() ?? null,
     ];
 });

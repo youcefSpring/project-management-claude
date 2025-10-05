@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class TaskSeeder extends Seeder
 {
@@ -27,7 +27,7 @@ class TaskSeeder extends Seeder
             $taskCount = rand(3, 8); // Random number of tasks per project
 
             for ($i = 0; $i < $taskCount; $i++) {
-                $statuses = ['à_faire', 'en_cours', 'fait'];
+                $statuses = ['pending', 'in_progress', 'completed'];
                 $status = $statuses[array_rand($statuses)];
 
                 $dueDate = null;
@@ -74,7 +74,7 @@ class TaskSeeder extends Seeder
             'Security Audit',
             'Data Migration',
             'API Development',
-            'Mobile Optimization'
+            'Mobile Optimization',
         ];
 
         return $titles[array_rand($titles)];

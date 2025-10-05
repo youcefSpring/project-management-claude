@@ -6,20 +6,21 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TimeEntry;
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardService
 {
     /**
-     * Get dashboard statistics for the authenticated user
+     * Get dashboard statistics for a specific user
      */
-    public function getDashboardStats()
+    public function getStats($user = null)
     {
-        $user = Auth::user();
+        if (! $user) {
+            $user = Auth::user();
+        }
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -39,13 +40,59 @@ class DashboardService
     }
 
     /**
-     * Get recent activity for dashboard
+     * Get dashboard statistics for the authenticated user
      */
-    public function getRecentActivity($limit = 10)
+    public function getDashboardStats()
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
+            return null;
+        }
+
+        $stats = [
+            'total_projects' => $this->getTotalProjects($user),
+            'active_projects' => $this->getActiveProjects($user),
+            'total_tasks' => $this->getTotalTasks($user),
+            'completed_tasks' => $this->getCompletedTasks($user),
+            'pending_tasks' => $this->getPendingTasks($user),
+            'overdue_tasks' => $this->getOverdueTasks($user),
+            'total_time_today' => $this->getTotalTimeToday($user),
+            'total_time_this_week' => $this->getTotalTimeThisWeek($user),
+            'total_time_this_month' => $this->getTotalTimeThisMonth($user),
+        ];
+
+        return $stats;
+    }
+
+    /**
+     * Get notifications for a specific user
+     */
+    public function getNotifications($user = null, $limit = 10)
+    {
+        if (! $user) {
+            $user = Auth::user();
+        }
+
+        if (! $user) {
+            return collect();
+        }
+
+        $notificationService = app(NotificationService::class);
+
+        return $notificationService->getUserNotifications($user, $limit);
+    }
+
+    /**
+     * Get recent activity for dashboard
+     */
+    public function getRecentActivity($user = null, $limit = 10)
+    {
+        if (! $user) {
+            $user = Auth::user();
+        }
+
+        if (! $user) {
             return collect();
         }
 
@@ -69,7 +116,7 @@ class DashboardService
                 'type' => 'task_update',
                 'description' => "Updated task: {$task->title}",
                 'date' => $task->updated_at,
-                'model' => $task
+                'model' => $task,
             ]);
         }
 
@@ -78,7 +125,7 @@ class DashboardService
                 'type' => 'time_entry',
                 'description' => "Logged {$entry->duration} hours on: {$entry->task->title}",
                 'date' => $entry->created_at,
-                'model' => $entry
+                'model' => $entry,
             ]);
         }
 
@@ -92,7 +139,7 @@ class DashboardService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return collect();
         }
 
@@ -114,7 +161,7 @@ class DashboardService
     {
         $user = Auth::user();
 
-        if (!$user) {
+        if (! $user) {
             return null;
         }
 
@@ -128,8 +175,8 @@ class DashboardService
                 ->count(),
 
             'time_logged_this_week' => TimeEntry::where('user_id', $user->id)
-                ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
-                ->sum('duration'),
+                ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
+                ->sum('duration_hours'),
 
             'average_task_completion_time' => $this->getAverageTaskCompletionTime($user),
             'efficiency_score' => $this->calculateEfficiencyScore($user),
@@ -217,8 +264,8 @@ class DashboardService
     private function getTotalTimeToday($user)
     {
         return TimeEntry::where('user_id', $user->id)
-            ->where('date', Carbon::today())
-            ->sum('duration');
+            ->whereDate('start_time', Carbon::today())
+            ->sum('duration_hours');
     }
 
     private function getTotalTimeThisWeek($user)
@@ -227,8 +274,8 @@ class DashboardService
         $endOfWeek = Carbon::now()->endOfWeek();
 
         return TimeEntry::where('user_id', $user->id)
-            ->whereBetween('date', [$startOfWeek->toDateString(), $endOfWeek->toDateString()])
-            ->sum('duration');
+            ->whereBetween('start_time', [$startOfWeek, $endOfWeek])
+            ->sum('duration_hours');
     }
 
     private function getTotalTimeThisMonth($user)
@@ -237,8 +284,8 @@ class DashboardService
         $endOfMonth = Carbon::now()->endOfMonth();
 
         return TimeEntry::where('user_id', $user->id)
-            ->whereBetween('date', [$startOfMonth->toDateString(), $endOfMonth->toDateString()])
-            ->sum('duration');
+            ->whereBetween('start_time', [$startOfMonth, $endOfMonth])
+            ->sum('duration_hours');
     }
 
     private function getAverageTaskCompletionTime($user)

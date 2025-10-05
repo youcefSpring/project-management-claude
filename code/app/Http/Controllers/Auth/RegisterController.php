@@ -35,19 +35,19 @@ class RegisterController extends Controller
                 return response()->json([
                     'success' => true,
                     'user' => $result['user'],
-                    'redirect' => route('dashboard')
+                    'redirect' => route('dashboard'),
                 ], 201);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'inscription'
+                'message' => 'Erreur lors de l\'inscription',
             ], 422);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'inscription'
+                'message' => 'Erreur lors de l\'inscription',
             ], 500);
         }
     }

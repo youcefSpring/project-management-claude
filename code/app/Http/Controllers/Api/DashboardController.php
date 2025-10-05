@@ -25,7 +25,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des statistiques'
+                'message' => 'Erreur lors de la récupération des statistiques',
             ], 500);
         }
     }
@@ -36,13 +36,13 @@ class DashboardController extends Controller
             $activities = $this->dashboardService->getRecentActivity(auth()->user());
 
             return response()->json([
-                'data' => $activities
+                'data' => $activities,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération de l\'activité récente'
+                'message' => 'Erreur lors de la récupération de l\'activité récente',
             ], 500);
         }
     }
@@ -54,13 +54,13 @@ class DashboardController extends Controller
 
             return response()->json([
                 'data' => $notifications['notifications'],
-                'unread_count' => $notifications['unread_count']
+                'unread_count' => $notifications['unread_count'],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des notifications'
+                'message' => 'Erreur lors de la récupération des notifications',
             ], 500);
         }
     }

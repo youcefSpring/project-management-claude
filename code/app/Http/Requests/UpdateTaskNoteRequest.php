@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
+use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTaskNoteRequest extends FormRequest
 {
@@ -29,6 +29,7 @@ class UpdateTaskNoteRequest extends FormRequest
         if ($taskNote->user_id === $user->id) {
             // Check modification time limit (24 hours)
             $modificationDeadline = config('app.note_modification_hours', 24);
+
             return $taskNote->created_at->diffInHours(Carbon::now()) <= $modificationDeadline;
         }
 
@@ -92,7 +93,7 @@ class UpdateTaskNoteRequest extends FormRequest
         // Extract mentions
         preg_match_all('/@(\w+)/', $content, $matches);
 
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             $mentionedNames = array_unique($matches[1]);
             $taskNote = $this->route('taskNote');
 
@@ -100,13 +101,14 @@ class UpdateTaskNoteRequest extends FormRequest
             foreach ($mentionedNames as $name) {
                 $user = \App\Models\User::where('name', $name)->first();
 
-                if (!$user) {
+                if (! $user) {
                     $fail("L'utilisateur @{$name} n'existe pas.");
+
                     continue;
                 }
 
                 // Check if mentioned user has access to this task
-                if (!$this->userCanAccessTask($user, $taskNote->task)) {
+                if (! $this->userCanAccessTask($user, $taskNote->task)) {
                     $fail("L'utilisateur @{$name} n'a pas accès à cette tâche.");
                 }
             }

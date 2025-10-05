@@ -26,11 +26,11 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar me-2 text-primary"></i>
-                                <strong>{{ __('Start Date') }}:</strong> {{ $project->start_date->format('M d, Y') }}
+                                <strong>{{ __('Start Date') }}:</strong> {{ $project->start_date ? $project->start_date->format('M d, Y') : 'N/A' }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar-check me-2 text-primary"></i>
-                                <strong>{{ __('End Date') }}:</strong> {{ $project->end_date->format('M d, Y') }}
+                                <strong>{{ __('End Date') }}:</strong> {{ $project->end_date ? $project->end_date->format('M d, Y') : 'N/A' }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-clock me-2 text-primary"></i>
@@ -104,9 +104,9 @@
                     <div class="col-md-6">
                         <select class="form-select form-select-sm" id="task-status-filter">
                             <option value="">{{ __('All Tasks') }}</option>
-                            <option value="à_faire">{{ __('To Do') }}</option>
-                            <option value="en_cours">{{ __('In Progress') }}</option>
-                            <option value="fait">{{ __('Done') }}</option>
+                            <option value="pending">{{ __('Pending') }}</option>
+                            <option value="in_progress">{{ __('In Progress') }}</option>
+                            <option value="completed">{{ __('Completed') }}</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -400,18 +400,20 @@ function changeProjectStatus() {
 
 function getTaskColor(status) {
     const colors = {
-        'à_faire': 'warning',
-        'en_cours': 'info',
-        'fait': 'success'
+        'pending': 'warning',
+        'in_progress': 'info',
+        'completed': 'success',
+        'cancelled': 'danger'
     };
     return colors[status] || 'secondary';
 }
 
 function getStatusText(status) {
     const statuses = {
-        'à_faire': '{{ __("To Do") }}',
-        'en_cours': '{{ __("In Progress") }}',
-        'fait': '{{ __("Done") }}'
+        'pending': '{{ __("Pending") }}',
+        'in_progress': '{{ __("In Progress") }}',
+        'completed': '{{ __("Completed") }}',
+        'cancelled': '{{ __("Cancelled") }}'
     };
     return statuses[status] || status;
 }

@@ -16,22 +16,23 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Unauthenticated.'], 401);
             }
+
             return redirect()->route('login');
         }
 
         $user = Auth::user();
 
         // Check if user has any of the required roles
-        if (!in_array($user->role, $roles)) {
+        if (! in_array($user->role, $roles)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => 'Access denied. Insufficient permissions.',
                     'required_roles' => $roles,
-                    'user_role' => $user->role
+                    'user_role' => $user->role,
                 ], 403);
             }
 

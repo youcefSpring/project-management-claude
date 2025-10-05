@@ -46,7 +46,7 @@ class UpdateTaskRequest extends FormRequest
                 'max:255',
                 Rule::unique('tasks', 'title')
                     ->where('project_id', $task->project_id)
-                    ->ignore($task->id)
+                    ->ignore($task->id),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
         ];
@@ -63,7 +63,7 @@ class UpdateTaskRequest extends FormRequest
                     'fait' => ['en_cours'],
                 ];
 
-                if (!in_array($value, $allowedTransitions[$task->status] ?? [])) {
+                if (! in_array($value, $allowedTransitions[$task->status] ?? [])) {
                     $fail('Transition de statut non autorisée.');
                 }
 
@@ -73,7 +73,7 @@ class UpdateTaskRequest extends FormRequest
                 }
 
                 // Business rule: task must be assigned to move to in_progress
-                if ($value === 'en_cours' && !$task->assigned_to) {
+                if ($value === 'en_cours' && ! $task->assigned_to) {
                     $fail('La tâche doit être assignée avant d\'être mise en cours.');
                 }
 
@@ -112,7 +112,7 @@ class UpdateTaskRequest extends FormRequest
                         $assignee = \App\Models\User::find($value);
 
                         // Only members can be assigned tasks
-                        if ($assignee && !$assignee->isMember()) {
+                        if ($assignee && ! $assignee->isMember()) {
                             $fail('Seuls les membres peuvent être assignés à des tâches.');
                         }
                     }

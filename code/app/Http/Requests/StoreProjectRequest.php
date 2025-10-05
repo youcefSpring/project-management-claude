@@ -28,25 +28,25 @@ class StoreProjectRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('projects', 'title')
+                Rule::unique('projects', 'title'),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
             'start_date' => [
                 'required',
                 'date',
-                'after_or_equal:today'
+                'after_or_equal:today',
             ],
             'end_date' => [
                 'required',
                 'date',
-                'after:start_date'
+                'after:start_date',
             ],
             'manager_id' => [
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
                     $user = \App\Models\User::find($value);
-                    if ($user && !$user->isManager() && !$user->isAdmin()) {
+                    if ($user && ! $user->isManager() && ! $user->isAdmin()) {
                         $fail('Le manager sélectionné doit avoir le rôle manager ou admin.');
                     }
                 },
@@ -109,7 +109,7 @@ class StoreProjectRequest extends FormRequest
         $validated = parent::validated($key, $default);
 
         // Set default status for new projects
-        if (!isset($validated['status'])) {
+        if (! isset($validated['status'])) {
             $validated['status'] = 'en_cours';
         }
 

@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
 
 class TimeEntry extends Model
 {
@@ -34,7 +34,7 @@ class TimeEntry extends Model
         return [
             'start_time' => 'datetime',
             'end_time' => 'datetime',
-            'duration' => 'decimal:2',
+            'duration_hours' => 'decimal:2',
         ];
     }
 
@@ -77,11 +77,23 @@ class TimeEntry extends Model
      */
     public function getDurationAttribute(): float
     {
-        if (!$this->start_time || !$this->end_time) {
+        if (! $this->start_time || ! $this->end_time) {
             return 0;
         }
 
-        return round($this->start_time->diffInMinutes($this->end_time) / 60, 2);
+        // Ensure we have Carbon instances
+        $startTime = $this->start_time instanceof \Carbon\Carbon ? $this->start_time : \Carbon\Carbon::parse($this->start_time);
+        $endTime = $this->end_time instanceof \Carbon\Carbon ? $this->end_time : \Carbon\Carbon::parse($this->end_time);
+
+        return round($startTime->diffInMinutes($endTime) / 60, 2);
+    }
+
+    /**
+     * Calculate duration in hours (alias for consistency)
+     */
+    public function getDurationHoursAttribute(): float
+    {
+        return $this->duration;
     }
 
     /**
@@ -89,7 +101,15 @@ class TimeEntry extends Model
      */
     public function getDurationFormattedAttribute(): string
     {
-        $totalMinutes = $this->start_time->diffInMinutes($this->end_time);
+        if (! $this->start_time || ! $this->end_time) {
+            return '00:00';
+        }
+
+        // Ensure we have Carbon instances
+        $startTime = $this->start_time instanceof \Carbon\Carbon ? $this->start_time : \Carbon\Carbon::parse($this->start_time);
+        $endTime = $this->end_time instanceof \Carbon\Carbon ? $this->end_time : \Carbon\Carbon::parse($this->end_time);
+
+        $totalMinutes = $startTime->diffInMinutes($endTime);
         $hours = intval($totalMinutes / 60);
         $minutes = $totalMinutes % 60;
 
@@ -102,16 +122,16 @@ class TimeEntry extends Model
     public function hasOverlapForUser(): bool
     {
         return self::where('user_id', $this->user_id)
-                   ->where('id', '!=', $this->id ?? 0)
-                   ->where(function ($query) {
-                       $query->whereBetween('start_time', [$this->start_time, $this->end_time])
-                             ->orWhereBetween('end_time', [$this->start_time, $this->end_time])
-                             ->orWhere(function ($subQuery) {
-                                 $subQuery->where('start_time', '<=', $this->start_time)
-                                          ->where('end_time', '>=', $this->end_time);
-                             });
-                   })
-                   ->exists();
+            ->where('id', '!=', $this->id ?? 0)
+            ->where(function ($query) {
+                $query->whereBetween('start_time', [$this->start_time, $this->end_time])
+                    ->orWhereBetween('end_time', [$this->start_time, $this->end_time])
+                    ->orWhere(function ($subQuery) {
+                        $subQuery->where('start_time', '<=', $this->start_time)
+                            ->where('end_time', '>=', $this->end_time);
+                    });
+            })
+            ->exists();
     }
 
     /**
@@ -153,6 +173,7 @@ class TimeEntry extends Model
     {
         // Allow modification within 7 days (configurable)
         $modificationDeadline = config('app.time_entry_modification_days', 7);
+
         return $this->created_at->diffInDays(now()) <= $modificationDeadline;
     }
 
@@ -245,12 +266,12 @@ class TimeEntry extends Model
     public static function getGroupedByDate(User $user, Carbon $startDate, Carbon $endDate)
     {
         return self::accessibleBy(self::query(), $user)
-                   ->dateRange($startDate, $endDate)
-                   ->with(['task.project', 'user'])
-                   ->get()
-                   ->groupBy(function ($entry) {
-                       return $entry->start_time->format('Y-m-d');
-                   });
+            ->dateRange($startDate, $endDate)
+            ->with(['task.project', 'user'])
+            ->get()
+            ->groupBy(function ($entry) {
+                return $entry->start_time->format('Y-m-d');
+            });
     }
 
     /**
@@ -259,8 +280,8 @@ class TimeEntry extends Model
     public static function getTotalHoursForUser(User $user, Carbon $startDate, Carbon $endDate): float
     {
         return self::forUser($user->id)
-                   ->dateRange($startDate, $endDate)
-                   ->sum('duration') ?? 0;
+            ->dateRange($startDate, $endDate)
+            ->sum('duration_hours') ?? 0;
     }
 
     /**
@@ -273,8 +294,8 @@ class TimeEntry extends Model
         // Validate before saving
         static::saving(function ($timeEntry) {
             $errors = $timeEntry->validateTimeEntry();
-            if (!empty($errors)) {
-                throw new \InvalidArgumentException('Validation failed: ' . implode(', ', $errors));
+            if (! empty($errors)) {
+                throw new \InvalidArgumentException('Validation failed: '.implode(', ', $errors));
             }
         });
     }

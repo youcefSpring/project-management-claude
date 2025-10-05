@@ -174,34 +174,24 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="{{ route('admin.courses.index') }}" class="nav-link {{ request()->routeIs('admin.courses.*') ? 'active' : '' }}">
-                <i class="bi bi-book"></i>
-                <span>Courses</span>
-            </a>
-
-            <a href="{{ route('admin.projects.index') }}" class="nav-link {{ request()->routeIs('admin.projects.*') ? 'active' : '' }}">
-                <i class="bi bi-code-slash"></i>
+            <a href="{{ route('projects.index') }}" class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}">
+                <i class="bi bi-folder"></i>
                 <span>Projects</span>
             </a>
 
-            <a href="{{ route('admin.publications.index') }}" class="nav-link {{ request()->routeIs('admin.publications.*') ? 'active' : '' }}">
-                <i class="bi bi-journal-text"></i>
-                <span>Publications</span>
+            <a href="{{ route('tasks.index') }}" class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
+                <i class="bi bi-check2-square"></i>
+                <span>Tasks</span>
             </a>
 
-            <a href="{{ route('admin.blog.index') }}" class="nav-link {{ request()->routeIs('admin.blog.*') ? 'active' : '' }}">
-                <i class="bi bi-pencil-square"></i>
-                <span>Blog Posts</span>
+            <a href="{{ route('timesheet.index') }}" class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}">
+                <i class="bi bi-clock"></i>
+                <span>Time Tracking</span>
             </a>
 
-            <a href="{{ route('admin.tags.index') }}" class="nav-link {{ request()->routeIs('admin.tags.*') ? 'active' : '' }}">
-                <i class="bi bi-tags"></i>
-                <span>Tags</span>
-            </a>
-
-            <a href="{{ route('admin.contact.index') }}" class="nav-link {{ request()->routeIs('admin.contact.*') ? 'active' : '' }}">
-                <i class="bi bi-envelope"></i>
-                <span>Messages</span>
+            <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
             </a>
 
             <hr class="my-3 mx-3 border-secondary">

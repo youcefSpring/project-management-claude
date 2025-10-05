@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 
 class TaskService
 {
@@ -28,14 +28,14 @@ class TaskService
 
         // Validate project access
         $project = Project::findOrFail($data['project_id']);
-        if (!$this->canUserManageProjectTasks($creator, $project)) {
+        if (! $this->canUserManageProjectTasks($creator, $project)) {
             throw new \UnauthorizedHttpException('You are not authorized to create tasks for this project.');
         }
 
         // Validate assignee
-        if (!empty($data['assigned_to'])) {
+        if (! empty($data['assigned_to'])) {
             $assignee = User::find($data['assigned_to']);
-            if (!$assignee || !$assignee->isMember()) {
+            if (! $assignee || ! $assignee->isMember()) {
                 throw ValidationException::withMessages([
                     'assigned_to' => ['The selected assignee is invalid.'],
                 ]);
@@ -43,7 +43,7 @@ class TaskService
         }
 
         // Validate due date against project dates
-        if (!empty($data['due_date'])) {
+        if (! empty($data['due_date'])) {
             $this->validateTaskDueDate($data['due_date'], $project);
         }
 
@@ -53,7 +53,7 @@ class TaskService
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
             'status' => Task::STATUS_TODO,
-            'due_date' => !empty($data['due_date']) ? Carbon::parse($data['due_date']) : null,
+            'due_date' => ! empty($data['due_date']) ? Carbon::parse($data['due_date']) : null,
             'assigned_to' => $data['assigned_to'] ?? null,
         ]);
 
@@ -79,7 +79,7 @@ class TaskService
     public function update(Task $task, array $data, User $user): Task
     {
         // Check permissions
-        if (!$this->canUserEditTask($user, $task)) {
+        if (! $this->canUserEditTask($user, $task)) {
             throw new \UnauthorizedHttpException('You are not authorized to edit this task.');
         }
 
@@ -101,7 +101,7 @@ class TaskService
         $newAssignee = $data['assigned_to'] ?? $task->assigned_to;
 
         // Update task
-        $updateData = array_filter($data, function($value) {
+        $updateData = array_filter($data, function ($value) {
             return $value !== null;
         });
 
@@ -142,7 +142,7 @@ class TaskService
     public function delete(Task $task, User $user): bool
     {
         // Check permissions
-        if (!$this->canUserDeleteTask($user, $task)) {
+        if (! $this->canUserDeleteTask($user, $task)) {
             throw new \UnauthorizedHttpException('You are not authorized to delete this task.');
         }
 
@@ -200,14 +200,14 @@ class TaskService
     public function assignTask(Task $task, ?int $userId, User $assigner): Task
     {
         // Check permissions
-        if (!$this->canUserManageProjectTasks($assigner, $task->project)) {
+        if (! $this->canUserManageProjectTasks($assigner, $task->project)) {
             throw new \UnauthorizedHttpException('You are not authorized to assign this task.');
         }
 
         // Validate assignee
         if ($userId) {
             $assignee = User::find($userId);
-            if (!$assignee || !$assignee->isMember()) {
+            if (! $assignee || ! $assignee->isMember()) {
                 throw ValidationException::withMessages([
                     'assigned_to' => ['The selected assignee is invalid.'],
                 ]);
@@ -236,37 +236,37 @@ class TaskService
         $query = Task::accessibleBy($user);
 
         // Apply filters
-        if (!empty($filters['project_id'])) {
+        if (! empty($filters['project_id'])) {
             $query->where('project_id', $filters['project_id']);
         }
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['assigned_to'])) {
+        if (! empty($filters['assigned_to'])) {
             $query->where('assigned_to', $filters['assigned_to']);
         }
 
-        if (!empty($filters['due_date'])) {
+        if (! empty($filters['due_date'])) {
             $query->whereDate('due_date', $filters['due_date']);
         }
 
-        if (!empty($filters['overdue'])) {
+        if (! empty($filters['overdue'])) {
             $query->overdue();
         }
 
-        if (!empty($filters['search'])) {
-            $query->where(function($q) use ($filters) {
+        if (! empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
                 $q->where('title', 'LIKE', "%{$filters['search']}%")
-                  ->orWhere('description', 'LIKE', "%{$filters['search']}%");
+                    ->orWhere('description', 'LIKE', "%{$filters['search']}%");
             });
         }
 
         return $query->with(['project', 'assignedUser'])
-                    ->orderBy('due_date', 'asc')
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->orderBy('due_date', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     /**
@@ -281,12 +281,10 @@ class TaskService
             'todo_tasks' => $tasks->where('status', Task::STATUS_TODO)->count(),
             'in_progress_tasks' => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
             'completed_tasks' => $tasks->where('status', Task::STATUS_DONE)->count(),
-            'overdue_tasks' => $tasks->filter(fn($task) => $task->isOverdue())->count(),
-            'due_today' => $tasks->filter(fn($task) =>
-                $task->due_date && $task->due_date->isToday() && !$task->isDone()
+            'overdue_tasks' => $tasks->filter(fn ($task) => $task->isOverdue())->count(),
+            'due_today' => $tasks->filter(fn ($task) => $task->due_date && $task->due_date->isToday() && ! $task->isDone()
             )->count(),
-            'due_this_week' => $tasks->filter(fn($task) =>
-                $task->due_date && $task->due_date->isBetween(now(), now()->endOfWeek()) && !$task->isDone()
+            'due_this_week' => $tasks->filter(fn ($task) => $task->due_date && $task->due_date->isBetween(now(), now()->endOfWeek()) && ! $task->isDone()
             )->count(),
             'recent_tasks' => $tasks->sortByDesc('created_at')->take(5),
         ];
@@ -304,7 +302,7 @@ class TaskService
             'completed_tasks' => $tasks->where('status', Task::STATUS_DONE)->count(),
             'in_progress_tasks' => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
             'todo_tasks' => $tasks->where('status', Task::STATUS_TODO)->count(),
-            'overdue_tasks' => $tasks->filter(fn($task) => $task->isOverdue())->count(),
+            'overdue_tasks' => $tasks->filter(fn ($task) => $task->isOverdue())->count(),
             'completion_percentage' => $project->completion_percentage,
             'average_completion_time' => $this->getAverageCompletionTime($tasks),
         ];
@@ -318,7 +316,7 @@ class TaskService
         // Check for duplicate titles within the same project
         if (isset($data['project_id'], $data['title'])) {
             $query = Task::where('project_id', $data['project_id'])
-                        ->where('title', $data['title']);
+                ->where('title', $data['title']);
 
             if ($exceptId) {
                 $query->where('id', '!=', $exceptId);
@@ -357,7 +355,7 @@ class TaskService
      */
     private function validateStatusTransition(Task $task, string $newStatus, User $user): void
     {
-        if (!$task->canTransitionTo($newStatus)) {
+        if (! $task->canTransitionTo($newStatus)) {
             throw ValidationException::withMessages([
                 'status' => ['Invalid status transition.'],
             ]);
@@ -371,7 +369,7 @@ class TaskService
         }
 
         // Business rule: task must be assigned to move to in_progress
-        if ($newStatus === Task::STATUS_IN_PROGRESS && !$task->assigned_to) {
+        if ($newStatus === Task::STATUS_IN_PROGRESS && ! $task->assigned_to) {
             throw ValidationException::withMessages([
                 'status' => ['Task must be assigned before it can be started.'],
             ]);
@@ -441,7 +439,7 @@ class TaskService
             return null;
         }
 
-        $totalDays = $completedTasks->sum(function($task) {
+        $totalDays = $completedTasks->sum(function ($task) {
             return $task->created_at->diffInDays($task->updated_at);
         });
 
@@ -461,10 +459,10 @@ class TaskService
         }
 
         // Find member with least assigned tasks
-        $memberWithLeastTasks = $teamMembers->sortBy(function($member) {
+        $memberWithLeastTasks = $teamMembers->sortBy(function ($member) {
             return $member->assignedTasks()->whereIn('status', [
                 Task::STATUS_TODO,
-                Task::STATUS_IN_PROGRESS
+                Task::STATUS_IN_PROGRESS,
             ])->count();
         })->first();
 

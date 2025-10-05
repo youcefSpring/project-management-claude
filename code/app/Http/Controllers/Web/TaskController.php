@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use App\Services\TaskService;
 use Illuminate\Http\Request;
@@ -23,8 +23,8 @@ class TaskController extends Controller
         $user = $request->user();
         $filters = $request->only(['project_id', 'status', 'assigned_to']);
 
-        // Basic filtering for the view - Ajax will handle advanced filtering
-        $tasks = $this->taskService->getTasks($filters, $user, 15);
+        // Get accessible tasks for the user
+        $tasks = $this->taskService->getAccessibleTasks($user, $filters);
 
         // Get data for filters
         $projects = [];
@@ -53,7 +53,7 @@ class TaskController extends Controller
             'project.manager',
             'assignedUser',
             'notes.user',
-            'timeEntries.user'
+            'timeEntries.user',
         ]);
 
         return view('tasks.show', compact('task'));
@@ -78,12 +78,69 @@ class TaskController extends Controller
         return view('tasks.create', compact('projects', 'users', 'selectedProject'));
     }
 
+    public function store(Request $request)
+    {
+        $this->authorize('create', Task::class);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'due_date' => 'nullable|date|after_or_equal:today',
+            'priority' => 'required|in:low,medium,high,urgent',
+        ]);
+
+        $task = $this->taskService->create($request->all(), $request->user());
+
+        return redirect()->route('tasks.show', $task)
+            ->with('success', __('Task created successfully.'));
+    }
+
     public function edit(Task $task)
     {
         $this->authorize('update', $task);
 
+        $projects = [];
         $users = User::where('role', 'member')->get();
 
-        return view('tasks.edit', compact('task', 'users'));
+        $user = auth()->user();
+        if ($user->isAdmin()) {
+            $projects = Project::all();
+        } elseif ($user->isManager()) {
+            $projects = Project::where('manager_id', $user->id)->get();
+        }
+
+        return view('tasks.edit', compact('task', 'projects', 'users'));
+    }
+
+    public function update(Request $request, Task $task)
+    {
+        $this->authorize('update', $task);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'project_id' => 'required|exists:projects,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'due_date' => 'nullable|date',
+            'priority' => 'required|in:low,medium,high,urgent',
+            'status' => 'required|in:pending,in_progress,completed,cancelled',
+        ]);
+
+        $this->taskService->update($task, $request->all(), $request->user());
+
+        return redirect()->route('tasks.show', $task)
+            ->with('success', __('Task updated successfully.'));
+    }
+
+    public function destroy(Task $task)
+    {
+        $this->authorize('delete', $task);
+
+        $this->taskService->delete($task, auth()->user());
+
+        return redirect()->route('tasks.index')
+            ->with('success', __('Task deleted successfully.'));
     }
 }

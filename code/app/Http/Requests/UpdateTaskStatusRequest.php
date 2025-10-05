@@ -50,7 +50,7 @@ class UpdateTaskStatusRequest extends FormRequest
                         'fait' => ['en_cours'],
                     ];
 
-                    if (!in_array($value, $allowedTransitions[$task->status] ?? [])) {
+                    if (! in_array($value, $allowedTransitions[$task->status] ?? [])) {
                         $fail('Transition de statut non autorisée.');
                     }
 
@@ -60,7 +60,7 @@ class UpdateTaskStatusRequest extends FormRequest
                     }
 
                     // Business rule: task must be assigned to move to in_progress
-                    if ($value === 'en_cours' && !$task->assigned_to) {
+                    if ($value === 'en_cours' && ! $task->assigned_to) {
                         $fail('La tâche doit être assignée avant d\'être mise en cours.');
                     }
 

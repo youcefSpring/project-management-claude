@@ -22,8 +22,8 @@ class ProjectController extends Controller
         $user = $request->user();
         $filters = $request->only(['status', 'search']);
 
-        // Basic filtering for the view - Ajax will handle advanced filtering
-        $projects = $this->projectService->getProjects($filters, $user, 10);
+        // Get accessible projects for the user
+        $projects = $this->projectService->getAccessibleProjects($user, $filters);
 
         // Get managers for filter dropdown (admin/manager only)
         $managers = [];
@@ -41,7 +41,7 @@ class ProjectController extends Controller
         $project->load([
             'manager',
             'tasks.assignedUser',
-            'tasks.timeEntries'
+            'tasks.timeEntries',
         ]);
 
         $stats = [
@@ -66,6 +66,24 @@ class ProjectController extends Controller
         return view('projects.create', compact('managers'));
     }
 
+    public function store(Request $request)
+    {
+        $this->authorize('create', Project::class);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_date' => 'required|date|after_or_equal:today',
+            'end_date' => 'required|date|after:start_date',
+            'manager_id' => 'required|exists:users,id',
+        ]);
+
+        $project = $this->projectService->create($request->all(), $request->user());
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', __('Project created successfully.'));
+    }
+
     public function edit(Project $project)
     {
         $this->authorize('update', $project);
@@ -73,5 +91,34 @@ class ProjectController extends Controller
         $managers = User::where('role', 'manager')->get();
 
         return view('projects.edit', compact('project', 'managers'));
+    }
+
+    public function update(Request $request, Project $project)
+    {
+        $this->authorize('update', $project);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'manager_id' => 'required|exists:users,id',
+            'status' => 'required|in:planning,active,on_hold,completed,cancelled',
+        ]);
+
+        $this->projectService->update($project, $request->all(), $request->user());
+
+        return redirect()->route('projects.show', $project)
+            ->with('success', __('Project updated successfully.'));
+    }
+
+    public function destroy(Project $project)
+    {
+        $this->authorize('delete', $project);
+
+        $this->projectService->delete($project, auth()->user());
+
+        return redirect()->route('projects.index')
+            ->with('success', __('Project deleted successfully.'));
     }
 }

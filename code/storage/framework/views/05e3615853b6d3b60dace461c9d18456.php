@@ -272,6 +272,15 @@
                     <?php endif; ?>
 
                     <?php if(auth()->user()->isAdmin()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo e(request()->routeIs('users.*') ? 'active' : ''); ?>"
+                           href="<?php echo e(route('users.index')); ?>">
+                            <i class="bi bi-people"></i>
+                            <?php echo e(__('User Management')); ?>
+
+                        </a>
+                    </li>
+
                     <hr class="my-3 text-light">
                     <li class="nav-item">
                         <a class="nav-link <?php echo e(request()->routeIs('admin.*') ? 'active' : ''); ?>"
@@ -367,16 +376,34 @@
                             <button class="btn btn-outline-secondary btn-sm position-relative"
                                     type="button" id="notificationsDropdown" data-bs-toggle="dropdown">
                                 <i class="bi bi-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                      id="notification-count" style="display: none;">
-                                    0
-                                </span>
+                                <?php
+                                    $notificationService = app(\App\Services\NotificationService::class);
+                                    $headerNotifications = $notificationService->getUserNotifications(auth()->user(), 5);
+                                    $unreadCount = $notificationService->getUnreadCount(auth()->user());
+                                ?>
+                                <?php if($unreadCount > 0): ?>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        <?php echo e($unreadCount); ?>
+
+                                    </span>
+                                <?php endif; ?>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" style="width: 350px;">
                                 <li><h6 class="dropdown-header"><?php echo e(__('Notifications')); ?></h6></li>
-                                <div id="notifications-list">
+                                <?php if(count($headerNotifications) > 0): ?>
+                                    <?php $__currentLoopData = $headerNotifications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <li>
+                                            <a class="dropdown-item" href="#">
+                                                <div class="d-flex justify-content-between">
+                                                    <span><?php echo e($notification['title'] ?? $notification['message'] ?? 'Notification'); ?></span>
+                                                    <small class="text-muted"><?php echo e(\Carbon\Carbon::parse($notification['created_at'])->diffForHumans()); ?></small>
+                                                </div>
+                                            </a>
+                                        </li>
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                <?php else: ?>
                                     <li><span class="dropdown-item-text text-muted"><?php echo e(__('No notifications')); ?></span></li>
-                                </div>
+                                <?php endif; ?>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-center" href="#"><?php echo e(__('View all')); ?></a></li>
                             </ul>
@@ -499,54 +526,6 @@
             }
         );
 
-        // Load notifications on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadNotifications();
-
-            // Refresh notifications every 30 seconds
-            setInterval(loadNotifications, 30000);
-        });
-
-        function loadNotifications() {
-            axios.get('/ajax/dashboard/notifications')
-                .then(response => {
-                    const data = response.data;
-                    const countElement = document.getElementById('notification-count');
-                    const listElement = document.getElementById('notifications-list');
-
-                    if (data.unread_count > 0) {
-                        countElement.textContent = data.unread_count;
-                        countElement.style.display = 'block';
-                    } else {
-                        countElement.style.display = 'none';
-                    }
-
-                    if (data.data.length > 0) {
-                        listElement.innerHTML = data.data.map(notification =>
-                            `<li><a class="dropdown-item" href="#">
-                                <div class="d-flex justify-content-between">
-                                    <span>${notification.message}</span>
-                                    <small class="text-muted">${formatTime(notification.created_at)}</small>
-                                </div>
-                            </a></li>`
-                        ).join('');
-                    } else {
-                        listElement.innerHTML = '<li><span class="dropdown-item-text text-muted"><?php echo e(__("No notifications")); ?></span></li>';
-                    }
-                })
-                .catch(error => console.error('Failed to load notifications:', error));
-        }
-
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diff = now - date;
-
-            if (diff < 60000) return '<?php echo e(__("Just now")); ?>';
-            if (diff < 3600000) return Math.floor(diff / 60000) + '<?php echo e(__("m ago")); ?>';
-            if (diff < 86400000) return Math.floor(diff / 3600000) + '<?php echo e(__("h ago")); ?>';
-            return Math.floor(diff / 86400000) + '<?php echo e(__("d ago")); ?>';
-        }
 
         // Form helpers
         function showSuccess(message) {

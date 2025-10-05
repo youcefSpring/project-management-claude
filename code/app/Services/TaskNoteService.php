@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\TaskNote;
 use App\Models\Task;
-use Illuminate\Support\Facades\Auth;
+use App\Models\TaskNote;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Auth;
 
 class TaskNoteService
 {
@@ -183,7 +183,7 @@ class TaskNoteService
             $task = Task::findOrFail($taskId);
             $this->authorizeTaskAccess($task);
             $notesQuery->where('task_id', $taskId);
-        } else if ($user->role !== 'admin') {
+        } elseif ($user->role !== 'admin') {
             $notesQuery->whereHas('task', function ($query) use ($user) {
                 $query->where('assigned_to', $user->id)
                     ->orWhereHas('project', function ($projectQuery) use ($user) {
@@ -254,7 +254,7 @@ class TaskNoteService
                 $createdNotes[] = $this->createNote($noteData['task_id'], $noteData);
             } catch (\Exception $e) {
                 // Log error but continue with other notes
-                \Log::error('Failed to create note: ' . $e->getMessage(), $noteData);
+                \Log::error('Failed to create note: '.$e->getMessage(), $noteData);
             }
         }
 

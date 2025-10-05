@@ -34,7 +34,7 @@ class StoreUserRequest extends FormRequest
                 Password::min(8)
                     ->letters()
                     ->mixedCase()
-                    ->numbers()
+                    ->numbers(),
             ],
             'role' => ['required', 'in:admin,manager,member'],
             'language' => ['required', 'in:fr,en,ar'],

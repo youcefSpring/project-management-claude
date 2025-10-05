@@ -63,7 +63,7 @@ class Translation extends Model
     /**
      * Get translation for a specific key and language
      */
-    public static function get(string $key, string $language = null, string $default = null): string
+    public static function get(string $key, ?string $language = null, ?string $default = null): string
     {
         $language = $language ?? self::DEFAULT_LANGUAGE;
 
@@ -72,8 +72,8 @@ class Translation extends Model
 
         return Cache::remember($cacheKey, 3600, function () use ($key, $language, $default) {
             $translation = self::where('key', $key)
-                              ->where('language', $language)
-                              ->first();
+                ->where('language', $language)
+                ->first();
 
             if ($translation) {
                 return $translation->value;
@@ -82,8 +82,8 @@ class Translation extends Model
             // Fallback to default language if not found
             if ($language !== self::DEFAULT_LANGUAGE) {
                 $fallback = self::where('key', $key)
-                              ->where('language', self::DEFAULT_LANGUAGE)
-                              ->first();
+                    ->where('language', self::DEFAULT_LANGUAGE)
+                    ->first();
 
                 if ($fallback) {
                     return $fallback->value;
@@ -100,7 +100,7 @@ class Translation extends Model
      */
     public static function set(string $key, string $language, string $value): self
     {
-        if (!self::isLanguageSupported($language)) {
+        if (! self::isLanguageSupported($language)) {
             throw new \InvalidArgumentException("Language '{$language}' is not supported");
         }
 
@@ -120,7 +120,7 @@ class Translation extends Model
      */
     public static function getAllForLanguage(string $language): array
     {
-        if (!self::isLanguageSupported($language)) {
+        if (! self::isLanguageSupported($language)) {
             return [];
         }
 
@@ -128,15 +128,15 @@ class Translation extends Model
 
         return Cache::remember($cacheKey, 3600, function () use ($language) {
             return self::where('language', $language)
-                      ->pluck('value', 'key')
-                      ->toArray();
+                ->pluck('value', 'key')
+                ->toArray();
         });
     }
 
     /**
      * Get translations for multiple keys
      */
-    public static function getMultiple(array $keys, string $language = null): array
+    public static function getMultiple(array $keys, ?string $language = null): array
     {
         $language = $language ?? self::DEFAULT_LANGUAGE;
         $translations = [];
@@ -153,7 +153,7 @@ class Translation extends Model
      */
     public static function import(array $translations, string $language): int
     {
-        if (!self::isLanguageSupported($language)) {
+        if (! self::isLanguageSupported($language)) {
             throw new \InvalidArgumentException("Language '{$language}' is not supported");
         }
 
@@ -333,7 +333,7 @@ class Translation extends Model
 
         // Validate language and key
         static::saving(function ($translation) {
-            if (!self::isLanguageSupported($translation->language)) {
+            if (! self::isLanguageSupported($translation->language)) {
                 throw new \InvalidArgumentException("Language '{$translation->language}' is not supported");
             }
 

@@ -9,15 +9,15 @@
         <div class="stats-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h3 class="stats-number mb-0">{{ $stats['courses'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Courses</p>
+                    <h3 class="stats-number mb-0">{{ $stats['total_users'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Total Users</p>
                 </div>
                 <div class="text-primary">
-                    <i class="bi bi-book" style="font-size: 2.5rem;"></i>
+                    <i class="bi bi-people" style="font-size: 2.5rem;"></i>
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('admin.courses.index') }}" class="btn btn-sm btn-outline-primary">
+                <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-eye me-1"></i>View All
                 </a>
             </div>
@@ -32,7 +32,7 @@
                     <p class="text-muted mb-0">Projects</p>
                 </div>
                 <div class="text-success">
-                    <i class="bi bi-code-slash" style="font-size: 2.5rem;"></i>
+                    <i class="bi bi-folder" style="font-size: 2.5rem;"></i>
                 </div>
             </div>
             <div class="mt-2">
@@ -47,15 +47,15 @@
         <div class="stats-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h3 class="stats-number mb-0">{{ $stats['publications'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Publications</p>
+                    <h3 class="stats-number mb-0">{{ $stats['completed_tasks'] ?? 0 }}</h3>
+                    <p class="text-muted mb-0">Completed Tasks</p>
                 </div>
                 <div class="text-info">
-                    <i class="bi bi-journal-text" style="font-size: 2.5rem;"></i>
+                    <i class="bi bi-check2-square" style="font-size: 2.5rem;"></i>
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('admin.publications.index') }}" class="btn btn-sm btn-outline-info">
+                <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-outline-info">
                     <i class="bi bi-eye me-1"></i>View All
                 </a>
             </div>
@@ -66,15 +66,15 @@
         <div class="stats-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h3 class="stats-number mb-0">{{ $stats['blog_posts'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Blog Posts</p>
+                    <h3 class="stats-number mb-0">{{ number_format($stats['total_time_logged'] ?? 0, 1) }}h</h3>
+                    <p class="text-muted mb-0">Time Logged</p>
                 </div>
                 <div class="text-warning">
-                    <i class="bi bi-pencil-square" style="font-size: 2.5rem;"></i>
+                    <i class="bi bi-clock" style="font-size: 2.5rem;"></i>
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('admin.blog.index') }}" class="btn btn-sm btn-outline-warning">
+                <a href="{{ route('timesheet.index') }}" class="btn btn-sm btn-outline-warning">
                     <i class="bi bi-eye me-1"></i>View All
                 </a>
             </div>
@@ -95,39 +95,39 @@
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <a href="{{ route('admin.courses.create') }}" class="btn btn-outline-primary w-100">
+                        <a href="{{ route('admin.users.create') }}" class="btn btn-outline-primary w-100">
                             <i class="bi bi-plus-circle me-2"></i>
-                            Add Course
+                            Add User
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ route('admin.projects.create') }}" class="btn btn-outline-success w-100">
+                        <a href="{{ route('projects.create') }}" class="btn btn-outline-success w-100">
                             <i class="bi bi-plus-circle me-2"></i>
                             Add Project
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ route('admin.blog.create') }}" class="btn btn-outline-warning w-100">
+                        <a href="{{ route('tasks.create') }}" class="btn btn-outline-info w-100">
                             <i class="bi bi-plus-circle me-2"></i>
-                            Write Post
+                            Add Task
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ route('admin.publications.create') }}" class="btn btn-outline-info w-100">
-                            <i class="bi bi-plus-circle me-2"></i>
-                            Add Publication
+                        <a href="{{ route('admin.settings.index') }}" class="btn btn-outline-secondary w-100">
+                            <i class="bi bi-gear me-2"></i>
+                            System Settings
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ route('admin.tags.create') }}" class="btn btn-outline-secondary w-100">
-                            <i class="bi bi-plus-circle me-2"></i>
-                            Add Tag
+                        <a href="{{ route('reports.index') }}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-graph-up me-2"></i>
+                            View Reports
                         </a>
                     </div>
                     <div class="col-md-4">
-                        <a href="{{ route('admin.profile.edit') }}" class="btn btn-outline-dark w-100">
-                            <i class="bi bi-person-gear me-2"></i>
-                            Edit Profile
+                        <a href="{{ route('admin.translations.index') }}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-translate me-2"></i>
+                            Translations
                         </a>
                     </div>
                 </div>
@@ -145,17 +145,17 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Unread Messages</span>
-                    <span class="badge bg-primary">{{ $stats['unread_messages'] ?? 0 }}</span>
+                    <span>Active Projects</span>
+                    <span class="badge bg-primary">{{ $stats['active_projects'] ?? 0 }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Total Messages</span>
-                    <span class="badge bg-secondary">{{ $stats['total_messages'] ?? 0 }}</span>
+                    <span>Total Users</span>
+                    <span class="badge bg-secondary">{{ $stats['total_users'] ?? 0 }}</span>
                 </div>
                 <div class="d-grid">
-                    <a href="{{ route('admin.contact.index') }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-envelope-open me-1"></i>
-                        View Messages
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-people me-1"></i>
+                        Manage Users
                     </a>
                 </div>
             </div>
@@ -230,8 +230,8 @@
             <div class="card-body">
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Content Published</span>
-                        <span class="small fw-bold">{{ ($stats['courses'] + $stats['projects'] + $stats['blog_posts'] + $stats['publications']) ?? 0 }}</span>
+                        <span class="small">Projects & Tasks</span>
+                        <span class="small fw-bold">{{ ($stats['projects'] + $stats['completed_tasks']) ?? 0 }}</span>
                     </div>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-success" style="width: 85%"></div>

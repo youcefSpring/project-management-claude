@@ -1,14 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ProjectController;
-use App\Http\Controllers\Web\TaskController;
-use App\Http\Controllers\Web\TimeEntryController;
 use App\Http\Controllers\Web\ReportController;
+use App\Http\Controllers\Web\TaskController;
+use App\Http\Controllers\Web\TaskNoteController;
+use App\Http\Controllers\Web\TimeEntryController;
+use App\Http\Controllers\Web\UserController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,10 +71,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [ProjectController::class, 'create'])
             ->middleware('role:admin,manager')
             ->name('create');
+        Route::post('/', [ProjectController::class, 'store'])
+            ->middleware('role:admin,manager')
+            ->name('store');
         Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
         Route::get('/{project}/edit', [ProjectController::class, 'edit'])
             ->middleware('role:admin,manager')
             ->name('edit');
+        Route::put('/{project}', [ProjectController::class, 'update'])
+            ->middleware('role:admin,manager')
+            ->name('update');
+        Route::delete('/{project}', [ProjectController::class, 'destroy'])
+            ->middleware('role:admin,manager')
+            ->name('destroy');
     });
 
     // Tasks
@@ -81,15 +92,52 @@ Route::middleware('auth')->group(function () {
         Route::get('/create', [TaskController::class, 'create'])
             ->middleware('role:admin,manager')
             ->name('create');
+        Route::post('/', [TaskController::class, 'store'])
+            ->middleware('role:admin,manager')
+            ->name('store');
         Route::get('/{task}', [TaskController::class, 'show'])->name('show');
         Route::get('/{task}/edit', [TaskController::class, 'edit'])->name('edit');
+        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+
+        // Task Notes
+        Route::post('/{task}/notes', [TaskNoteController::class, 'store'])->name('notes.store');
+        Route::put('/notes/{note}', [TaskNoteController::class, 'update'])->name('notes.update');
+        Route::delete('/notes/{note}', [TaskNoteController::class, 'destroy'])->name('notes.destroy');
     });
 
     // Time Tracking (Timesheet)
     Route::prefix('timesheet')->name('timesheet.')->group(function () {
         Route::get('/', [TimeEntryController::class, 'index'])->name('index');
         Route::get('/create', [TimeEntryController::class, 'create'])->name('create');
+        Route::post('/', [TimeEntryController::class, 'store'])->name('store');
+        Route::get('/{timeEntry}', [TimeEntryController::class, 'show'])->name('show');
         Route::get('/{timeEntry}/edit', [TimeEntryController::class, 'edit'])->name('edit');
+        Route::put('/{timeEntry}', [TimeEntryController::class, 'update'])->name('update');
+        Route::delete('/{timeEntry}', [TimeEntryController::class, 'destroy'])->name('destroy');
+    });
+
+    // User Management
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/create', [UserController::class, 'create'])
+            ->middleware('role:admin')
+            ->name('create');
+        Route::post('/', [UserController::class, 'store'])
+            ->middleware('role:admin')
+            ->name('store');
+        Route::get('/{user}', [UserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [UserController::class, 'destroy'])
+            ->middleware('role:admin')
+            ->name('destroy');
+        Route::patch('/{user}/role', [UserController::class, 'updateRole'])
+            ->middleware('role:admin')
+            ->name('update-role');
+        Route::get('/api/stats', [UserController::class, 'getUserStats'])
+            ->middleware('role:admin')
+            ->name('stats');
     });
 
     // Reports
@@ -119,45 +167,43 @@ Route::middleware('auth')->group(function () {
         Route::get('/settings', function () {
             return view('profile.settings');
         })->name('settings');
-    });
 
-    // Admin Routes
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::patch('/', function () {
+            $user = auth()->user();
+            $request = request();
 
-        // User Management
-        Route::prefix('users')->name('users.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.users.index');
-            })->name('index');
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+                'language' => 'required|in:en,fr,ar',
+            ]);
 
-            Route::get('/create', function () {
-                return view('admin.users.create');
-            })->name('create');
+            $user->update([
+                'name' => $request->name,
+                'email' => $request->email,
+                'language' => $request->language,
+            ]);
 
-            Route::get('/{user}/edit', function ($user) {
-                return view('admin.users.edit', compact('user'));
-            })->name('edit');
-        });
+            session(['language' => $request->language]);
+            app()->setLocale($request->language);
 
-        // Translation Management
-        Route::prefix('translations')->name('translations.')->group(function () {
-            Route::get('/', function () {
-                return view('admin.translations.index');
-            })->name('index');
+            return back()->with('success', __('Profile updated successfully.'));
+        })->name('update');
 
-            Route::get('/create', function () {
-                return view('admin.translations.create');
-            })->name('create');
+        Route::put('/password', function () {
+            $request = request();
 
-            Route::get('/{key}/edit', function ($key) {
-                return view('admin.translations.edit', compact('key'));
-            })->name('edit');
-        });
+            $request->validate([
+                'current_password' => 'required|current_password',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
 
-        // System Settings
-        Route::get('/settings', function () {
-            return view('admin.settings.index');
-        })->name('settings');
+            auth()->user()->update([
+                'password' => bcrypt($request->password)
+            ]);
+
+            return back()->with('success', __('Password updated successfully.'));
+        })->name('password.update');
     });
 
     // Help & Documentation
@@ -168,6 +214,7 @@ Route::middleware('auth')->group(function () {
     // Search (Global)
     Route::get('/search', function () {
         $query = request('q');
+
         return view('search.results', compact('query'));
     })->name('search');
 });
@@ -187,9 +234,9 @@ Route::middleware('auth')->post('/language', function () {
 
 // File Downloads (for reports)
 Route::middleware('auth')->get('/downloads/{file}', function ($file) {
-    $path = storage_path('app/reports/' . $file);
+    $path = storage_path('app/reports/'.$file);
 
-    if (!file_exists($path)) {
+    if (! file_exists($path)) {
         abort(404);
     }
 
@@ -202,7 +249,7 @@ Route::get('/health', function () {
         'status' => 'ok',
         'timestamp' => now()->toISOString(),
         'app' => config('app.name'),
-        'version' => config('app.version', '1.0.0')
+        'version' => config('app.version', '1.0.0'),
     ]);
 })->name('health');
 

@@ -6,9 +6,8 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\TimeEntry;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 
 class ReportService
 {
@@ -20,7 +19,7 @@ class ReportService
         $project = Project::findOrFail($projectId);
 
         // Check permissions
-        if (!$project->canBeViewedBy($user)) {
+        if (! $project->canBeViewedBy($user)) {
             throw new \UnauthorizedHttpException('You are not authorized to view this project report.');
         }
 
@@ -49,7 +48,7 @@ class ReportService
         $user = User::findOrFail($userId);
 
         // Check permissions
-        if (!$this->canViewUserReport($requestingUser, $user)) {
+        if (! $this->canViewUserReport($requestingUser, $user)) {
             throw new \UnauthorizedHttpException('You are not authorized to view this user report.');
         }
 
@@ -57,9 +56,9 @@ class ReportService
         $endDate = isset($filters['end_date']) ? Carbon::parse($filters['end_date']) : Carbon::now()->endOfMonth();
 
         $timeEntries = TimeEntry::forUser($user->id)
-                               ->dateRange($startDate, $endDate)
-                               ->with(['task.project'])
-                               ->get();
+            ->dateRange($startDate, $endDate)
+            ->with(['task.project'])
+            ->get();
 
         return [
             'user' => $user,
@@ -80,7 +79,7 @@ class ReportService
      */
     public function generateTeamReport(User $user, array $filters = []): array
     {
-        if (!$user->isManager() && !$user->isAdmin()) {
+        if (! $user->isManager() && ! $user->isAdmin()) {
             throw new \UnauthorizedHttpException('You are not authorized to view team reports.');
         }
 
@@ -104,6 +103,72 @@ class ReportService
     }
 
     /**
+     * Generate users report
+     */
+    public function getUsersReport(User $requestingUser, array $filters = []): array
+    {
+        if (! $requestingUser->isAdmin() && ! $requestingUser->isManager()) {
+            throw new \UnauthorizedHttpException('You are not authorized to view users report.');
+        }
+
+        $startDate = isset($filters['start_date']) ? Carbon::parse($filters['start_date']) : Carbon::now()->startOfMonth();
+        $endDate = isset($filters['end_date']) ? Carbon::parse($filters['end_date']) : Carbon::now()->endOfMonth();
+
+        // Get users based on requesting user role
+        $users = collect();
+        if ($requestingUser->isAdmin()) {
+            $users = User::all();
+        } elseif ($requestingUser->isManager()) {
+            // Get users assigned to tasks in projects managed by this manager
+            $users = User::whereHas('assignedTasks', function ($query) use ($requestingUser) {
+                $query->whereHas('project', function ($projectQuery) use ($requestingUser) {
+                    $projectQuery->where('manager_id', $requestingUser->id);
+                });
+            })->get();
+        }
+
+        $userStats = $users->map(function ($user) use ($startDate, $endDate) {
+            $userTasks = Task::where('assigned_to', $user->id)->get();
+            $userTimeEntries = TimeEntry::forUser($user->id)
+                ->dateRange($startDate, $endDate)
+                ->get();
+
+            return [
+                'user' => $user,
+                'stats' => [
+                    'total_tasks' => $userTasks->count(),
+                    'completed_tasks' => $userTasks->where('status', Task::STATUS_COMPLETED)->count(),
+                    'in_progress_tasks' => $userTasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
+                    'pending_tasks' => $userTasks->where('status', Task::STATUS_PENDING)->count(),
+                    'total_hours' => $userTimeEntries->sum('duration_hours'),
+                    'time_entries_count' => $userTimeEntries->count(),
+                    'completion_rate' => $userTasks->count() > 0 ?
+                        round(($userTasks->where('status', Task::STATUS_COMPLETED)->count() / $userTasks->count()) * 100, 2) : 0,
+                    'average_hours_per_task' => $userTasks->count() > 0 ?
+                        round($userTimeEntries->sum('duration_hours') / $userTasks->count(), 2) : 0,
+                    'productivity_score' => $this->calculateProductivityScore($user, $userTasks, $userTimeEntries),
+                ],
+            ];
+        });
+
+        return [
+            'period' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+            'users' => $userStats,
+            'summary' => [
+                'total_users' => $users->count(),
+                'total_tasks' => $userStats->sum('stats.total_tasks'),
+                'total_hours' => $userStats->sum('stats.total_hours'),
+                'average_completion_rate' => $userStats->avg('stats.completion_rate'),
+                'top_performer' => $userStats->sortByDesc('stats.productivity_score')->first(),
+                'role_distribution' => $users->groupBy('role')->map->count(),
+            ],
+        ];
+    }
+
+    /**
      * Generate overdue tasks report
      */
     public function generateOverdueTasksReport(User $user): array
@@ -114,7 +179,7 @@ class ReportService
         if ($user->isMember()) {
             $query->where('assigned_to', $user->id);
         } elseif ($user->isManager()) {
-            $query->whereHas('project', function($q) use ($user) {
+            $query->whereHas('project', function ($q) use ($user) {
                 $q->where('manager_id', $user->id);
             });
         }
@@ -125,14 +190,14 @@ class ReportService
             'tasks' => $overdueTasks,
             'summary' => [
                 'total_overdue' => $overdueTasks->count(),
-                'by_project' => $overdueTasks->groupBy('project_id')->map(function($tasks) {
+                'by_project' => $overdueTasks->groupBy('project_id')->map(function ($tasks) {
                     return [
                         'project' => $tasks->first()->project,
                         'count' => $tasks->count(),
                         'tasks' => $tasks,
                     ];
                 }),
-                'by_user' => $overdueTasks->groupBy('assigned_to')->map(function($tasks) {
+                'by_user' => $overdueTasks->groupBy('assigned_to')->map(function ($tasks) {
                     return [
                         'user' => $tasks->first()->assignedUser,
                         'count' => $tasks->count(),
@@ -150,12 +215,12 @@ class ReportService
     public function generateProjectComparisonReport(array $projectIds, User $user): array
     {
         $projects = Project::whereIn('id', $projectIds)
-                          ->accessibleBy($user)
-                          ->with(['tasks', 'manager'])
-                          ->get();
+            ->accessibleBy($user)
+            ->with(['tasks', 'manager'])
+            ->get();
 
         return [
-            'projects' => $projects->map(function($project) {
+            'projects' => $projects->map(function ($project) {
                 return [
                     'project' => $project,
                     'summary' => $this->getProjectSummary($project),
@@ -192,10 +257,10 @@ class ReportService
 
         return [
             'total_tasks' => $tasks->count(),
-            'completed_tasks' => $tasks->where('status', Task::STATUS_DONE)->count(),
+            'completed_tasks' => $tasks->where('status', Task::STATUS_COMPLETED)->count(),
             'in_progress_tasks' => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
-            'pending_tasks' => $tasks->where('status', Task::STATUS_TODO)->count(),
-            'overdue_tasks' => $tasks->filter(fn($task) => $task->isOverdue())->count(),
+            'pending_tasks' => $tasks->where('status', Task::STATUS_PENDING)->count(),
+            'overdue_tasks' => $tasks->filter(fn ($task) => $task->isOverdue())->count(),
             'completion_percentage' => $project->completion_percentage,
             'total_hours' => $project->total_hours,
             'team_size' => $project->teamMembers()->count(),
@@ -212,18 +277,19 @@ class ReportService
 
         return [
             'by_status' => [
-                Task::STATUS_TODO => $tasks->where('status', Task::STATUS_TODO)->count(),
+                Task::STATUS_PENDING => $tasks->where('status', Task::STATUS_PENDING)->count(),
                 Task::STATUS_IN_PROGRESS => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
-                Task::STATUS_DONE => $tasks->where('status', Task::STATUS_DONE)->count(),
+                Task::STATUS_COMPLETED => $tasks->where('status', Task::STATUS_COMPLETED)->count(),
             ],
-            'by_assignee' => $tasks->groupBy('assigned_to')->map(function($userTasks) {
+            'by_assignee' => $tasks->groupBy('assigned_to')->map(function ($userTasks) {
                 $user = $userTasks->first()->assignedUser;
+
                 return [
                     'user' => $user,
                     'total' => $userTasks->count(),
-                    'completed' => $userTasks->where('status', Task::STATUS_DONE)->count(),
+                    'completed' => $userTasks->where('status', Task::STATUS_COMPLETED)->count(),
                     'completion_rate' => $userTasks->count() > 0 ?
-                        round(($userTasks->where('status', Task::STATUS_DONE)->count() / $userTasks->count()) * 100, 2) : 0,
+                        round(($userTasks->where('status', Task::STATUS_COMPLETED)->count() / $userTasks->count()) * 100, 2) : 0,
                 ];
             }),
             'priority_distribution' => $this->getTaskPriorityDistribution($tasks),
@@ -236,18 +302,18 @@ class ReportService
     private function getProjectTimeTracking(Project $project, Carbon $startDate, Carbon $endDate): array
     {
         $timeEntries = TimeEntry::forProject($project->id)
-                               ->dateRange($startDate, $endDate)
-                               ->with(['user', 'task'])
-                               ->get();
+            ->dateRange($startDate, $endDate)
+            ->with(['user', 'task'])
+            ->get();
 
         return [
-            'total_hours' => $timeEntries->sum('duration'),
+            'total_hours' => $timeEntries->sum('duration_hours'),
             'total_entries' => $timeEntries->count(),
             'average_entry_duration' => $timeEntries->avg('duration'),
-            'by_user' => $timeEntries->groupBy('user_id')->map(function($entries) {
+            'by_user' => $timeEntries->groupBy('user_id')->map(function ($entries) {
                 return [
                     'user' => $entries->first()->user,
-                    'total_hours' => $entries->sum('duration'),
+                    'total_hours' => $entries->sum('duration_hours'),
                     'entry_count' => $entries->count(),
                 ];
             }),
@@ -262,22 +328,22 @@ class ReportService
     {
         $teamMembers = $project->teamMembers();
 
-        return $teamMembers->map(function($member) use ($project, $startDate, $endDate) {
+        return $teamMembers->map(function ($member) use ($project, $startDate, $endDate) {
             $userTasks = $project->tasks()->where('assigned_to', $member->id)->get();
             $userTimeEntries = TimeEntry::forUser($member->id)
-                                       ->forProject($project->id)
-                                       ->dateRange($startDate, $endDate)
-                                       ->get();
+                ->forProject($project->id)
+                ->dateRange($startDate, $endDate)
+                ->get();
 
             return [
                 'user' => $member,
                 'tasks_assigned' => $userTasks->count(),
-                'tasks_completed' => $userTasks->where('status', Task::STATUS_DONE)->count(),
+                'tasks_completed' => $userTasks->where('status', Task::STATUS_COMPLETED)->count(),
                 'completion_rate' => $userTasks->count() > 0 ?
-                    round(($userTasks->where('status', Task::STATUS_DONE)->count() / $userTasks->count()) * 100, 2) : 0,
-                'total_hours' => $userTimeEntries->sum('duration'),
+                    round(($userTasks->where('status', Task::STATUS_COMPLETED)->count() / $userTasks->count()) * 100, 2) : 0,
+                'total_hours' => $userTimeEntries->sum('duration_hours'),
                 'average_hours_per_task' => $userTasks->count() > 0 ?
-                    round($userTimeEntries->sum('duration') / $userTasks->count(), 2) : 0,
+                    round($userTimeEntries->sum('duration_hours') / $userTasks->count(), 2) : 0,
                 'productivity_score' => $this->calculateProductivityScore($member, $userTasks, $userTimeEntries),
             ];
         })->toArray();
@@ -308,7 +374,7 @@ class ReportService
         }
 
         // Task completions
-        $completedTasks = $project->tasks()->where('status', Task::STATUS_DONE)->get();
+        $completedTasks = $project->tasks()->where('status', Task::STATUS_COMPLETED)->get();
         foreach ($completedTasks as $task) {
             $events[] = [
                 'date' => $task->updated_at,
@@ -320,7 +386,7 @@ class ReportService
         }
 
         // Sort by date
-        usort($events, function($a, $b) {
+        usort($events, function ($a, $b) {
             return $a['date']->timestamp - $b['date']->timestamp;
         });
 
@@ -339,7 +405,7 @@ class ReportService
 
         // Manager can view reports of team members
         if ($requestingUser->isManager()) {
-            return $targetUser->assignedTasks()->whereHas('project', function($query) use ($requestingUser) {
+            return $targetUser->assignedTasks()->whereHas('project', function ($query) use ($requestingUser) {
                 $query->where('manager_id', $requestingUser->id);
             })->exists();
         }
@@ -357,12 +423,12 @@ class ReportService
         $workingDays = $this->getWorkingDays($startDate, $endDate);
 
         return [
-            'total_hours' => $timeEntries->sum('duration'),
+            'total_hours' => $timeEntries->sum('duration_hours'),
             'total_entries' => $timeEntries->count(),
-            'average_daily_hours' => $workingDays > 0 ? round($timeEntries->sum('duration') / $workingDays, 2) : 0,
+            'average_daily_hours' => $workingDays > 0 ? round($timeEntries->sum('duration_hours') / $workingDays, 2) : 0,
             'average_entry_duration' => $timeEntries->count() > 0 ? round($timeEntries->avg('duration'), 2) : 0,
             'working_days' => $workingDays,
-            'days_with_entries' => $timeEntries->pluck('start_time')->map(fn($date) => $date->format('Y-m-d'))->unique()->count(),
+            'days_with_entries' => $timeEntries->pluck('start_time')->map(fn ($date) => $date->format('Y-m-d'))->unique()->count(),
         ];
     }
 
@@ -373,7 +439,8 @@ class ReportService
     {
         // This would integrate with a PDF library like DOMPDF or TCPDF
         // For now, return a placeholder
-        $filename = 'report_' . time() . '.pdf';
+        $filename = 'report_'.time().'.pdf';
+
         // Implementation would go here
         return $filename;
     }
@@ -385,7 +452,8 @@ class ReportService
     {
         // This would integrate with a library like PhpSpreadsheet
         // For now, return a placeholder
-        $filename = 'report_' . time() . '.xlsx';
+        $filename = 'report_'.time().'.xlsx';
+
         // Implementation would go here
         return $filename;
     }
@@ -395,11 +463,11 @@ class ReportService
      */
     private function exportToCsv(array $data): string
     {
-        $filename = 'report_' . time() . '.csv';
-        $filepath = storage_path('app/exports/' . $filename);
+        $filename = 'report_'.time().'.csv';
+        $filepath = storage_path('app/exports/'.$filename);
 
         // Ensure directory exists
-        if (!file_exists(dirname($filepath))) {
+        if (! file_exists(dirname($filepath))) {
             mkdir(dirname($filepath), 0755, true);
         }
 
@@ -427,13 +495,13 @@ class ReportService
         $current = $startDate->copy();
 
         while ($current->lte($endDate)) {
-            $dayEntries = $timeEntries->filter(function($entry) use ($current) {
+            $dayEntries = $timeEntries->filter(function ($entry) use ($current) {
                 return $entry->start_time->format('Y-m-d') === $current->format('Y-m-d');
             });
 
             $breakdown[] = [
                 'date' => $current->copy(),
-                'total_hours' => $dayEntries->sum('duration'),
+                'total_hours' => $dayEntries->sum('duration_hours'),
                 'entry_count' => $dayEntries->count(),
                 'is_weekend' => $current->isWeekend(),
             ];
@@ -453,7 +521,7 @@ class ReportService
         $current = $startDate->copy();
 
         while ($current->lte($endDate)) {
-            if (!$current->isWeekend()) {
+            if (! $current->isWeekend()) {
                 $workingDays++;
             }
             $current->addDay();
@@ -471,8 +539,8 @@ class ReportService
             return 0;
         }
 
-        $completionRate = $tasks->where('status', Task::STATUS_DONE)->count() / $tasks->count();
-        $averageHoursPerTask = $tasks->count() > 0 ? $timeEntries->sum('duration') / $tasks->count() : 0;
+        $completionRate = $tasks->where('status', Task::STATUS_COMPLETED)->count() / $tasks->count();
+        $averageHoursPerTask = $tasks->count() > 0 ? $timeEntries->sum('duration_hours') / $tasks->count() : 0;
 
         // Simple scoring algorithm (can be enhanced)
         $score = ($completionRate * 70) + (min($averageHoursPerTask, 8) / 8 * 30);
@@ -509,7 +577,7 @@ class ReportService
             return 0;
         }
 
-        $totalDaysOverdue = $tasks->sum(function($task) {
+        $totalDaysOverdue = $tasks->sum(function ($task) {
             return $task->due_date ? Carbon::today()->diffInDays($task->due_date) : 0;
         });
 
@@ -535,10 +603,10 @@ class ReportService
      */
     private function getDailyHours(Collection $timeEntries, Carbon $startDate, Carbon $endDate): array
     {
-        return $timeEntries->groupBy(function($entry) {
+        return $timeEntries->groupBy(function ($entry) {
             return $entry->start_time->format('Y-m-d');
-        })->map(function($dayEntries) {
-            return $dayEntries->sum('duration');
+        })->map(function ($dayEntries) {
+            return $dayEntries->sum('duration_hours');
         })->toArray();
     }
 
@@ -547,10 +615,10 @@ class ReportService
      */
     private function getProjectTimeBreakdown(Collection $timeEntries): array
     {
-        return $timeEntries->groupBy('task.project_id')->map(function($entries) {
+        return $timeEntries->groupBy('task.project_id')->map(function ($entries) {
             return [
                 'project' => $entries->first()->task->project,
-                'total_hours' => $entries->sum('duration'),
+                'total_hours' => $entries->sum('duration_hours'),
                 'entry_count' => $entries->count(),
             ];
         })->values()->toArray();
@@ -561,10 +629,10 @@ class ReportService
      */
     private function getTaskTimeBreakdown(Collection $timeEntries): array
     {
-        return $timeEntries->groupBy('task_id')->map(function($entries) {
+        return $timeEntries->groupBy('task_id')->map(function ($entries) {
             return [
                 'task' => $entries->first()->task,
-                'total_hours' => $entries->sum('duration'),
+                'total_hours' => $entries->sum('duration_hours'),
                 'entry_count' => $entries->count(),
             ];
         })->values()->toArray();
@@ -616,11 +684,11 @@ class ReportService
     {
         return [
             'total_projects' => $projects->count(),
-            'active_projects' => $projects->where('status', Project::STATUS_IN_PROGRESS)->count(),
+            'active_projects' => $projects->where('status', Project::STATUS_ACTIVE)->count(),
             'completed_projects' => $projects->where('status', Project::STATUS_COMPLETED)->count(),
-            'total_tasks' => $projects->sum(fn($p) => $p->tasks->count()),
-            'completed_tasks' => $projects->sum(fn($p) => $p->completedTasks->count()),
-            'team_size' => $projects->flatMap(fn($p) => $p->teamMembers())->unique('id')->count(),
+            'total_tasks' => $projects->sum(fn ($p) => $p->tasks->count()),
+            'completed_tasks' => $projects->sum(fn ($p) => $p->completedTasks->count()),
+            'team_size' => $projects->flatMap(fn ($p) => $p->teamMembers())->unique('id')->count(),
         ];
     }
 
@@ -629,7 +697,7 @@ class ReportService
      */
     private function getMultipleProjectSummaries(Collection $projects): array
     {
-        return $projects->map(function($project) {
+        return $projects->map(function ($project) {
             return [
                 'project' => $project,
                 'summary' => $this->getProjectSummary($project),
@@ -642,22 +710,22 @@ class ReportService
      */
     private function getTeamMembersPerformance(Collection $projects, Carbon $startDate, Carbon $endDate): array
     {
-        $allMembers = $projects->flatMap(fn($p) => $p->teamMembers())->unique('id');
+        $allMembers = $projects->flatMap(fn ($p) => $p->teamMembers())->unique('id');
 
-        return $allMembers->map(function($member) use ($projects, $startDate, $endDate) {
+        return $allMembers->map(function ($member) use ($projects, $startDate, $endDate) {
             $memberTasks = Task::where('assigned_to', $member->id)
-                              ->whereIn('project_id', $projects->pluck('id'))
-                              ->get();
+                ->whereIn('project_id', $projects->pluck('id'))
+                ->get();
 
             $memberTimeEntries = TimeEntry::forUser($member->id)
-                                         ->dateRange($startDate, $endDate)
-                                         ->get();
+                ->dateRange($startDate, $endDate)
+                ->get();
 
             return [
                 'user' => $member,
                 'tasks_count' => $memberTasks->count(),
-                'completed_tasks' => $memberTasks->where('status', Task::STATUS_DONE)->count(),
-                'total_hours' => $memberTimeEntries->sum('duration'),
+                'completed_tasks' => $memberTasks->where('status', Task::STATUS_COMPLETED)->count(),
+                'total_hours' => $memberTimeEntries->sum('duration_hours'),
                 'productivity_score' => $this->calculateProductivityScore($member, $memberTasks, $memberTimeEntries),
             ];
         })->toArray();
@@ -668,16 +736,16 @@ class ReportService
      */
     private function getTimeDistribution(Collection $projects, Carbon $startDate, Carbon $endDate): array
     {
-        $timeEntries = TimeEntry::whereHas('task', function($query) use ($projects) {
+        $timeEntries = TimeEntry::whereHas('task', function ($query) use ($projects) {
             $query->whereIn('project_id', $projects->pluck('id'));
         })->dateRange($startDate, $endDate)->get();
 
         return [
             'by_project' => $this->getProjectTimeBreakdown($timeEntries),
-            'by_user' => $timeEntries->groupBy('user_id')->map(function($entries) {
+            'by_user' => $timeEntries->groupBy('user_id')->map(function ($entries) {
                 return [
                     'user' => $entries->first()->user,
-                    'total_hours' => $entries->sum('duration'),
+                    'total_hours' => $entries->sum('duration_hours'),
                 ];
             })->values()->toArray(),
         ];
@@ -718,7 +786,7 @@ class ReportService
     {
         return [
             'best_performer' => $projects->sortByDesc('completion_percentage')->first(),
-            'most_delayed' => $projects->filter(fn($p) => $p->end_date->isPast())->sortBy('end_date')->first(),
+            'most_delayed' => $projects->filter(fn ($p) => $p->end_date->isPast())->sortBy('end_date')->first(),
             'average_completion' => $projects->avg('completion_percentage'),
             'total_hours' => $projects->sum('total_hours'),
         ];
@@ -732,7 +800,7 @@ class ReportService
         $score = 0;
 
         // Behind schedule
-        if ($project->end_date->isPast() && !$project->isCompleted()) {
+        if ($project->end_date->isPast() && ! $project->isCompleted()) {
             $score += 40;
         }
 

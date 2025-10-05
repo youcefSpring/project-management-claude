@@ -30,20 +30,20 @@ class TaskNoteController extends Controller
                 ->get();
 
             return response()->json([
-                'data' => $notes
+                'data' => $notes,
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des notes'
+                'message' => 'Erreur lors de la récupération des notes',
             ], 500);
         }
     }
@@ -61,20 +61,20 @@ class TaskNoteController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $note->load(['user']),
-                'message' => 'Note ajoutée avec succès'
+                'message' => 'Note ajoutée avec succès',
             ], 201);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'ajout de la note'
+                'message' => 'Erreur lors de l\'ajout de la note',
             ], 500);
         }
     }
@@ -87,27 +87,27 @@ class TaskNoteController extends Controller
             if ($note->task_id !== $task->id) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Note non trouvée'
+                    'message' => 'Note non trouvée',
                 ], 404);
             }
 
             $note->load(['user', 'task.project']);
 
             return response()->json([
-                'data' => $note
+                'data' => $note,
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Note non trouvée'
+                'message' => 'Note non trouvée',
             ], 404);
         }
     }
@@ -126,20 +126,20 @@ class TaskNoteController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $updatedNote->load(['user']),
-                'message' => 'Note mise à jour avec succès'
+                'message' => 'Note mise à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour de la note'
+                'message' => 'Erreur lors de la mise à jour de la note',
             ], 500);
         }
     }
@@ -153,20 +153,20 @@ class TaskNoteController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Note supprimée avec succès'
+                'message' => 'Note supprimée avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la suppression de la note'
+                'message' => 'Erreur lors de la suppression de la note',
             ], 500);
         }
     }

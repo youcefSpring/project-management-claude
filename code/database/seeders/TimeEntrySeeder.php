@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\TimeEntry;
 use App\Models\Task;
+use App\Models\TimeEntry;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class TimeEntrySeeder extends Seeder
 {
@@ -48,13 +48,15 @@ class TimeEntrySeeder extends Seeder
                 }
 
                 $attempts++;
-                if ($attempts > 10) break; // Avoid infinite loop
+                if ($attempts > 10) {
+                    break;
+                } // Avoid infinite loop
 
             } while ($hasOverlap);
 
-            if (!$hasOverlap) {
+            if (! $hasOverlap) {
                 // Store the schedule
-                if (!isset($userSchedules[$user->id])) {
+                if (! isset($userSchedules[$user->id])) {
                     $userSchedules[$user->id] = [];
                 }
                 $userSchedules[$user->id][] = ['start' => $startTime, 'end' => $endTime];
@@ -64,7 +66,7 @@ class TimeEntrySeeder extends Seeder
                     'user_id' => $user->id,
                     'start_time' => $startTime,
                     'end_time' => $endTime,
-                    'comment' => 'Working on ' . $task->title,
+                    'comment' => 'Working on '.$task->title,
                 ]);
             }
         }

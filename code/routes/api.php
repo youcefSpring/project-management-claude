@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\Api\ProjectController;
-use App\Http\Controllers\Api\TaskController;
-use App\Http\Controllers\Api\TimeEntryController;
-use App\Http\Controllers\Api\TaskNoteController;
-use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\LanguageController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TaskNoteController;
+use App\Http\Controllers\Api\TimeEntryController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\RegisterController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -107,7 +107,7 @@ Route::get('/health', function () {
     return response()->json([
         'status' => 'ok',
         'timestamp' => now()->toISOString(),
-        'version' => config('app.version', '1.0.0')
+        'version' => config('app.version', '1.0.0'),
     ]);
 })->name('api.health');
 
@@ -116,6 +116,6 @@ Route::fallback(function () {
     return response()->json([
         'success' => false,
         'message' => 'Endpoint non trouvé',
-        'code' => 404
+        'code' => 404,
     ], 404);
 });

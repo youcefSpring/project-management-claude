@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\TimeEntry;
 use App\Models\Task;
+use App\Models\TimeEntry;
 use App\Services\TimeTrackingService;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class TimeEntryController extends Controller
 {
@@ -24,10 +24,10 @@ class TimeEntryController extends Controller
         $filters = $request->only(['task_id', 'start_date', 'end_date']);
 
         // Set default date range if not provided
-        if (!$filters['start_date']) {
+        if (empty($filters['start_date'])) {
             $filters['start_date'] = Carbon::now()->startOfWeek()->format('Y-m-d');
         }
-        if (!$filters['end_date']) {
+        if (empty($filters['end_date'])) {
             $filters['end_date'] = Carbon::now()->endOfWeek()->format('Y-m-d');
         }
 
@@ -75,7 +75,7 @@ class TimeEntryController extends Controller
             })->with('project')->get();
         } else {
             $availableTasks = Task::where('assigned_to', $user->id)
-                ->where('status', '!=', 'fait')
+                ->where('status', '!=', 'completed')
                 ->with('project')
                 ->get();
         }
@@ -85,10 +85,86 @@ class TimeEntryController extends Controller
         return view('timesheet.create', compact('availableTasks', 'selectedTask'));
     }
 
+    public function store(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $timeEntry = $this->timeTrackingService->createTimeEntry(
+            $request->user(),
+            $request->input('task_id'),
+            $request->input('start_time'),
+            $request->input('end_time'),
+            $request->input('description')
+        );
+
+        return redirect()->route('timesheet.index')
+            ->with('success', __('Time entry created successfully'));
+    }
+
+    public function show(TimeEntry $timeEntry)
+    {
+        $this->authorize('view', $timeEntry);
+
+        return view('timesheet.show', compact('timeEntry'));
+    }
+
     public function edit(TimeEntry $timeEntry)
     {
         $this->authorize('update', $timeEntry);
 
-        return view('timesheet.edit', compact('timeEntry'));
+        $user = auth()->user();
+        $availableTasks = [];
+
+        if ($user->isAdmin()) {
+            $availableTasks = Task::with('project')->get();
+        } elseif ($user->isManager()) {
+            $availableTasks = Task::whereHas('project', function ($query) use ($user) {
+                $query->where('manager_id', $user->id);
+            })->with('project')->get();
+        } else {
+            $availableTasks = Task::where('assigned_to', $user->id)
+                ->with('project')
+                ->get();
+        }
+
+        return view('timesheet.edit', compact('timeEntry', 'availableTasks'));
+    }
+
+    public function update(Request $request, TimeEntry $timeEntry)
+    {
+        $this->authorize('update', $timeEntry);
+
+        $request->validate([
+            'task_id' => 'required|exists:tasks,id',
+            'start_time' => 'required|date',
+            'end_time' => 'required|date|after:start_time',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        $timeEntry = $this->timeTrackingService->updateTimeEntry(
+            $timeEntry,
+            $request->input('task_id'),
+            $request->input('start_time'),
+            $request->input('end_time'),
+            $request->input('description')
+        );
+
+        return redirect()->route('timesheet.index')
+            ->with('success', __('Time entry updated successfully'));
+    }
+
+    public function destroy(TimeEntry $timeEntry)
+    {
+        $this->authorize('delete', $timeEntry);
+
+        $this->timeTrackingService->deleteTimeEntry($timeEntry);
+
+        return redirect()->route('timesheet.index')
+            ->with('success', __('Time entry deleted successfully'));
     }
 }

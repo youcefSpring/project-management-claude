@@ -74,7 +74,7 @@ class LanguageMiddleware
     {
         $acceptLanguage = $request->header('Accept-Language');
 
-        if (!$acceptLanguage) {
+        if (! $acceptLanguage) {
             return null;
         }
 
@@ -102,8 +102,9 @@ class LanguageMiddleware
         }
 
         // Sort by quality and return the best match
-        if (!empty($languages)) {
+        if (! empty($languages)) {
             arsort($languages);
+
             return array_key_first($languages);
         }
 

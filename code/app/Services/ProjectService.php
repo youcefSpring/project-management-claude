@@ -4,10 +4,9 @@ namespace App\Services;
 
 use App\Models\Project;
 use App\Models\User;
-use App\Models\Task;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 
 class ProjectService
 {
@@ -21,7 +20,7 @@ class ProjectService
 
         // Ensure manager exists and has appropriate role
         $manager = User::find($data['manager_id']);
-        if (!$manager || !$manager->isManager() && !$manager->isAdmin()) {
+        if (! $manager || ! $manager->isManager() && ! $manager->isAdmin()) {
             throw ValidationException::withMessages([
                 'manager_id' => ['The selected manager is invalid.'],
             ]);
@@ -56,7 +55,7 @@ class ProjectService
     public function update(Project $project, array $data, User $user): Project
     {
         // Check permissions
-        if (!$this->canUserEditProject($user, $project)) {
+        if (! $this->canUserEditProject($user, $project)) {
             throw new \UnauthorizedHttpException('You are not authorized to edit this project.');
         }
 
@@ -76,7 +75,7 @@ class ProjectService
         }
 
         // Update project
-        $updateData = array_filter($data, function($value) {
+        $updateData = array_filter($data, function ($value) {
             return $value !== null;
         });
 
@@ -105,12 +104,12 @@ class ProjectService
     public function delete(Project $project, User $user): bool
     {
         // Check permissions
-        if (!$user->isAdmin()) {
+        if (! $user->isAdmin()) {
             throw new \UnauthorizedHttpException('Only administrators can delete projects.');
         }
 
         // Check if project can be deleted
-        if (!$project->canBeDeleted()) {
+        if (! $project->canBeDeleted()) {
             throw ValidationException::withMessages([
                 'project' => ['Project cannot be deleted because it has time entries.'],
             ]);
@@ -134,22 +133,22 @@ class ProjectService
         $query = Project::accessibleBy($user);
 
         // Apply filters
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['manager_id'])) {
+        if (! empty($filters['manager_id'])) {
             $query->where('manager_id', $filters['manager_id']);
         }
 
-        if (!empty($filters['search'])) {
-            $query->where(function($q) use ($filters) {
+        if (! empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
                 $q->where('title', 'LIKE', "%{$filters['search']}%")
-                  ->orWhere('description', 'LIKE', "%{$filters['search']}%");
+                    ->orWhere('description', 'LIKE', "%{$filters['search']}%");
             });
         }
 
-        if (!empty($filters['date_range'])) {
+        if (! empty($filters['date_range'])) {
             $dateRange = $filters['date_range'];
             if (isset($dateRange['start'])) {
                 $query->where('start_date', '>=', Carbon::parse($dateRange['start']));
@@ -160,8 +159,8 @@ class ProjectService
         }
 
         return $query->with(['manager', 'tasks'])
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->orderBy('created_at', 'desc')
+            ->get();
     }
 
     /**
@@ -270,7 +269,7 @@ class ProjectService
             Project::STATUS_COMPLETED => [], // Completed projects cannot be changed
         ];
 
-        if (!in_array($newStatus, $validTransitions[$project->status] ?? [])) {
+        if (! in_array($newStatus, $validTransitions[$project->status] ?? [])) {
             throw ValidationException::withMessages([
                 'status' => ['Invalid status transition.'],
             ]);
@@ -287,7 +286,7 @@ class ProjectService
         }
 
         // Permission check for cancellation
-        if ($newStatus === Project::STATUS_CANCELLED && !$user->isAdmin() && !$user->isManager()) {
+        if ($newStatus === Project::STATUS_CANCELLED && ! $user->isAdmin() && ! $user->isManager()) {
             throw ValidationException::withMessages([
                 'status' => ['Only managers and admins can cancel projects.'],
             ]);
@@ -336,10 +335,10 @@ class ProjectService
     private function getOverdueProjects(User $user): Collection
     {
         return Project::accessibleBy($user)
-                     ->where('end_date', '<', Carbon::today())
-                     ->where('status', Project::STATUS_IN_PROGRESS)
-                     ->with('manager')
-                     ->get();
+            ->where('end_date', '<', Carbon::today())
+            ->where('status', Project::STATUS_IN_PROGRESS)
+            ->with('manager')
+            ->get();
     }
 
     /**
@@ -354,7 +353,7 @@ class ProjectService
         }
 
         $averageCompletion = $projects->avg('completion_percentage');
-        $onTrackCount = $projects->filter(function($project) {
+        $onTrackCount = $projects->filter(function ($project) {
             return $this->isProjectOnTrack($project);
         })->count();
 
@@ -373,8 +372,8 @@ class ProjectService
         $cutoffDate = Carbon::now()->subDays($daysOld);
 
         $projects = Project::where('status', Project::STATUS_COMPLETED)
-                          ->where('updated_at', '<', $cutoffDate)
-                          ->get();
+            ->where('updated_at', '<', $cutoffDate)
+            ->get();
 
         $archivedCount = 0;
 

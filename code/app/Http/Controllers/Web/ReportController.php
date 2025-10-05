@@ -45,7 +45,7 @@ class ReportController extends Controller
         $this->authorize('viewReports', auth()->user());
 
         $filters = $request->only(['start_date', 'end_date', 'project_id']);
-        $data = $this->reportService->getProjectsReport($filters, $request->user());
+        $data = $this->reportService->generateTeamReport($request->user(), $filters);
 
         if ($request->wantsJson()) {
             return response()->json($data);
@@ -59,7 +59,7 @@ class ReportController extends Controller
         $this->authorize('viewReports', auth()->user());
 
         $filters = $request->only(['start_date', 'end_date', 'user_id', 'project_id']);
-        $data = $this->reportService->getUsersReport($filters, $request->user());
+        $data = $this->reportService->getUsersReport($request->user(), $filters);
 
         if ($request->wantsJson()) {
             return response()->json($data);
@@ -73,11 +73,17 @@ class ReportController extends Controller
         $filters = $request->only(['user_id', 'project_id', 'start_date', 'end_date']);
 
         // If no user_id specified and user is not admin/manager, show their own data
-        if (!$filters['user_id'] && !$request->user()->canViewAllReports()) {
+        if (empty($filters['user_id']) && ! ($request->user()->isAdmin() || $request->user()->isManager())) {
             $filters['user_id'] = $request->user()->id;
         }
 
-        $data = $this->reportService->getTimeTrackingReport($filters, $request->user());
+        // For time tracking report, use the user time report if user_id is specified
+        if (!empty($filters['user_id'])) {
+            $data = $this->reportService->generateUserTimeReport($filters['user_id'], $request->user(), $filters);
+        } else {
+            // Generate team report for admins/managers
+            $data = $this->reportService->generateTeamReport($request->user(), $filters);
+        }
 
         if ($request->wantsJson()) {
             return response()->json($data);

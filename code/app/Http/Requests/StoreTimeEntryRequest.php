@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
+use Illuminate\Foundation\Http\FormRequest;
 
 class StoreTimeEntryRequest extends FormRequest
 {
@@ -23,7 +23,7 @@ class StoreTimeEntryRequest extends FormRequest
         if ($this->task_id) {
             $task = \App\Models\Task::find($this->task_id);
 
-            if (!$task) {
+            if (! $task) {
                 return false;
             }
 
@@ -110,7 +110,10 @@ class StoreTimeEntryRequest extends FormRequest
                         }
 
                         // Check minimum duration (1 minute)
-                        if ($startTime->diffInMinutes($endTime) < 1) {
+                        $start = $startTime instanceof \Carbon\Carbon ? $startTime : \Carbon\Carbon::parse($startTime);
+                        $end = $endTime instanceof \Carbon\Carbon ? $endTime : \Carbon\Carbon::parse($endTime);
+
+                        if ($start->diffInMinutes($end) < 1) {
                             $fail('La durée minimale est de 1 minute.');
                         }
 

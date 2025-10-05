@@ -17,7 +17,7 @@ class StoreTaskNoteRequest extends FormRequest
         if ($this->task_id) {
             $task = \App\Models\Task::find($this->task_id);
 
-            if (!$task) {
+            if (! $task) {
                 return false;
             }
 
@@ -93,21 +93,22 @@ class StoreTaskNoteRequest extends FormRequest
         // Extract mentions
         preg_match_all('/@(\w+)/', $content, $matches);
 
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             $mentionedNames = array_unique($matches[1]);
 
             // Check if mentioned users exist and have access to the task
             foreach ($mentionedNames as $name) {
                 $user = \App\Models\User::where('name', $name)->first();
 
-                if (!$user) {
+                if (! $user) {
                     $fail("L'utilisateur @{$name} n'existe pas.");
+
                     continue;
                 }
 
                 // Check if mentioned user has access to this task
                 $task = \App\Models\Task::find($this->task_id);
-                if ($task && !$this->userCanAccessTask($user, $task)) {
+                if ($task && ! $this->userCanAccessTask($user, $task)) {
                     $fail("L'utilisateur @{$name} n'a pas accès à cette tâche.");
                 }
             }

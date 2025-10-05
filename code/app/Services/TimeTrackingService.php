@@ -2,13 +2,13 @@
 
 namespace App\Services;
 
-use App\Models\TimeEntry;
-use App\Models\Task;
-use App\Models\User;
 use App\Models\Project;
+use App\Models\Task;
+use App\Models\TimeEntry;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
-use Carbon\Carbon;
 
 class TimeTrackingService
 {
@@ -22,7 +22,7 @@ class TimeTrackingService
 
         // Ensure task exists and user can log time for it
         $task = Task::findOrFail($data['task_id']);
-        if (!$this->canUserLogTimeForTask($user, $task)) {
+        if (! $this->canUserLogTimeForTask($user, $task)) {
             throw new \UnauthorizedHttpException('You are not authorized to log time for this task.');
         }
 
@@ -73,12 +73,12 @@ class TimeTrackingService
     public function update(TimeEntry $timeEntry, array $data, User $user): TimeEntry
     {
         // Check permissions
-        if (!$timeEntry->canBeEditedBy($user)) {
+        if (! $timeEntry->canBeEditedBy($user)) {
             throw new \UnauthorizedHttpException('You are not authorized to edit this time entry.');
         }
 
         // Check if time entry can be modified
-        if (!$timeEntry->canBeModified()) {
+        if (! $timeEntry->canBeModified()) {
             throw ValidationException::withMessages([
                 'time_entry' => ['This time entry is too old to be modified.'],
             ]);
@@ -118,12 +118,12 @@ class TimeTrackingService
     public function delete(TimeEntry $timeEntry, User $user): bool
     {
         // Check permissions
-        if (!$timeEntry->canBeDeletedBy($user)) {
+        if (! $timeEntry->canBeDeletedBy($user)) {
             throw new \UnauthorizedHttpException('You are not authorized to delete this time entry.');
         }
 
         // Check if time entry can be modified
-        if (!$timeEntry->canBeModified()) {
+        if (! $timeEntry->canBeModified()) {
             throw ValidationException::withMessages([
                 'time_entry' => ['This time entry is too old to be deleted.'],
             ]);
@@ -149,28 +149,60 @@ class TimeTrackingService
         $query = TimeEntry::accessibleBy($user);
 
         // Apply filters
-        if (!empty($filters['task_id'])) {
+        if (! empty($filters['task_id'])) {
             $query->forTask($filters['task_id']);
         }
 
-        if (!empty($filters['project_id'])) {
+        if (! empty($filters['project_id'])) {
             $query->forProject($filters['project_id']);
         }
 
-        if (!empty($filters['start_date']) && !empty($filters['end_date'])) {
+        if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
             $query->dateRange(
                 Carbon::parse($filters['start_date']),
                 Carbon::parse($filters['end_date'])
             );
         }
 
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $query->forUser($filters['user_id']);
         }
 
         return $query->with(['task.project', 'user'])
-                    ->orderBy('start_time', 'desc')
-                    ->get();
+            ->orderBy('start_time', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get time entries with pagination (alias for getUserTimeEntries)
+     */
+    public function getTimeEntries(array $filters, User $user, int $perPage = 15)
+    {
+        $query = TimeEntry::accessibleBy($user);
+
+        // Apply filters
+        if (! empty($filters['task_id'])) {
+            $query->forTask($filters['task_id']);
+        }
+
+        if (! empty($filters['project_id'])) {
+            $query->forProject($filters['project_id']);
+        }
+
+        if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
+            $query->dateRange(
+                Carbon::parse($filters['start_date']),
+                Carbon::parse($filters['end_date'])
+            );
+        }
+
+        if (! empty($filters['user_id'])) {
+            $query->forUser($filters['user_id']);
+        }
+
+        return $query->with(['task.project', 'user'])
+            ->orderBy('start_time', 'desc')
+            ->paginate($perPage);
     }
 
     /**
@@ -197,14 +229,14 @@ class TimeTrackingService
      */
     public function getProjectSummary(Project $project, User $user): array
     {
-        if (!$project->canBeViewedBy($user)) {
+        if (! $project->canBeViewedBy($user)) {
             throw new \UnauthorizedHttpException('You are not authorized to view this project.');
         }
 
         $timeEntries = TimeEntry::forProject($project->id)->get();
 
         return [
-            'total_hours' => $timeEntries->sum('duration'),
+            'total_hours' => $timeEntries->sum('duration_hours'),
             'total_entries' => $timeEntries->count(),
             'team_members_count' => $timeEntries->pluck('user_id')->unique()->count(),
             'tasks_with_time' => $timeEntries->pluck('task_id')->unique()->count(),
@@ -220,11 +252,11 @@ class TimeTrackingService
     public function getTimesheet(User $user, Carbon $startDate, Carbon $endDate): array
     {
         $timeEntries = TimeEntry::forUser($user->id)
-                                ->dateRange($startDate, $endDate)
-                                ->with(['task.project'])
-                                ->get();
+            ->dateRange($startDate, $endDate)
+            ->with(['task.project'])
+            ->get();
 
-        $groupedByDate = $timeEntries->groupBy(function($entry) {
+        $groupedByDate = $timeEntries->groupBy(function ($entry) {
             return $entry->start_time->format('Y-m-d');
         });
 
@@ -238,7 +270,7 @@ class TimeTrackingService
             $timesheet[] = [
                 'date' => $currentDate->copy(),
                 'entries' => $dayEntries,
-                'total_hours' => $dayEntries->sum('duration'),
+                'total_hours' => $dayEntries->sum('duration_hours'),
                 'is_weekend' => $currentDate->isWeekend(),
             ];
 
@@ -247,8 +279,8 @@ class TimeTrackingService
 
         return [
             'timesheet' => $timesheet,
-            'period_total' => $timeEntries->sum('duration'),
-            'average_daily' => $timeEntries->sum('duration') / max(1, $startDate->diffInDays($endDate) + 1),
+            'period_total' => $timeEntries->sum('duration_hours'),
+            'average_daily' => $timeEntries->sum('duration_hours') / max(1, $startDate->diffInDays($endDate) + 1),
             'working_days' => collect($timesheet)->where('is_weekend', false)->count(),
         ];
     }
@@ -260,7 +292,7 @@ class TimeTrackingService
     {
         $task = Task::findOrFail($taskId);
 
-        if (!$this->canUserLogTimeForTask($user, $task)) {
+        if (! $this->canUserLogTimeForTask($user, $task)) {
             throw new \UnauthorizedHttpException('You are not authorized to track time for this task.');
         }
 
@@ -295,7 +327,7 @@ class TimeTrackingService
     {
         $activeTimer = $this->getActiveTimer($user);
 
-        if (!$activeTimer) {
+        if (! $activeTimer) {
             throw ValidationException::withMessages([
                 'timer' => ['No active timer found.'],
             ]);
@@ -373,14 +405,14 @@ class TimeTrackingService
     private function validateNoOverlaps(?int $taskId, User $user, Carbon $startTime, Carbon $endTime, ?int $exceptId = null): void
     {
         $query = TimeEntry::where('user_id', $user->id)
-                          ->where(function($q) use ($startTime, $endTime) {
-                              $q->whereBetween('start_time', [$startTime, $endTime])
-                                ->orWhereBetween('end_time', [$startTime, $endTime])
-                                ->orWhere(function($subQ) use ($startTime, $endTime) {
-                                    $subQ->where('start_time', '<=', $startTime)
-                                         ->where('end_time', '>=', $endTime);
-                                });
-                          });
+            ->where(function ($q) use ($startTime, $endTime) {
+                $q->whereBetween('start_time', [$startTime, $endTime])
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function ($subQ) use ($startTime, $endTime) {
+                        $subQ->where('start_time', '<=', $startTime)
+                            ->where('end_time', '>=', $endTime);
+                    });
+            });
 
         if ($exceptId) {
             $query->where('id', '!=', $exceptId);
@@ -422,8 +454,8 @@ class TimeTrackingService
     private function getTotalHoursForPeriod(User $user, Carbon $start, Carbon $end): float
     {
         return TimeEntry::forUser($user->id)
-                       ->dateRange($start, $end)
-                       ->sum('duration') ?? 0;
+            ->dateRange($start, $end)
+            ->sum('duration_hours') ?? 0;
     }
 
     /**
@@ -432,9 +464,9 @@ class TimeTrackingService
     private function getActiveTasksForUser(User $user): Collection
     {
         return Task::where('assigned_to', $user->id)
-                  ->whereIn('status', [Task::STATUS_TODO, Task::STATUS_IN_PROGRESS])
-                  ->with('project')
-                  ->get();
+            ->whereIn('status', [Task::STATUS_TODO, Task::STATUS_IN_PROGRESS])
+            ->with('project')
+            ->get();
     }
 
     /**
@@ -443,10 +475,10 @@ class TimeTrackingService
     private function getRecentTimeEntries(User $user, int $limit = 10): Collection
     {
         return TimeEntry::forUser($user->id)
-                       ->with(['task.project'])
-                       ->orderBy('start_time', 'desc')
-                       ->limit($limit)
-                       ->get();
+            ->with(['task.project'])
+            ->orderBy('start_time', 'desc')
+            ->limit($limit)
+            ->get();
     }
 
     /**
@@ -481,11 +513,11 @@ class TimeTrackingService
         }
 
         $uniqueDays = $timeEntries->pluck('start_time')
-                                 ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
-                                 ->unique()
-                                 ->count();
+            ->map(fn ($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->unique()
+            ->count();
 
-        return $uniqueDays > 0 ? round($timeEntries->sum('duration') / $uniqueDays, 2) : 0;
+        return $uniqueDays > 0 ? round($timeEntries->sum('duration_hours') / $uniqueDays, 2) : 0;
     }
 
     /**
@@ -494,15 +526,15 @@ class TimeTrackingService
     private function getTimeByUser(Collection $timeEntries): array
     {
         return $timeEntries->groupBy('user_id')
-                          ->map(function($entries) {
-                              return [
-                                  'user' => $entries->first()->user,
-                                  'total_hours' => $entries->sum('duration'),
-                                  'entry_count' => $entries->count(),
-                              ];
-                          })
-                          ->values()
-                          ->toArray();
+            ->map(function ($entries) {
+                return [
+                    'user' => $entries->first()->user,
+                    'total_hours' => $entries->sum('duration_hours'),
+                    'entry_count' => $entries->count(),
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -511,14 +543,14 @@ class TimeTrackingService
     private function getTimeByTask(Collection $timeEntries): array
     {
         return $timeEntries->groupBy('task_id')
-                          ->map(function($entries) {
-                              return [
-                                  'task' => $entries->first()->task,
-                                  'total_hours' => $entries->sum('duration'),
-                                  'entry_count' => $entries->count(),
-                              ];
-                          })
-                          ->values()
-                          ->toArray();
+            ->map(function ($entries) {
+                return [
+                    'task' => $entries->first()->task,
+                    'total_hours' => $entries->sum('duration_hours'),
+                    'entry_count' => $entries->count(),
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 }

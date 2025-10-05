@@ -1,9 +1,7 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\TranslationController;
-use App\Http\Controllers\Admin\SettingsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,32 +16,54 @@ use App\Http\Controllers\Admin\SettingsController;
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
 
     // Admin Dashboard
-    Route::get('/', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-    // User Management
-    Route::resource('users', UserController::class);
-    Route::patch('users/{user}/role', [UserController::class, 'updateRole'])->name('users.update-role');
-    Route::patch('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.update-status');
+    // User Management (redirects to main user management)
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('users.index');
+        })->name('index');
 
-    // Translation Management
-    Route::resource('translations', TranslationController::class);
-    Route::post('translations/import', [TranslationController::class, 'import'])->name('translations.import');
-    Route::get('translations/export', [TranslationController::class, 'export'])->name('translations.export');
-    Route::post('translations/sync', [TranslationController::class, 'sync'])->name('translations.sync');
+        Route::get('/create', function () {
+            return redirect()->route('users.create');
+        })->name('create');
 
-    // System Settings
-    Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
-    Route::patch('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::get('/{user}/edit', function ($user) {
+            return redirect()->route('users.edit', $user);
+        })->name('edit');
+    });
 
-    // System Configuration
+    // Course Management (placeholder)
+    Route::prefix('courses')->name('courses.')->group(function () {
+        Route::get('/', function () {
+            return view('admin.courses.index');
+        })->name('index');
+
+        Route::get('/create', function () {
+            return view('admin.courses.create');
+        })->name('create');
+
+        Route::get('/{id}/edit', function ($id) {
+            return view('admin.courses.edit', ['id' => $id]);
+        })->name('edit');
+    });
+
+    // Translation Management (placeholder)
+    Route::prefix('translations')->name('translations.')->group(function () {
+        Route::get('/', function () {
+            return view('admin.translations.index');
+        })->name('index');
+    });
+
+    // System Settings (placeholder)
     Route::prefix('settings')->name('settings.')->group(function () {
-        Route::get('general', [SettingsController::class, 'general'])->name('general');
-        Route::get('email', [SettingsController::class, 'email'])->name('email');
-        Route::get('security', [SettingsController::class, 'security'])->name('security');
-        Route::get('backup', [SettingsController::class, 'backup'])->name('backup');
-        Route::get('logs', [SettingsController::class, 'logs'])->name('logs');
+        Route::get('/', function () {
+            return view('admin.settings.index');
+        })->name('index');
+
+        Route::get('general', function () {
+            return view('admin.settings.general');
+        })->name('general');
     });
 
     // Project Management (Admin view)
@@ -100,24 +120,28 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::post('clear', function () {
             // Clear application cache
             \Artisan::call('cache:clear');
+
             return back()->with('success', 'Cache cleared successfully');
         })->name('clear');
 
         Route::post('config', function () {
             // Clear config cache
             \Artisan::call('config:clear');
+
             return back()->with('success', 'Config cache cleared');
         })->name('config');
 
         Route::post('routes', function () {
             // Clear route cache
             \Artisan::call('route:clear');
+
             return back()->with('success', 'Route cache cleared');
         })->name('routes');
 
         Route::post('views', function () {
             // Clear view cache
             \Artisan::call('view:clear');
+
             return back()->with('success', 'View cache cleared');
         })->name('views');
     });
@@ -125,11 +149,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Maintenance Mode
     Route::post('maintenance/enable', function () {
         \Artisan::call('down');
+
         return response()->json(['success' => true, 'message' => 'Maintenance mode enabled']);
     })->name('maintenance.enable');
 
     Route::post('maintenance/disable', function () {
         \Artisan::call('up');
+
         return response()->json(['success' => true, 'message' => 'Maintenance mode disabled']);
     })->name('maintenance.disable');
 });

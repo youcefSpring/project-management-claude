@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\ReportService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
@@ -26,20 +26,20 @@ class ReportController extends Controller
 
             return response()->json([
                 'data' => $data['projects'],
-                'summary' => $data['summary']
+                'summary' => $data['summary'],
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la génération du rapport'
+                'message' => 'Erreur lors de la génération du rapport',
             ], 500);
         }
     }
@@ -54,20 +54,20 @@ class ReportController extends Controller
 
             return response()->json([
                 'data' => $data['users'],
-                'total_hours' => $data['total_hours']
+                'total_hours' => $data['total_hours'],
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la génération du rapport'
+                'message' => 'Erreur lors de la génération du rapport',
             ], 500);
         }
     }
@@ -81,13 +81,13 @@ class ReportController extends Controller
             return response()->json([
                 'data' => $data['entries'],
                 'daily_totals' => $data['daily_totals'],
-                'weekly_totals' => $data['weekly_totals']
+                'weekly_totals' => $data['weekly_totals'],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la génération du rapport'
+                'message' => 'Erreur lors de la génération du rapport',
             ], 500);
         }
     }
@@ -100,7 +100,7 @@ class ReportController extends Controller
             $request->validate([
                 'type' => 'required|in:project,user,time',
                 'format' => 'required|in:pdf,excel',
-                'filters' => 'nullable|array'
+                'filters' => 'nullable|array',
             ]);
 
             $downloadUrl = $this->reportService->exportReport(
@@ -112,20 +112,20 @@ class ReportController extends Controller
 
             return response()->json([
                 'success' => true,
-                'download_url' => $downloadUrl
+                'download_url' => $downloadUrl,
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de l\'export du rapport'
+                'message' => 'Erreur lors de l\'export du rapport',
             ], 500);
         }
     }

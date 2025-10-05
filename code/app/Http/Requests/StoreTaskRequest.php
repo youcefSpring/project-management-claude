@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -22,6 +21,7 @@ class StoreTaskRequest extends FormRequest
         // Manager can create tasks in their projects
         if ($user->isManager() && $this->project_id) {
             $project = \App\Models\Project::find($this->project_id);
+
             return $project && $project->manager_id === $user->id;
         }
 
@@ -89,7 +89,7 @@ class StoreTaskRequest extends FormRequest
                         $user = \App\Models\User::find($value);
 
                         // Only members can be assigned tasks
-                        if ($user && !$user->isMember()) {
+                        if ($user && ! $user->isMember()) {
                             $fail('Seuls les membres peuvent être assignés à des tâches.');
                         }
                     }
@@ -148,7 +148,7 @@ class StoreTaskRequest extends FormRequest
         $validated = parent::validated($key, $default);
 
         // Set default status for new tasks
-        if (!isset($validated['status'])) {
+        if (! isset($validated['status'])) {
             $validated['status'] = 'à_faire';
         }
 

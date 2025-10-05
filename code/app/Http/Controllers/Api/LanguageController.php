@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\TranslationService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class LanguageController extends Controller
 {
@@ -20,7 +20,7 @@ class LanguageController extends Controller
     {
         try {
             $request->validate([
-                'language' => 'required|in:fr,en,ar'
+                'language' => 'required|in:fr,en,ar',
             ]);
 
             $language = $request->input('language');
@@ -35,13 +35,13 @@ class LanguageController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Langue mise à jour avec succès'
+                'message' => 'Langue mise à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour de la langue'
+                'message' => 'Erreur lors de la mise à jour de la langue',
             ], 500);
         }
     }
@@ -53,10 +53,10 @@ class LanguageController extends Controller
             $keys = $request->input('keys');
 
             // Validate language
-            if (!in_array($language, ['fr', 'en', 'ar'])) {
+            if (! in_array($language, ['fr', 'en', 'ar'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Langue non supportée'
+                    'message' => 'Langue non supportée',
                 ], 422);
             }
 
@@ -72,13 +72,13 @@ class LanguageController extends Controller
             }
 
             return response()->json([
-                'data' => $translations
+                'data' => $translations,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des traductions'
+                'message' => 'Erreur lors de la récupération des traductions',
             ], 500);
         }
     }
@@ -92,7 +92,7 @@ class LanguageController extends Controller
             $request->validate([
                 'key' => 'required|string',
                 'language' => 'required|in:fr,en,ar',
-                'value' => 'required|string|max:1000'
+                'value' => 'required|string|max:1000',
             ]);
 
             $translation = $this->translationService->updateTranslation(
@@ -105,20 +105,20 @@ class LanguageController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $translation,
-                'message' => 'Traduction mise à jour avec succès'
+                'message' => 'Traduction mise à jour avec succès',
             ]);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la mise à jour de la traduction'
+                'message' => 'Erreur lors de la mise à jour de la traduction',
             ], 500);
         }
     }
@@ -133,7 +133,7 @@ class LanguageController extends Controller
                 'key' => 'required|string|unique:translations,key',
                 'fr' => 'required|string|max:1000',
                 'en' => 'required|string|max:1000',
-                'ar' => 'required|string|max:1000'
+                'ar' => 'required|string|max:1000',
             ]);
 
             $translations = $this->translationService->createTranslation(
@@ -141,7 +141,7 @@ class LanguageController extends Controller
                 [
                     'fr' => $request->input('fr'),
                     'en' => $request->input('en'),
-                    'ar' => $request->input('ar')
+                    'ar' => $request->input('ar'),
                 ],
                 $request->user()
             );
@@ -149,20 +149,20 @@ class LanguageController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $translations,
-                'message' => 'Traduction créée avec succès'
+                'message' => 'Traduction créée avec succès',
             ], 201);
 
         } catch (\Exception $e) {
             if ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Accès refusé'
+                    'message' => 'Accès refusé',
                 ], 403);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la création de la traduction'
+                'message' => 'Erreur lors de la création de la traduction',
             ], 500);
         }
     }

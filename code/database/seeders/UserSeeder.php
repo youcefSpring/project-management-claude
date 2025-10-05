@@ -16,7 +16,7 @@ class UserSeeder extends Seeder
         // Create admin user
         User::create([
             'name' => 'System Administrator',
-            'email' => 'admin@example.com',
+            'email' => 'admin@demo.com',
             'password' => Hash::make('password'),
             'role' => 'admin',
             'language' => 'en',
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
         // Create project manager
         User::create([
             'name' => 'Project Manager',
-            'email' => 'manager@example.com',
+            'email' => 'manager@demo.com',
             'password' => Hash::make('password'),
             'role' => 'manager',
             'language' => 'en',
@@ -37,22 +37,22 @@ class UserSeeder extends Seeder
         $teamMembers = [
             [
                 'name' => 'John Developer',
-                'email' => 'john@example.com',
+                'email' => 'john@demo.com',
                 'role' => 'member',
             ],
             [
                 'name' => 'Jane Designer',
-                'email' => 'jane@example.com',
+                'email' => 'jane@demo.com',
                 'role' => 'member',
             ],
             [
                 'name' => 'Mike Tester',
-                'email' => 'mike@example.com',
+                'email' => 'mike@demo.com',
                 'role' => 'member',
             ],
             [
                 'name' => 'Sarah Frontend',
-                'email' => 'sarah@example.com',
+                'email' => 'sarah@demo.com',
                 'role' => 'member',
             ],
         ];
@@ -71,7 +71,7 @@ class UserSeeder extends Seeder
         // Create another member user
         User::create([
             'name' => 'Client User',
-            'email' => 'client@example.com',
+            'email' => 'client@demo.com',
             'password' => Hash::make('password'),
             'role' => 'member',
             'language' => 'en',

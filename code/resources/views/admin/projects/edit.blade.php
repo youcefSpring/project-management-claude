@@ -279,7 +279,7 @@
                         @endforeach
                     @else
                         <div class="col-12">
-                            <p class="text-muted small mb-0">No tags available. <a href="{{ route('admin.tags.create') }}">Create tags</a> to organize your projects.</p>
+                            <p class="text-muted small mb-0">No tags available. Tags can be managed through the admin panel.</p>
                         </div>
                     @endif
                 </div>

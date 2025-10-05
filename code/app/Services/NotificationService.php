@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Task;
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\TaskNote;
-use App\Models\TimeEntry;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
@@ -16,12 +15,19 @@ class NotificationService
      * Notification types
      */
     const TYPE_TASK_ASSIGNED = 'task_assigned';
+
     const TYPE_TASK_UNASSIGNED = 'task_unassigned';
+
     const TYPE_TASK_STATUS_CHANGED = 'task_status_changed';
+
     const TYPE_TASK_DELETED = 'task_deleted';
+
     const TYPE_NOTE_MENTION = 'note_mention';
+
     const TYPE_PROJECT_STATUS_CHANGED = 'project_status_changed';
+
     const TYPE_TIME_ENTRY_APPROVED = 'time_entry_approved';
+
     const TYPE_TIME_ENTRY_REJECTED = 'time_entry_rejected';
 
     /**
@@ -29,7 +35,7 @@ class NotificationService
      */
     public function notifyTaskAssigned(Task $task): void
     {
-        if (!$task->assignedUser) {
+        if (! $task->assignedUser) {
             return;
         }
 
@@ -62,7 +68,7 @@ class NotificationService
     public function notifyTaskUnassigned(Task $task, int $previousUserId): void
     {
         $user = User::find($previousUserId);
-        if (!$user) {
+        if (! $user) {
             return;
         }
 
@@ -124,7 +130,7 @@ class NotificationService
      */
     public function notifyTaskDeleted(Task $task): void
     {
-        if (!$task->assignedUser) {
+        if (! $task->assignedUser) {
             return;
         }
 
@@ -231,7 +237,7 @@ class NotificationService
         $notifications = Session::get($sessionKey, []);
 
         // Sort by created_at descending
-        usort($notifications, function($a, $b) {
+        usort($notifications, function ($a, $b) {
             return strtotime($b['created_at']) - strtotime($a['created_at']);
         });
 
@@ -246,8 +252,8 @@ class NotificationService
         $sessionKey = "notifications.user.{$user->id}";
         $notifications = Session::get($sessionKey, []);
 
-        return count(array_filter($notifications, function($notification) {
-            return !($notification['read'] ?? false);
+        return count(array_filter($notifications, function ($notification) {
+            return ! ($notification['read'] ?? false);
         }));
     }
 
@@ -263,6 +269,7 @@ class NotificationService
             if ($notification['id'] === $notificationId) {
                 $notification['read'] = true;
                 Session::put($sessionKey, $notifications);
+
                 return true;
             }
         }
@@ -280,7 +287,7 @@ class NotificationService
 
         $updatedCount = 0;
         foreach ($notifications as &$notification) {
-            if (!($notification['read'] ?? false)) {
+            if (! ($notification['read'] ?? false)) {
                 $notification['read'] = true;
                 $updatedCount++;
             }
@@ -302,7 +309,7 @@ class NotificationService
         $notifications = Session::get($sessionKey, []);
 
         $cutoffDate = now()->subDays($daysOld);
-        $filteredNotifications = array_filter($notifications, function($notification) use ($cutoffDate) {
+        $filteredNotifications = array_filter($notifications, function ($notification) use ($cutoffDate) {
             return strtotime($notification['created_at']) > $cutoffDate->timestamp;
         });
 
@@ -324,7 +331,7 @@ class NotificationService
 
         if ($lastCheckTime) {
             $lastCheck = strtotime($lastCheckTime);
-            $notifications = array_filter($notifications, function($notification) use ($lastCheck) {
+            $notifications = array_filter($notifications, function ($notification) use ($lastCheck) {
                 return strtotime($notification['created_at']) > $lastCheck;
             });
         }
@@ -417,7 +424,7 @@ class NotificationService
         foreach ($users as $user) {
             $digestData = $this->generateDigestData($user, $frequency);
 
-            if (!empty($digestData)) {
+            if (! empty($digestData)) {
                 $this->sendDigestNotification($user, $digestData, $frequency);
             }
         }
@@ -432,22 +439,22 @@ class NotificationService
 
         return [
             'new_tasks_assigned' => Task::where('assigned_to', $user->id)
-                                       ->where('created_at', '>=', $startDate)
-                                       ->count(),
+                ->where('created_at', '>=', $startDate)
+                ->count(),
             'tasks_completed' => Task::where('assigned_to', $user->id)
-                                    ->where('status', Task::STATUS_DONE)
-                                    ->where('updated_at', '>=', $startDate)
-                                    ->count(),
+                ->where('status', Task::STATUS_DONE)
+                ->where('updated_at', '>=', $startDate)
+                ->count(),
             'overdue_tasks' => Task::where('assigned_to', $user->id)
-                                  ->where('due_date', '<', now())
-                                  ->whereNotIn('status', [Task::STATUS_DONE])
-                                  ->count(),
-            'mentions_count' => TaskNote::whereHas('task', function($query) use ($user) {
-                                       $query->where('assigned_to', $user->id);
-                                   })
-                                   ->where('content', 'LIKE', "%@{$user->name}%")
-                                   ->where('created_at', '>=', $startDate)
-                                   ->count(),
+                ->where('due_date', '<', now())
+                ->whereNotIn('status', [Task::STATUS_DONE])
+                ->count(),
+            'mentions_count' => TaskNote::whereHas('task', function ($query) use ($user) {
+                $query->where('assigned_to', $user->id);
+            })
+                ->where('content', 'LIKE', "%@{$user->name}%")
+                ->where('created_at', '>=', $startDate)
+                ->count(),
         ];
     }
 
@@ -458,7 +465,7 @@ class NotificationService
     {
         $notification = [
             'type' => "digest_{$frequency}",
-            'title' => ucfirst($frequency) . ' summary',
+            'title' => ucfirst($frequency).' summary',
             'message' => $this->generateDigestMessage($digestData),
             'data' => $digestData,
             'user_id' => $user->id,

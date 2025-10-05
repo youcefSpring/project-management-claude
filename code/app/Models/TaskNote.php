@@ -87,8 +87,8 @@ class TaskNote extends Model
 
         // Find users by mentioned usernames (assuming username is name field)
         return User::whereIn('name', $matches[1])
-                   ->pluck('id')
-                   ->toArray();
+            ->pluck('id')
+            ->toArray();
     }
 
     /**
@@ -108,7 +108,7 @@ class TaskNote extends Model
      */
     public function hasMentions(): bool
     {
-        return !empty($this->mentioned_users);
+        return ! empty($this->mentioned_users);
     }
 
     /**
@@ -167,6 +167,7 @@ class TaskNote extends Model
     {
         // Allow modification within 24 hours (configurable)
         $modificationDeadline = config('app.note_modification_hours', 24);
+
         return $this->created_at->diffInHours(now()) <= $modificationDeadline;
     }
 
@@ -261,9 +262,9 @@ class TaskNote extends Model
     public static function getForTaskWithUsers(int $taskId)
     {
         return self::forTask($taskId)
-                   ->with('user')
-                   ->oldest()
-                   ->get();
+            ->with('user')
+            ->oldest()
+            ->get();
     }
 
     /**
@@ -272,9 +273,9 @@ class TaskNote extends Model
     public static function search(string $searchTerm)
     {
         return self::where('content', 'LIKE', "%{$searchTerm}%")
-                   ->with(['user', 'task.project'])
-                   ->latest()
-                   ->get();
+            ->with(['user', 'task.project'])
+            ->latest()
+            ->get();
     }
 
     /**
@@ -283,11 +284,11 @@ class TaskNote extends Model
     public static function getActivityFeedForUser(User $user, int $limit = 10)
     {
         return self::accessibleBy(self::query(), $user)
-                   ->with(['user', 'task.project'])
-                   ->recent()
-                   ->latest()
-                   ->limit($limit)
-                   ->get();
+            ->with(['user', 'task.project'])
+            ->recent()
+            ->latest()
+            ->limit($limit)
+            ->get();
     }
 
     /**
