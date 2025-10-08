@@ -242,7 +242,35 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all projects user has access to (managed or has assigned tasks)
+     * Get project memberships with roles
+     */
+    public function projectMemberships()
+    {
+        return $this->hasMany(ProjectUser::class);
+    }
+
+    /**
+     * Get active project memberships
+     */
+    public function activeProjectMemberships()
+    {
+        return $this->projectMemberships()->active();
+    }
+
+    /**
+     * Get projects where user is a member (through project_user pivot)
+     */
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class)
+            ->using(ProjectUser::class)
+            ->withPivot(['roles', 'is_active', 'joined_at', 'left_at'])
+            ->withTimestamps()
+            ->wherePivot('is_active', true);
+    }
+
+    /**
+     * Get all projects user has access to (through project membership or admin)
      */
     public function accessibleProjects()
     {
@@ -250,14 +278,104 @@ class User extends Authenticatable
             return Project::query();
         }
 
-        if ($this->isManager()) {
-            return $this->managedProjects();
+        // Get projects where user is a member
+        return $this->projects();
+    }
+
+    /**
+     * Get projects where user has a specific role
+     */
+    public function projectsWithRole(string $role)
+    {
+        return $this->projects()->whereJsonContains('project_user.roles', $role);
+    }
+
+    /**
+     * Get projects where user is a manager
+     */
+    public function managedProjectsViaRole()
+    {
+        return $this->projectsWithRole(ProjectUser::ROLE_MANAGER);
+    }
+
+    /**
+     * Check if user has specific role in a project
+     */
+    public function hasRoleInProject(Project $project, string $role): bool
+    {
+        if ($this->isAdmin()) {
+            return true; // Admin has all roles
         }
 
-        // For members, get projects where they have assigned tasks
-        return Project::whereHas('tasks', function ($query) {
-            $query->where('assigned_to', $this->id);
-        });
+        $membership = $this->projectMemberships()
+            ->forProject($project->id)
+            ->active()
+            ->first();
+
+        return $membership && $membership->hasRole($role);
+    }
+
+    /**
+     * Check if user has any of the specified roles in a project
+     */
+    public function hasAnyRoleInProject(Project $project, array $roles): bool
+    {
+        if ($this->isAdmin()) {
+            return true; // Admin has all roles
+        }
+
+        $membership = $this->projectMemberships()
+            ->forProject($project->id)
+            ->active()
+            ->first();
+
+        return $membership && $membership->hasAnyRole($roles);
+    }
+
+    /**
+     * Get user's roles in a specific project
+     */
+    public function getRolesInProject(Project $project): array
+    {
+        if ($this->isAdmin()) {
+            return ProjectUser::getProjectRoles(); // Admin has all roles
+        }
+
+        $membership = $this->projectMemberships()
+            ->forProject($project->id)
+            ->active()
+            ->first();
+
+        return $membership ? $membership->roles : [];
+    }
+
+    /**
+     * Check if user is manager of a specific project
+     */
+    public function isManagerOfProject(Project $project): bool
+    {
+        return $this->hasRoleInProject($project, ProjectUser::ROLE_MANAGER);
+    }
+
+    /**
+     * Check if user is developer in a specific project
+     */
+    public function isDeveloperInProject(Project $project): bool
+    {
+        return $this->hasRoleInProject($project, ProjectUser::ROLE_DEVELOPER);
+    }
+
+    /**
+     * Check if user can work on tasks in a specific project
+     */
+    public function canWorkOnTasksInProject(Project $project): bool
+    {
+        return $this->hasAnyRoleInProject($project, [
+            ProjectUser::ROLE_MANAGER,
+            ProjectUser::ROLE_DEVELOPER,
+            ProjectUser::ROLE_DESIGNER,
+            ProjectUser::ROLE_TESTER,
+        ]);
     }
 
     /**
@@ -325,7 +443,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user can view project (based on specific project)
+     * Check if user can view project (based on project membership)
      */
     public function canViewProject(Project $project): bool
     {
@@ -333,16 +451,17 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->isManager() && $project->manager_id === $this->id) {
-            return true;
-        }
+        // Check if user has any role in the project
+        $membership = $this->projectMemberships()
+            ->forProject($project->id)
+            ->active()
+            ->first();
 
-        // Check if user has any assigned tasks in this project
-        return $project->tasks()->where('assigned_to', $this->id)->exists();
+        return $membership !== null;
     }
 
     /**
-     * Check if user can edit project
+     * Check if user can edit project (manager role in project)
      */
     public function canEditProject(Project $project): bool
     {
@@ -350,11 +469,11 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->isManager() && $project->manager_id === $this->id;
+        return $this->isManagerOfProject($project);
     }
 
     /**
-     * Check if user can view specific task
+     * Check if user can view specific task (based on project membership)
      */
     public function canViewTask(Task $task): bool
     {
@@ -362,15 +481,12 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->isManager() && $task->project->manager_id === $this->id) {
-            return true;
-        }
-
-        return $task->assigned_to === $this->id;
+        // Check if user has any role in the project or is assigned to the task
+        return $this->canViewProject($task->project) || $task->assigned_to === $this->id;
     }
 
     /**
-     * Check if user can edit specific task
+     * Check if user can edit specific task (based on project role or assignment)
      */
     public function canEditTask(Task $task): bool
     {
@@ -378,12 +494,13 @@ class User extends Authenticatable
             return true;
         }
 
-        if ($this->isManager() && $task->project->manager_id === $this->id) {
+        // Manager of the project can edit all tasks
+        if ($this->isManagerOfProject($task->project)) {
             return true;
         }
 
-        // Task assignee can edit their own tasks
-        return $task->assigned_to === $this->id;
+        // Task assignee can edit their own tasks if they can work on tasks in this project
+        return $task->assigned_to === $this->id && $this->canWorkOnTasksInProject($task->project);
     }
 
     /**

@@ -91,16 +91,25 @@ class TimeEntryController extends Controller
             'task_id' => 'required|exists:tasks,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'hours' => 'nullable|numeric|min:0.1|max:24',
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $timeEntry = $this->timeTrackingService->createTimeEntry(
-            $request->user(),
-            $request->input('task_id'),
-            $request->input('start_time'),
-            $request->input('end_time'),
-            $request->input('description')
-        );
+        // Prepare data array for the service
+        $data = [
+            'task_id' => $request->input('task_id'),
+            'start_time' => $request->input('start_time'),
+            'end_time' => $request->input('end_time'),
+            'comment' => $request->input('description'),
+        ];
+
+        // If hours are manually entered, calculate end time
+        if ($request->filled('hours')) {
+            $startTime = Carbon::parse($request->input('start_time'));
+            $data['end_time'] = $startTime->copy()->addHours($request->input('hours'));
+        }
+
+        $timeEntry = $this->timeTrackingService->createTimeEntry($data, $request->user());
 
         return redirect()->route('timesheet.index')
             ->with('success', __('Time entry created successfully'));
@@ -143,16 +152,25 @@ class TimeEntryController extends Controller
             'task_id' => 'required|exists:tasks,id',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
+            'hours' => 'nullable|numeric|min:0.1|max:24',
             'description' => 'nullable|string|max:1000',
         ]);
 
-        $timeEntry = $this->timeTrackingService->updateTimeEntry(
-            $timeEntry,
-            $request->input('task_id'),
-            $request->input('start_time'),
-            $request->input('end_time'),
-            $request->input('description')
-        );
+        // Prepare data array for the service
+        $data = [
+            'task_id' => $request->input('task_id'),
+            'start_time' => $request->input('start_time'),
+            'end_time' => $request->input('end_time'),
+            'comment' => $request->input('description'),
+        ];
+
+        // If hours are manually entered, calculate end time
+        if ($request->filled('hours')) {
+            $startTime = Carbon::parse($request->input('start_time'));
+            $data['end_time'] = $startTime->copy()->addHours($request->input('hours'));
+        }
+
+        $timeEntry = $this->timeTrackingService->update($timeEntry, $data, $request->user());
 
         return redirect()->route('timesheet.index')
             ->with('success', __('Time entry updated successfully'));

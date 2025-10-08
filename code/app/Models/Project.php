@@ -114,11 +114,147 @@ class Project extends Model
     }
 
     /**
-     * Get the project manager
+     * Get the project manager (legacy - for backward compatibility)
      */
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Get project members with their roles
+     */
+    public function members()
+    {
+        return $this->belongsToMany(User::class)
+            ->using(ProjectUser::class)
+            ->withPivot(['roles', 'is_active', 'joined_at', 'left_at'])
+            ->withTimestamps()
+            ->wherePivot('is_active', true);
+    }
+
+    /**
+     * Get project memberships
+     */
+    public function memberships()
+    {
+        return $this->hasMany(ProjectUser::class);
+    }
+
+    /**
+     * Get active project memberships
+     */
+    public function activeMemberships()
+    {
+        return $this->memberships()->active();
+    }
+
+    /**
+     * Get members with a specific role
+     */
+    public function membersWithRole(string $role)
+    {
+        return $this->members()->whereJsonContains('project_user.roles', $role);
+    }
+
+    /**
+     * Get project managers (users with manager role in this project)
+     */
+    public function managers()
+    {
+        return $this->membersWithRole(ProjectUser::ROLE_MANAGER);
+    }
+
+    /**
+     * Get project developers
+     */
+    public function developers()
+    {
+        return $this->membersWithRole(ProjectUser::ROLE_DEVELOPER);
+    }
+
+    /**
+     * Get project designers
+     */
+    public function designers()
+    {
+        return $this->membersWithRole(ProjectUser::ROLE_DESIGNER);
+    }
+
+    /**
+     * Get project testers
+     */
+    public function testers()
+    {
+        return $this->membersWithRole(ProjectUser::ROLE_TESTER);
+    }
+
+    /**
+     * Get project clients
+     */
+    public function clients()
+    {
+        return $this->membersWithRole(ProjectUser::ROLE_CLIENT);
+    }
+
+    /**
+     * Add a user to the project with specific roles
+     */
+    public function addMember(User $user, array $roles): ProjectUser
+    {
+        return ProjectUser::updateOrCreate(
+            [
+                'project_id' => $this->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'roles' => $roles,
+                'is_active' => true,
+                'joined_at' => now(),
+            ]
+        );
+    }
+
+    /**
+     * Remove a user from the project
+     */
+    public function removeMember(User $user): bool
+    {
+        $membership = ProjectUser::where('project_id', $this->id)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($membership) {
+            $membership->update([
+                'is_active' => false,
+                'left_at' => now(),
+            ]);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user is a member of this project
+     */
+    public function hasMember(User $user): bool
+    {
+        return $this->activeMemberships()
+            ->where('user_id', $user->id)
+            ->exists();
+    }
+
+    /**
+     * Check if user has specific role in this project
+     */
+    public function userHasRole(User $user, string $role): bool
+    {
+        $membership = $this->activeMemberships()
+            ->where('user_id', $user->id)
+            ->first();
+
+        return $membership && $membership->hasRole($role);
     }
 
     /**

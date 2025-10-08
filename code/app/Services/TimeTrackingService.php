@@ -17,26 +17,29 @@ class TimeTrackingService
      */
     public function create(array $data, User $user): TimeEntry
     {
+        // Process duration-based calculation if hours are provided
+        $processedData = $this->processTimeData($data);
+
         // Validate business rules
-        $this->validateTimeEntryData($data, $user);
+        $this->validateTimeEntryData($processedData, $user);
 
         // Ensure task exists and user can log time for it
-        $task = Task::findOrFail($data['task_id']);
+        $task = Task::findOrFail($processedData['task_id']);
         if (! $this->canUserLogTimeForTask($user, $task)) {
             throw new \UnauthorizedHttpException('You are not authorized to log time for this task.');
         }
 
         // Parse times
-        $startTime = Carbon::parse($data['start_time']);
-        $endTime = Carbon::parse($data['end_time']);
+        $startTime = Carbon::parse($processedData['start_time']);
+        $endTime = Carbon::parse($processedData['end_time']);
 
         // Create time entry
         $timeEntry = TimeEntry::create([
-            'task_id' => $data['task_id'],
+            'task_id' => $processedData['task_id'],
             'user_id' => $user->id,
             'start_time' => $startTime,
             'end_time' => $endTime,
-            'comment' => $data['comment'] ?? null,
+            'comment' => $processedData['comment'] ?? null,
         ]);
 
         // Log activity
@@ -92,19 +95,22 @@ class TimeTrackingService
             ]);
         }
 
+        // Process duration-based calculation if hours are provided
+        $processedData = $this->processTimeData($data);
+
         // Validate updated data
-        $this->validateTimeEntryData($data, $user, $timeEntry->id);
+        $this->validateTimeEntryData($processedData, $user, $timeEntry->id);
 
         // Parse times if provided
         $updateData = [];
-        if (isset($data['start_time'])) {
-            $updateData['start_time'] = Carbon::parse($data['start_time']);
+        if (isset($processedData['start_time'])) {
+            $updateData['start_time'] = Carbon::parse($processedData['start_time']);
         }
-        if (isset($data['end_time'])) {
-            $updateData['end_time'] = Carbon::parse($data['end_time']);
+        if (isset($processedData['end_time'])) {
+            $updateData['end_time'] = Carbon::parse($processedData['end_time']);
         }
-        if (isset($data['comment'])) {
-            $updateData['comment'] = $data['comment'];
+        if (isset($processedData['comment'])) {
+            $updateData['comment'] = $processedData['comment'];
         }
 
         // Update time entry
@@ -118,6 +124,21 @@ class TimeTrackingService
         ]);
 
         return $timeEntry->fresh();
+    }
+
+    /**
+     * Update time entry (alias for update method with specific parameters)
+     */
+    public function updateTimeEntry(TimeEntry $timeEntry, int $taskId, string $startTime, string $endTime, ?string $comment = null): TimeEntry
+    {
+        $data = [
+            'task_id' => $taskId,
+            'start_time' => $startTime,
+            'end_time' => $endTime,
+            'comment' => $comment,
+        ];
+
+        return $this->update($timeEntry, $data, auth()->user());
     }
 
     /**
@@ -370,6 +391,37 @@ class TimeTrackingService
         }
 
         return null;
+    }
+
+    /**
+     * Process time data to handle duration calculations
+     */
+    private function processTimeData(array $data): array
+    {
+        // If hours are provided, calculate end time automatically
+        if (isset($data['hours']) && $data['hours'] > 0) {
+            $startTime = Carbon::parse($data['start_time']);
+            $data['end_time'] = $startTime->copy()->addHours($data['hours']);
+        }
+
+        // If only start_time and hours are provided, calculate end_time
+        if (isset($data['start_time']) && isset($data['hours']) && !isset($data['end_time'])) {
+            $startTime = Carbon::parse($data['start_time']);
+            $data['end_time'] = $startTime->copy()->addHours($data['hours']);
+        }
+
+        // If start_time and end_time are provided, ensure they're valid
+        if (isset($data['start_time']) && isset($data['end_time'])) {
+            // Convert to Carbon instances for validation
+            $startTime = Carbon::parse($data['start_time']);
+            $endTime = Carbon::parse($data['end_time']);
+
+            // Update the data array with proper format
+            $data['start_time'] = $startTime->toDateTimeString();
+            $data['end_time'] = $endTime->toDateTimeString();
+        }
+
+        return $data;
     }
 
     /**

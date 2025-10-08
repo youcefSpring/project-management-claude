@@ -1,18 +1,19 @@
 @extends('layouts.app')
 
-@section('title', __('Log Time Entry'))
-@section('page-title', __('Log New Time Entry'))
+@section('title', __('Edit Time Entry'))
+@section('page-title', __('Edit Time Entry'))
 
 @section('content')
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Time Entry Information') }}</h5>
+                <h5 class="mb-0">{{ __('Edit Time Entry Information') }}</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('timesheet.store') }}">
+                <form method="POST" action="{{ route('timesheet.update', $timeEntry) }}">
                     @csrf
+                    @method('PUT')
 
                     <div class="mb-3">
                         <label for="task_id" class="form-label">{{ __('Task') }} <span class="text-danger">*</span></label>
@@ -20,7 +21,7 @@
                             <option value="">{{ __('Select a task') }}</option>
                             @foreach($availableTasks as $task)
                                 <option value="{{ $task->id }}"
-                                    {{ old('task_id', request('task_id')) == $task->id ? 'selected' : '' }}>
+                                    {{ old('task_id', $timeEntry->task_id) == $task->id ? 'selected' : '' }}>
                                     {{ $task->title }} ({{ $task->project->title }})
                                 </option>
                             @endforeach
@@ -36,7 +37,7 @@
                                 <label for="start_time" class="form-label">{{ __('Start Time') }} <span class="text-danger">*</span></label>
                                 <input type="datetime-local" class="form-control @error('start_time') is-invalid @enderror"
                                        id="start_time" name="start_time"
-                                       value="{{ old('start_time', now()->format('Y-m-d\TH:i')) }}" required>
+                                       value="{{ old('start_time', $timeEntry->start_time->format('Y-m-d\TH:i')) }}" required>
                                 @error('start_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -47,7 +48,7 @@
                                 <label for="end_time" class="form-label">{{ __('End Time') }} <span class="text-danger">*</span></label>
                                 <input type="datetime-local" class="form-control @error('end_time') is-invalid @enderror"
                                        id="end_time" name="end_time"
-                                       value="{{ old('end_time', now()->addHour()->format('Y-m-d\TH:i')) }}" required>
+                                       value="{{ old('end_time', $timeEntry->end_time->format('Y-m-d\TH:i')) }}" required>
                                 @error('end_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -59,7 +60,7 @@
                         <label for="hours" class="form-label">{{ __('Duration (hours)') }}</label>
                         <input type="number" class="form-control @error('hours') is-invalid @enderror"
                                id="hours" name="hours" step="0.25" min="0.1" max="24"
-                               value="{{ old('hours') }}" placeholder="{{ __('Enter hours or use start/end time') }}">
+                               value="{{ old('hours', $timeEntry->duration) }}" placeholder="{{ __('Enter hours or use start/end time') }}">
                         <small class="form-text text-muted">{{ __('Enter hours directly or use start/end time fields') }}</small>
                         @error('hours')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -70,7 +71,7 @@
                         <label for="description" class="form-label">{{ __('Description') }}</label>
                         <textarea class="form-control @error('description') is-invalid @enderror"
                                   id="description" name="description" rows="4"
-                                  placeholder="{{ __('Describe what you worked on...') }}">{{ old('description') }}</textarea>
+                                  placeholder="{{ __('Describe what you worked on...') }}">{{ old('description', $timeEntry->comment) }}</textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -82,8 +83,8 @@
                             {{ __('Cancel') }}
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-clock me-2"></i>
-                            {{ __('Log Time Entry') }}
+                            <i class="bi bi-save me-2"></i>
+                            {{ __('Update Time Entry') }}
                         </button>
                     </div>
                 </form>
@@ -116,16 +117,13 @@
 
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Guidelines') }}</h5>
+                <h5 class="mb-0">{{ __('Current Entry Info') }}</h5>
             </div>
             <div class="card-body">
-                <h6>{{ __('Time Tracking Tips') }}</h6>
-                <ul class="small text-muted">
-                    <li>{{ __('Be accurate with your time entries') }}</li>
-                    <li>{{ __('Include detailed descriptions of work done') }}</li>
-                    <li>{{ __('Log time daily for best accuracy') }}</li>
-                    <li>{{ __('Maximum 24 hours per entry') }}</li>
-                </ul>
+                <p><strong>{{ __('Task:') }}</strong> {{ $timeEntry->task->title }}</p>
+                <p><strong>{{ __('Project:') }}</strong> {{ $timeEntry->task->project->title }}</p>
+                <p><strong>{{ __('Current Duration:') }}</strong> {{ $timeEntry->duration_formatted }}</p>
+                <p><strong>{{ __('Created:') }}</strong> {{ $timeEntry->created_at->format('M d, Y H:i') }}</p>
             </div>
         </div>
     </div>
@@ -173,10 +171,13 @@ function calculateEndTime() {
 }
 
 function setQuickTime(hours) {
-    const now = new Date();
-    const endTime = new Date(now.getTime() + (hours * 60 * 60 * 1000));
+    const startTimeField = document.getElementById('start_time');
+    const startTime = startTimeField.value ? new Date(startTimeField.value) : new Date();
+    const endTime = new Date(startTime.getTime() + (hours * 60 * 60 * 1000));
 
-    document.getElementById('start_time').value = now.toISOString().slice(0, 16);
+    if (!startTimeField.value) {
+        startTimeField.value = startTime.toISOString().slice(0, 16);
+    }
     document.getElementById('end_time').value = endTime.toISOString().slice(0, 16);
     document.getElementById('hours').value = hours.toFixed(2);
 }
