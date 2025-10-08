@@ -354,6 +354,11 @@ class Project extends Model
             return true;
         }
 
+        // Check if user has project membership
+        if ($this->hasMember($user)) {
+            return true;
+        }
+
         // Team members can view projects where they have assigned tasks
         if ($user->canWorkOnTasks()) {
             return $this->tasks()->where('assigned_to', $user->id)->exists();
@@ -366,6 +371,25 @@ class Project extends Model
         }
 
         return false;
+    }
+
+    /**
+     * Ensure project manager is added as a project member
+     */
+    public function ensureManagerMembership(): void
+    {
+        if ($this->manager_id && !$this->hasMember($this->manager)) {
+            try {
+                $this->addMember($this->manager, [ProjectUser::ROLE_MANAGER]);
+            } catch (\Exception $e) {
+                // Silently fail if project_user table doesn't exist yet
+                \Log::warning('Could not add manager as project member', [
+                    'project_id' => $this->id,
+                    'manager_id' => $this->manager_id,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        }
     }
 
     /**
@@ -393,13 +417,32 @@ class Project extends Model
             return $query;
         }
 
+        // For managers, always show projects they manage (primary access method)
         if ($user->isManager()) {
-            return $query->where('manager_id', $user->id);
+            return $query->where(function ($q) use ($user) {
+                // Projects where user is the manager
+                $q->where('manager_id', $user->id)
+                // OR projects where user has active membership
+                ->orWhereHas('activeMemberships', function ($membershipQuery) use ($user) {
+                    $membershipQuery->where('user_id', $user->id);
+                })
+                // OR projects where user has assigned tasks
+                ->orWhereHas('tasks', function ($taskQuery) use ($user) {
+                    $taskQuery->where('assigned_to', $user->id);
+                });
+            });
         }
 
-        // For members, show projects where they have assigned tasks
-        return $query->whereHas('tasks', function ($taskQuery) use ($user) {
-            $taskQuery->where('assigned_to', $user->id);
+        // For non-managers, show projects where they are members or have tasks
+        return $query->where(function ($q) use ($user) {
+            // Projects where user has any active membership
+            $q->whereHas('activeMemberships', function ($membershipQuery) use ($user) {
+                $membershipQuery->where('user_id', $user->id);
+            })
+            // OR projects where user has assigned tasks (fallback)
+            ->orWhereHas('tasks', function ($taskQuery) use ($user) {
+                $taskQuery->where('assigned_to', $user->id);
+            });
         });
     }
 }

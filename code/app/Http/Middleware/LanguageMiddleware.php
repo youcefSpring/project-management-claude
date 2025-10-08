@@ -18,8 +18,8 @@ class LanguageMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Available languages
-        $availableLanguages = ['en', 'es', 'fr', 'de', 'it', 'pt', 'zh'];
-        $defaultLanguage = 'en';
+        $availableLanguages = array_keys(config('app.available_locales', ['en', 'fr', 'ar']));
+        $defaultLanguage = config('app.locale', 'en');
 
         // Get language from various sources (priority order)
         $language = $this->getLanguageFromSources($request, $availableLanguages, $defaultLanguage);

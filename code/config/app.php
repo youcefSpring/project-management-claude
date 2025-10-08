@@ -100,6 +100,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Available Locales
+    |--------------------------------------------------------------------------
+    |
+    | This array contains all the locales which are supported by the
+    | application. Users can switch between these languages.
+    |
+    */
+
+    'available_locales' => [
+        'en' => 'English',
+        'fr' => 'Français',
+        'ar' => 'العربية',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Faker Locale
     |--------------------------------------------------------------------------
     |

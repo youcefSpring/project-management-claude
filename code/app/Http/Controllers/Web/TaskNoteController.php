@@ -19,7 +19,7 @@ class TaskNoteController extends Controller
 
         // Check if user can view the task
         if (! $task->canBeViewedBy($user)) {
-            abort(403, 'You do not have permission to add notes to this task.');
+            abort(403, __('app.comments.no_permission_add_notes'));
         }
 
         $request->validate([
@@ -33,7 +33,7 @@ class TaskNoteController extends Controller
         ]);
 
         return redirect()->route('tasks.show', $task)
-            ->with('success', 'Comment added successfully.');
+            ->with('success', __('app.comments.comment_added_successfully'));
     }
 
     /**
@@ -45,7 +45,7 @@ class TaskNoteController extends Controller
 
         // Check if user can edit this note
         if (! $note->canBeEditedBy($user)) {
-            abort(403, 'You do not have permission to edit this note.');
+            abort(403, __('app.comments.no_permission_edit_note'));
         }
 
         $request->validate([
@@ -57,7 +57,7 @@ class TaskNoteController extends Controller
         ]);
 
         return redirect()->route('tasks.show', $note->task)
-            ->with('success', 'Comment updated successfully.');
+            ->with('success', __('app.comments.comment_updated_successfully'));
     }
 
     /**
@@ -69,13 +69,13 @@ class TaskNoteController extends Controller
 
         // Check if user can delete this note
         if (! $note->canBeDeletedBy($user)) {
-            abort(403, 'You do not have permission to delete this note.');
+            abort(403, __('app.comments.no_permission_delete_note'));
         }
 
         $task = $note->task;
         $note->delete();
 
         return redirect()->route('tasks.show', $task)
-            ->with('success', 'Comment deleted successfully.');
+            ->with('success', __('app.comments.comment_deleted_successfully'));
     }
 }

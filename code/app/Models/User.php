@@ -457,7 +457,17 @@ class User extends Authenticatable
             ->active()
             ->first();
 
-        return $membership !== null;
+        if ($membership !== null) {
+            return true;
+        }
+
+        // Legacy support: check if user is the project manager
+        if ($project->manager_id === $this->id) {
+            return true;
+        }
+
+        // Fallback: check if user has assigned tasks in this project
+        return $this->assignedTasks()->where('project_id', $project->id)->exists();
     }
 
     /**
@@ -469,7 +479,13 @@ class User extends Authenticatable
             return true;
         }
 
-        return $this->isManagerOfProject($project);
+        // Check if user has manager role in the project
+        if ($this->isManagerOfProject($project)) {
+            return true;
+        }
+
+        // Legacy support: check if user is the project manager
+        return $project->manager_id === $this->id;
     }
 
     /**

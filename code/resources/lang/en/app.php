@@ -202,6 +202,18 @@ return [
         'no_users' => 'No users found',
     ],
 
+    // Comments
+    'comments' => [
+        'comment_added_successfully' => 'Comment added successfully.',
+        'comment_updated_successfully' => 'Comment updated successfully.',
+        'comment_deleted_successfully' => 'Comment deleted successfully.',
+        'add_comment' => 'Add Comment',
+        'edit_comment' => 'Edit Comment',
+        'no_permission_add_notes' => 'You do not have permission to add notes to this task.',
+        'no_permission_edit_note' => 'You do not have permission to edit this note.',
+        'no_permission_delete_note' => 'You do not have permission to delete this note.',
+    ],
+
     // Messages
     'messages' => [
         'confirm_delete' => 'Are you sure you want to delete this item?',
