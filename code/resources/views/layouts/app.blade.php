@@ -247,6 +247,7 @@
                         </a>
                     </li>
 
+                    @hasPermission('view.timetracking')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}"
                            href="{{ route('timesheet.index') }}">
@@ -254,8 +255,9 @@
                             {{ __('Timesheet') }}
                         </a>
                     </li>
+                    @endhasPermission
 
-                    @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                    @hasPermission('view.reports')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
                            href="{{ route('reports.index') }}">
@@ -263,9 +265,9 @@
                             {{ __('Reports') }}
                         </a>
                     </li>
-                    @endif
+                    @endhasPermission
 
-                    @if(auth()->user()->isAdmin())
+                    @hasPermission('view.users')
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
                            href="{{ route('users.index') }}">
@@ -273,7 +275,9 @@
                             {{ __('User Management') }}
                         </a>
                     </li>
+                    @endhasPermission
 
+                    @hasPermission('access.admin.dashboard')
                     <hr class="my-3 text-light">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}"
@@ -282,7 +286,7 @@
                             {{ __('Administration') }}
                         </a>
                     </li>
-                    @endif
+                    @endhasPermission
 
                     <hr class="my-3 text-light">
 

@@ -20,22 +20,7 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        // Admin can view all projects
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // Manager can view projects they manage
-        if ($user->isManager() && $project->manager_id === $user->id) {
-            return true;
-        }
-
-        // Members can view projects where they have assigned tasks
-        if ($user->isMember()) {
-            return $project->tasks()->where('assigned_to', $user->id)->exists();
-        }
-
-        return false;
+        return $user->canViewProject($project);
     }
 
     /**
@@ -43,8 +28,7 @@ class ProjectPolicy
      */
     public function create(User $user): bool
     {
-        // Only admin and managers can create projects
-        return $user->isAdmin() || $user->isManager();
+        return $user->canManageProjects();
     }
 
     /**
@@ -52,17 +36,7 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
-        // Admin can update any project
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // Manager can update projects they manage
-        if ($user->isManager() && $project->manager_id === $user->id) {
-            return true;
-        }
-
-        return false;
+        return $user->canEditProject($project);
     }
 
     /**
@@ -70,8 +44,7 @@ class ProjectPolicy
      */
     public function delete(User $user, Project $project): bool
     {
-        // Only admin can delete projects
-        return $user->isAdmin();
+        return $user->canDeleteProjects();
     }
 
     /**

@@ -51,6 +51,14 @@ class TimeTrackingService
     }
 
     /**
+     * Create time entry (alias for create method)
+     */
+    public function createTimeEntry(array $data, User $user): TimeEntry
+    {
+        return $this->create($data, $user);
+    }
+
+    /**
      * Create time entry from duration
      */
     public function createFromDuration(int $taskId, float $duration, User $user, ?string $comment = null, ?Carbon $date = null): TimeEntry

@@ -259,4 +259,154 @@ class User extends Authenticatable
             $query->where('assigned_to', $this->id);
         });
     }
+
+    /**
+     * Check if user can view user management
+     */
+    public function canViewUsers(): bool
+    {
+        return $this->isAdmin() || $this->isHR();
+    }
+
+    /**
+     * Check if user can create/edit users
+     */
+    public function canManageUsers(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    /**
+     * Check if user can view reports
+     */
+    public function canViewReports(): bool
+    {
+        return $this->isAdmin() || $this->isManager() || $this->isAccountant();
+    }
+
+    /**
+     * Check if user can view financial reports
+     */
+    public function canViewFinancialReports(): bool
+    {
+        return $this->isAdmin() || $this->isAccountant();
+    }
+
+    /**
+     * Check if user can view time tracking
+     */
+    public function canViewTimeTracking(): bool
+    {
+        return $this->canWorkOnTasks() || $this->isManager() || $this->isAdmin();
+    }
+
+    /**
+     * Check if user can log time for others
+     */
+    public function canLogTimeForOthers(): bool
+    {
+        return $this->isAdmin() || $this->isManager();
+    }
+
+    /**
+     * Check if user can delete projects
+     */
+    public function canDeleteProjects(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    /**
+     * Check if user can assign tasks to others
+     */
+    public function canAssignTasks(): bool
+    {
+        return $this->isAdmin() || $this->isManager();
+    }
+
+    /**
+     * Check if user can view project (based on specific project)
+     */
+    public function canViewProject(Project $project): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isManager() && $project->manager_id === $this->id) {
+            return true;
+        }
+
+        // Check if user has any assigned tasks in this project
+        return $project->tasks()->where('assigned_to', $this->id)->exists();
+    }
+
+    /**
+     * Check if user can edit project
+     */
+    public function canEditProject(Project $project): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        return $this->isManager() && $project->manager_id === $this->id;
+    }
+
+    /**
+     * Check if user can view specific task
+     */
+    public function canViewTask(Task $task): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isManager() && $task->project->manager_id === $this->id) {
+            return true;
+        }
+
+        return $task->assigned_to === $this->id;
+    }
+
+    /**
+     * Check if user can edit specific task
+     */
+    public function canEditTask(Task $task): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if ($this->isManager() && $task->project->manager_id === $this->id) {
+            return true;
+        }
+
+        // Task assignee can edit their own tasks
+        return $task->assigned_to === $this->id;
+    }
+
+    /**
+     * Check if user has any of the specified roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
+    }
+
+    /**
+     * Check if user can access admin dashboard
+     */
+    public function canAccessAdminDashboard(): bool
+    {
+        return $this->isAdmin();
+    }
+
+    /**
+     * Check if user can access manager dashboard
+     */
+    public function canAccessManagerDashboard(): bool
+    {
+        return $this->isAdmin() || $this->isManager();
+    }
 }

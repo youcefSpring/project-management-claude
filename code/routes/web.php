@@ -69,20 +69,22 @@ Route::middleware('auth')->group(function () {
     Route::prefix('projects')->name('projects.')->group(function () {
         Route::get('/', [ProjectController::class, 'index'])->name('index');
         Route::get('/create', [ProjectController::class, 'create'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:manage.projects')
             ->name('create');
         Route::post('/', [ProjectController::class, 'store'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:manage.projects')
             ->name('store');
-        Route::get('/{project}', [ProjectController::class, 'show'])->name('show');
+        Route::get('/{project}', [ProjectController::class, 'show'])
+            ->middleware('permission:view.project')
+            ->name('show');
         Route::get('/{project}/edit', [ProjectController::class, 'edit'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:edit.project')
             ->name('edit');
         Route::put('/{project}', [ProjectController::class, 'update'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:edit.project')
             ->name('update');
         Route::delete('/{project}', [ProjectController::class, 'destroy'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:delete.projects')
             ->name('destroy');
     });
 
@@ -90,24 +92,36 @@ Route::middleware('auth')->group(function () {
     Route::prefix('tasks')->name('tasks.')->group(function () {
         Route::get('/', [TaskController::class, 'index'])->name('index');
         Route::get('/create', [TaskController::class, 'create'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:assign.tasks')
             ->name('create');
         Route::post('/', [TaskController::class, 'store'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:assign.tasks')
             ->name('store');
-        Route::get('/{task}', [TaskController::class, 'show'])->name('show');
-        Route::get('/{task}/edit', [TaskController::class, 'edit'])->name('edit');
-        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
-        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+        Route::get('/{task}', [TaskController::class, 'show'])
+            ->middleware('permission:view.task')
+            ->name('show');
+        Route::get('/{task}/edit', [TaskController::class, 'edit'])
+            ->middleware('permission:edit.task')
+            ->name('edit');
+        Route::put('/{task}', [TaskController::class, 'update'])
+            ->middleware('permission:edit.task')
+            ->name('update');
+        Route::delete('/{task}', [TaskController::class, 'destroy'])
+            ->middleware('permission:edit.task')
+            ->name('destroy');
 
         // Task Notes
-        Route::post('/{task}/notes', [TaskNoteController::class, 'store'])->name('notes.store');
-        Route::put('/notes/{note}', [TaskNoteController::class, 'update'])->name('notes.update');
-        Route::delete('/notes/{note}', [TaskNoteController::class, 'destroy'])->name('notes.destroy');
+        Route::post('/{task}/notes', [TaskNoteController::class, 'store'])
+            ->middleware('permission:view.task')
+            ->name('notes.store');
+        Route::put('/notes/{note}', [TaskNoteController::class, 'update'])
+            ->name('notes.update');
+        Route::delete('/notes/{note}', [TaskNoteController::class, 'destroy'])
+            ->name('notes.destroy');
     });
 
     // Time Tracking (Timesheet)
-    Route::prefix('timesheet')->name('timesheet.')->group(function () {
+    Route::prefix('timesheet')->name('timesheet.')->middleware('permission:view.timetracking')->group(function () {
         Route::get('/', [TimeEntryController::class, 'index'])->name('index');
         Route::get('/create', [TimeEntryController::class, 'create'])->name('create');
         Route::post('/', [TimeEntryController::class, 'store'])->name('store');
@@ -119,43 +133,55 @@ Route::middleware('auth')->group(function () {
 
     // User Management
     Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('/', [UserController::class, 'index'])
+            ->middleware('permission:view.users')
+            ->name('index');
         Route::get('/create', [UserController::class, 'create'])
-            ->middleware('role:admin')
+            ->middleware('permission:manage.users')
             ->name('create');
         Route::post('/', [UserController::class, 'store'])
-            ->middleware('role:admin')
+            ->middleware('permission:manage.users')
             ->name('store');
-        Route::get('/{user}', [UserController::class, 'show'])->name('show');
-        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('edit');
-        Route::put('/{user}', [UserController::class, 'update'])->name('update');
+        Route::get('/{user}', [UserController::class, 'show'])
+            ->middleware('permission:view.users')
+            ->name('show');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])
+            ->middleware('permission:manage.users')
+            ->name('edit');
+        Route::put('/{user}', [UserController::class, 'update'])
+            ->name('update'); // Users can edit their own profile
         Route::delete('/{user}', [UserController::class, 'destroy'])
-            ->middleware('role:admin')
+            ->middleware('permission:manage.users')
             ->name('destroy');
         Route::patch('/{user}/role', [UserController::class, 'updateRole'])
-            ->middleware('role:admin')
+            ->middleware('permission:manage.users')
             ->name('update-role');
         Route::get('/api/stats', [UserController::class, 'getUserStats'])
-            ->middleware('role:admin')
+            ->middleware('permission:manage.users')
             ->name('stats');
     });
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:view.reports')
             ->name('index');
 
         Route::get('/projects', [ReportController::class, 'projects'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:view.reports')
             ->name('projects');
 
         Route::get('/users', [ReportController::class, 'users'])
-            ->middleware('role:admin,manager')
+            ->middleware('permission:view.reports')
             ->name('users');
 
         Route::get('/time-tracking', [ReportController::class, 'timeTracking'])
+            ->middleware('permission:view.timetracking')
             ->name('time-tracking');
+
+        Route::get('/financial', [ReportController::class, 'financial'])
+            ->middleware('permission:view.financial.reports')
+            ->name('financial');
     });
 
     // User Profile & Settings
