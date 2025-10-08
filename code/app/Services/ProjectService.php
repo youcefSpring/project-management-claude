@@ -33,7 +33,7 @@ class ProjectService
         $project = Project::create([
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'status' => Project::STATUS_IN_PROGRESS,
+            'status' => Project::STATUS_ACTIVE,
             'start_date' => Carbon::parse($data['start_date']),
             'end_date' => Carbon::parse($data['end_date']),
             'manager_id' => $data['manager_id'],
@@ -211,7 +211,7 @@ class ProjectService
 
         return [
             'total_projects' => $projects->count(),
-            'active_projects' => $projects->where('status', Project::STATUS_IN_PROGRESS)->count(),
+            'active_projects' => $projects->where('status', Project::STATUS_ACTIVE)->count(),
             'completed_projects' => $projects->where('status', Project::STATUS_COMPLETED)->count(),
             'recent_projects' => $projects->take(5),
             'overdue_projects' => $this->getOverdueProjects($user),
@@ -264,8 +264,10 @@ class ProjectService
     private function validateStatusTransition(Project $project, string $newStatus, User $user): void
     {
         $validTransitions = [
-            Project::STATUS_IN_PROGRESS => [Project::STATUS_COMPLETED, Project::STATUS_CANCELLED],
-            Project::STATUS_CANCELLED => [Project::STATUS_IN_PROGRESS],
+            Project::STATUS_PLANNING => [Project::STATUS_ACTIVE, Project::STATUS_CANCELLED],
+            Project::STATUS_ACTIVE => [Project::STATUS_ON_HOLD, Project::STATUS_COMPLETED, Project::STATUS_CANCELLED],
+            Project::STATUS_ON_HOLD => [Project::STATUS_ACTIVE, Project::STATUS_CANCELLED],
+            Project::STATUS_CANCELLED => [Project::STATUS_ACTIVE],
             Project::STATUS_COMPLETED => [], // Completed projects cannot be changed
         ];
 
@@ -336,7 +338,7 @@ class ProjectService
     {
         return Project::accessibleBy($user)
             ->where('end_date', '<', Carbon::today())
-            ->where('status', Project::STATUS_IN_PROGRESS)
+            ->where('status', Project::STATUS_ACTIVE)
             ->with('manager')
             ->get();
     }

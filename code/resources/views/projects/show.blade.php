@@ -26,11 +26,11 @@
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar me-2 text-primary"></i>
-                                <strong>{{ __('Start Date') }}:</strong> {{ $project->start_date ? $project->start_date->format('M d, Y') : 'N/A' }}
+                                <strong>{{ __('Start Date') }}:</strong> {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : 'N/A' }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar-check me-2 text-primary"></i>
-                                <strong>{{ __('End Date') }}:</strong> {{ $project->end_date ? $project->end_date->format('M d, Y') : 'N/A' }}
+                                <strong>{{ __('End Date') }}:</strong> {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('M d, Y') : 'N/A' }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-clock me-2 text-primary"></i>

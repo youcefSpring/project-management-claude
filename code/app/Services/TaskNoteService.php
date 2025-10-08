@@ -159,8 +159,7 @@ class TaskNoteService
             $notesQuery->whereHas('task', function ($query) use ($user) {
                 $query->where('assigned_to', $user->id)
                     ->orWhereHas('project', function ($projectQuery) use ($user) {
-                        $projectQuery->where('created_by', $user->id)
-                            ->orWhere('manager_id', $user->id);
+                        $projectQuery->where('manager_id', $user->id);
                     });
             });
         }
@@ -187,8 +186,7 @@ class TaskNoteService
             $notesQuery->whereHas('task', function ($query) use ($user) {
                 $query->where('assigned_to', $user->id)
                     ->orWhereHas('project', function ($projectQuery) use ($user) {
-                        $projectQuery->where('created_by', $user->id)
-                            ->orWhere('manager_id', $user->id);
+                        $projectQuery->where('manager_id', $user->id);
                     });
             });
         }
@@ -220,8 +218,8 @@ class TaskNoteService
             return true;
         }
 
-        // Check if user is the project creator or manager
-        if ($task->project->created_by === $user->id || $task->project->manager_id === $user->id) {
+        // Check if user is the project manager
+        if ($task->project->manager_id === $user->id) {
             return true;
         }
 

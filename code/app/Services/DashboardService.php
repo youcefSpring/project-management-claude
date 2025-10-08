@@ -189,8 +189,7 @@ class DashboardService
             return Project::count();
         }
 
-        return Project::where('created_by', $user->id)
-            ->orWhere('manager_id', $user->id)
+        return Project::where('manager_id', $user->id)
             ->orWhereHas('tasks', function ($query) use ($user) {
                 $query->where('assigned_to', $user->id);
             })
@@ -206,8 +205,7 @@ class DashboardService
 
         return Project::where('status', 'active')
             ->where(function ($query) use ($user) {
-                $query->where('created_by', $user->id)
-                    ->orWhere('manager_id', $user->id)
+                $query->where('manager_id', $user->id)
                     ->orWhereHas('tasks', function ($subQuery) use ($user) {
                         $subQuery->where('assigned_to', $user->id);
                     });
