@@ -37,7 +37,7 @@
 <?php if($errors->any()): ?>
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
     <i class="bi bi-exclamation-triangle me-2"></i>
-    <strong><?php echo e(__('Please correct the following errors:')); ?></strong>
+    <strong><?php echo e(__('app.messages.please_correct_errors')); ?></strong>
     <ul class="mb-0 mt-2">
         <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <li><?php echo e($error); ?></li>

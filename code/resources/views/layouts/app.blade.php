@@ -1,18 +1,23 @@
+@php
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ LaravelLocalization::getCurrentLocaleDirection() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="user-id" content="{{ auth()->id() }}">
-    <meta name="user-role" content="{{ auth()->user()->role }}">
+    <meta name="user-role" content="{{ auth()->check() ? auth()->user()->role : 'guest' }}">
     <meta name="app-locale" content="{{ app()->getLocale() }}">
 
-    <title>@yield('title', 'Dashboard') - {{ config('app.name', 'Gestion de Projets') }}</title>
+    <title>@yield('title', __('app.Dashboard')) - {{ config('app.name', 'Gestion de Projets') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Arabic Font Support -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -42,6 +47,225 @@
             margin-left: 1rem;
         }
 
+        /* RTL Bootstrap adjustments */
+        [dir="rtl"] .me-1, [dir="rtl"] .me-2, [dir="rtl"] .me-3 {
+            margin-right: 0 !important;
+            margin-left: var(--bs-gutter-x) !important;
+        }
+
+        [dir="rtl"] .ms-1, [dir="rtl"] .ms-2, [dir="rtl"] .ms-3 {
+            margin-left: 0 !important;
+            margin-right: var(--bs-gutter-x) !important;
+        }
+
+        [dir="rtl"] .float-end {
+            float: left !important;
+        }
+
+        [dir="rtl"] .float-start {
+            float: right !important;
+        }
+
+        [dir="rtl"] .text-start {
+            text-align: right !important;
+        }
+
+        [dir="rtl"] .text-end {
+            text-align: left !important;
+        }
+
+        /* RTL Navigation */
+        [dir="rtl"] .nav-link {
+            text-align: right;
+        }
+
+        [dir="rtl"] .nav-link i {
+            margin-left: 0.5rem;
+            margin-right: 0;
+        }
+
+        /* RTL Cards */
+        [dir="rtl"] .card-body {
+            text-align: right;
+        }
+
+        [dir="rtl"] .card-title {
+            text-align: right;
+        }
+
+        /* RTL Forms */
+        [dir="rtl"] .form-label {
+            text-align: right;
+        }
+
+        [dir="rtl"] .input-group {
+            direction: rtl;
+        }
+
+        [dir="rtl"] .input-group .form-control {
+            text-align: right;
+        }
+
+        /* RTL Dropdowns */
+        [dir="rtl"] .dropdown-menu {
+            left: auto;
+            right: 0;
+        }
+
+        [dir="rtl"] .dropdown-menu-end {
+            left: 0;
+            right: auto;
+        }
+
+        /* RTL Tables */
+        [dir="rtl"] .table th,
+        [dir="rtl"] .table td {
+            text-align: right;
+        }
+
+        /* RTL Badges */
+        [dir="rtl"] .badge {
+            direction: rtl;
+        }
+
+        /* RTL Buttons */
+        [dir="rtl"] .btn i {
+            margin-left: 0.5rem;
+            margin-right: 0;
+        }
+
+        [dir="rtl"] .btn-group {
+            direction: rtl;
+        }
+
+        /* RTL Progress bars */
+        [dir="rtl"] .progress {
+            direction: ltr; /* Keep progress direction LTR for correct visual flow */
+        }
+
+        /* RTL Breadcrumbs */
+        [dir="rtl"] .breadcrumb {
+            direction: rtl;
+        }
+
+        /* RTL Alerts */
+        [dir="rtl"] .alert {
+            text-align: right;
+        }
+
+        /* Typography improvements for RTL */
+        [lang="ar"], [dir="rtl"] {
+            font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            letter-spacing: normal;
+        }
+
+        [lang="ar"] h1, [lang="ar"] h2, [lang="ar"] h3, [lang="ar"] h4, [lang="ar"] h5, [lang="ar"] h6,
+        [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+            font-family: 'Noto Sans Arabic', serif;
+            font-weight: 600;
+        }
+
+        /* RTL specific spacing */
+        [dir="rtl"] .container-fluid {
+            padding-right: 15px;
+            padding-left: 15px;
+        }
+
+        /* Fix Bootstrap RTL margin utilities */
+        [dir="rtl"] .me-auto {
+            margin-left: auto !important;
+            margin-right: 0 !important;
+        }
+
+        [dir="rtl"] .ms-auto {
+            margin-right: auto !important;
+            margin-left: 0 !important;
+        }
+
+        /* RTL Icon positioning */
+        [dir="rtl"] .bi {
+            transform: scaleX(-1);
+        }
+
+        [dir="rtl"] .bi-arrow-left {
+            transform: scaleX(1);
+        }
+
+        [dir="rtl"] .bi-arrow-right {
+            transform: scaleX(1);
+        }
+
+        /* LTR explicit styles */
+        [dir="ltr"] {
+            text-align: left;
+        }
+
+        [dir="ltr"] .nav-link {
+            text-align: left;
+        }
+
+        [dir="ltr"] .nav-link i {
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
+
+        [dir="ltr"] .card-body {
+            text-align: left;
+        }
+
+        [dir="ltr"] .form-label {
+            text-align: left;
+        }
+
+        [dir="ltr"] .table th,
+        [dir="ltr"] .table td {
+            text-align: left;
+        }
+
+        [dir="ltr"] .alert {
+            text-align: left;
+        }
+
+        [dir="ltr"] .dropdown-menu {
+            left: 0;
+            right: auto;
+        }
+
+        [dir="ltr"] .navbar-brand {
+            margin-left: 0;
+            margin-right: 1rem;
+        }
+
+        /* Language Switcher Styles */
+        .dropdown-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .dropdown-item.active:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .language-dropdown .dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .language-dropdown .dropdown-item i.bi-check2 {
+            color: #28a745;
+        }
+
+        /* RTL Search box */
+        [dir="rtl"] .input-group .btn {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        [dir="rtl"] .input-group .form-control {
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+
         /* Sidebar Styles */
         .sidebar {
             position: fixed;
@@ -61,6 +285,12 @@
             right: 0;
         }
 
+        /* LTR Sidebar (explicit) */
+        [dir="ltr"] .sidebar {
+            left: 0;
+            right: auto;
+        }
+
         .sidebar-collapsed .sidebar {
             transform: translateX(-100%);
         }
@@ -78,6 +308,13 @@
         [dir="rtl"] .main-content {
             margin-left: 0;
             margin-right: var(--sidebar-width);
+            transition: margin-right 0.3s ease;
+        }
+
+        [dir="ltr"] .main-content {
+            margin-left: var(--sidebar-width);
+            margin-right: 0;
+            transition: margin-left 0.3s ease;
         }
 
         .sidebar-collapsed .main-content {
@@ -149,6 +386,42 @@
             height: 1rem;
         }
 
+        /* Enhanced form styling for RTL/LTR */
+        [dir="rtl"] .input-group {
+            flex-direction: row-reverse;
+        }
+
+        [dir="ltr"] .input-group {
+            flex-direction: row;
+        }
+
+        [dir="rtl"] .input-group .form-control:first-child {
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+
+        [dir="rtl"] .input-group .form-control:last-child {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        [dir="ltr"] .input-group .form-control:first-child {
+            border-radius: 0.375rem 0 0 0.375rem;
+        }
+
+        [dir="ltr"] .input-group .form-control:last-child {
+            border-radius: 0 0.375rem 0.375rem 0;
+        }
+
+        /* Better button spacing for RTL/LTR */
+        [dir="rtl"] .btn i {
+            margin-left: 0.5rem;
+            margin-right: 0;
+        }
+
+        [dir="ltr"] .btn i {
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar {
@@ -159,12 +432,20 @@
                 transform: translateX(100%);
             }
 
+            [dir="ltr"] .sidebar {
+                transform: translateX(-100%);
+            }
+
             .main-content {
                 margin-left: 0;
             }
 
             [dir="rtl"] .main-content {
                 margin-right: 0;
+            }
+
+            [dir="ltr"] .main-content {
+                margin-left: 0;
             }
 
             .sidebar.show {
@@ -227,7 +508,7 @@
                         <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
                            href="{{ route('dashboard') }}">
                             <i class="bi bi-speedometer2"></i>
-                            {{ __('Dashboard') }}
+                            {{ __('app.Dashboard') }}
                         </a>
                     </li>
 
@@ -235,7 +516,7 @@
                         <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}"
                            href="{{ route('projects.index') }}">
                             <i class="bi bi-folder"></i>
-                            {{ __('Projects') }}
+                            {{ __('app.nav.projects') }}
                         </a>
                     </li>
 
@@ -243,7 +524,7 @@
                         <a class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}"
                            href="{{ route('tasks.index') }}">
                             <i class="bi bi-check2-square"></i>
-                            {{ __('Tasks') }}
+                            {{ __('app.nav.tasks') }}
                         </a>
                     </li>
 
@@ -252,7 +533,7 @@
                         <a class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}"
                            href="{{ route('timesheet.index') }}">
                             <i class="bi bi-clock"></i>
-                            {{ __('Timesheet') }}
+                            {{ __('app.nav.timesheet') }}
                         </a>
                     </li>
                     @endhasPermission
@@ -262,7 +543,7 @@
                         <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
                            href="{{ route('reports.index') }}">
                             <i class="bi bi-graph-up"></i>
-                            {{ __('Reports') }}
+                            {{ __('app.nav.reports') }}
                         </a>
                     </li>
                     @endhasPermission
@@ -272,7 +553,7 @@
                         <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
                            href="{{ route('users.index') }}">
                             <i class="bi bi-people"></i>
-                            {{ __('User Management') }}
+                            {{ __('app.User Management') }}
                         </a>
                     </li>
                     @endhasPermission
@@ -283,7 +564,15 @@
                         <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}"
                            href="{{ route('admin.dashboard') }}">
                             <i class="bi bi-gear"></i>
-                            {{ __('Administration') }}
+                            {{ __('app.Administration') }}
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('translations*') ? 'active' : '' }}"
+                           href="/translations">
+                            <i class="bi bi-translate"></i>
+                            {{ __('app.Translations') }}
                         </a>
                     </li>
                     @endhasPermission
@@ -294,33 +583,18 @@
                         <a class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}"
                            href="{{ route('profile.index') }}">
                             <i class="bi bi-person"></i>
-                            {{ __('Profile') }}
+                            {{ __('app.Profile') }}
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('help') }}">
                             <i class="bi bi-question-circle"></i>
-                            {{ __('Help') }}
+                            {{ __('app.Help') }}
                         </a>
                     </li>
                 </ul>
 
-                <!-- Language Switcher -->
-                <div class="mt-4">
-                    <div class="dropdown">
-                        <button class="btn btn-outline-light btn-sm dropdown-toggle w-100"
-                                type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-globe me-1"></i>
-                            {{ strtoupper(app()->getLocale()) }}
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')">Français</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">العربية</a></li>
-                        </ul>
-                    </div>
-                </div>
 
                 <!-- Logout -->
                 <div class="mt-4">
@@ -328,7 +602,7 @@
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm w-100">
                             <i class="bi bi-box-arrow-right me-1"></i>
-                            {{ __('Logout') }}
+                            {{ __('app.logout') }}
                         </button>
                     </form>
                 </div>
@@ -347,16 +621,16 @@
 
                     <!-- Page Title -->
                     <div class="navbar-brand mb-0 h1 ms-2">
-                        @yield('page-title', 'Dashboard')
+                        @yield('page-title', __('app.Dashboard'))
                     </div>
 
                     <!-- Right Side -->
                     <div class="d-flex align-items-center">
                         <!-- Search -->
-                        <form class="d-flex me-3" action="{{ route('search') }}" method="GET">
+                        <form class="d-flex me-3" action="{{ route('search.results') }}" method="GET">
                             <div class="input-group">
                                 <input class="form-control form-control-sm" type="search"
-                                       placeholder="{{ __('Search...') }}" name="q" value="{{ request('q') }}">
+                                       placeholder="{{ __('app.Search...') }}" name="q" value="{{ request('q') }}">
                                 <button class="btn btn-outline-secondary btn-sm" type="submit">
                                     <i class="bi bi-search"></i>
                                 </button>
@@ -380,7 +654,7 @@
                                 @endif
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end" style="width: 350px;">
-                                <li><h6 class="dropdown-header">{{ __('Notifications') }}</h6></li>
+                                <li><h6 class="dropdown-header">{{ __('app.Notifications') }}</h6></li>
                                 @if(count($headerNotifications) > 0)
                                     @foreach($headerNotifications as $notification)
                                         <li>
@@ -393,10 +667,35 @@
                                         </li>
                                     @endforeach
                                 @else
-                                    <li><span class="dropdown-item-text text-muted">{{ __('No notifications') }}</span></li>
+                                    <li><span class="dropdown-item-text text-muted">{{ __('app.No notifications') }}</span></li>
                                 @endif
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-center" href="#">{{ __('View all') }}</a></li>
+                                <li><a class="dropdown-item text-center" href="#">{{ __('app.View all') }}</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Language Switcher -->
+                        <div class="dropdown me-2">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                    type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-globe me-1"></i>
+                                {{ LaravelLocalization::getCurrentLocaleName() }}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end language-dropdown">
+                                @foreach(LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
+                                    <li>
+                                        <a class="dropdown-item {{ app()->getLocale() == $localeCode ? 'active' : '' }}"
+                                           rel="alternate"
+                                           hreflang="{{ $localeCode }}"
+                                           href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
+                                            <i class="bi bi-flag me-2"></i>
+                                            {{ $properties['native'] }}
+                                            @if(app()->getLocale() == $localeCode)
+                                                <i class="bi bi-check2 ms-auto"></i>
+                                            @endif
+                                        </a>
+                                    </li>
+                                @endforeach
                             </ul>
                         </div>
 
@@ -408,17 +707,17 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ route('profile.index') }}">
-                                    <i class="bi bi-person me-2"></i>{{ __('Profile') }}
+                                    <i class="bi bi-person me-2"></i>{{ __('app.Profile') }}
                                 </a></li>
                                 <li><a class="dropdown-item" href="{{ route('profile.settings') }}">
-                                    <i class="bi bi-gear me-2"></i>{{ __('Settings') }}
+                                    <i class="bi bi-gear me-2"></i>{{ __('app.settings') }}
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
                                         <button type="submit" class="dropdown-item">
-                                            <i class="bi bi-box-arrow-right me-2"></i>{{ __('Logout') }}
+                                            <i class="bi bi-box-arrow-right me-2"></i>{{ __('app.logout') }}
                                         </button>
                                     </form>
                                 </li>
@@ -443,9 +742,9 @@
          style="background: rgba(255, 255, 255, 0.8); z-index: 9999; display: none !important;">
         <div class="text-center">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">{{ __('Loading...') }}</span>
+                <span class="visually-hidden">{{ __('app.loading') }}</span>
             </div>
-            <p class="mt-2">{{ __('Loading...') }}</p>
+            <p class="mt-2">{{ __('app.loading') }}</p>
         </div>
     </div>
 
@@ -471,12 +770,7 @@
             document.querySelector('.sidebar').classList.toggle('show');
         }
 
-        // Language Switcher
-        function changeLanguage(lang) {
-            axios.post('/language', { language: lang })
-                .then(() => window.location.reload())
-                .catch(error => console.error('Language change failed:', error));
-        }
+        // Language switching is now handled by direct links with MCamara
 
         // Loading Overlay
         function showLoading() {
@@ -505,9 +799,9 @@
                 if (error.response?.status === 401) {
                     window.location.href = '/login';
                 } else if (error.response?.status === 403) {
-                    alert('{{ __("Access denied") }}');
+                    alert('{{ __("app.messages.access_denied") }}');
                 } else if (error.response?.status >= 500) {
-                    alert('{{ __("Server error. Please try again.") }}');
+                    alert('{{ __("app.messages.server_error") }}');
                 }
 
                 return Promise.reject(error);

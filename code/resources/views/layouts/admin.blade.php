@@ -164,41 +164,41 @@
         <div class="sidebar-header">
             <div class="d-flex align-items-center text-white">
                 <i class="bi bi-mortarboard fs-4 me-2"></i>
-                <span class="fw-bold" id="sidebar-title">Admin Panel</span>
+                <span class="fw-bold" id="sidebar-title">{{ __('app.Administration') }}</span>
             </div>
         </div>
 
         <nav class="sidebar-nav">
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                 <i class="bi bi-speedometer2"></i>
-                <span>Dashboard</span>
+                <span>{{ __('app.Dashboard') }}</span>
             </a>
 
             <a href="{{ route('projects.index') }}" class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}">
                 <i class="bi bi-folder"></i>
-                <span>Projects</span>
+                <span>{{ __('app.nav.projects') }}</span>
             </a>
 
             <a href="{{ route('tasks.index') }}" class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}">
                 <i class="bi bi-check2-square"></i>
-                <span>Tasks</span>
+                <span>{{ __('app.nav.tasks') }}</span>
             </a>
 
             <a href="{{ route('timesheet.index') }}" class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}">
                 <i class="bi bi-clock"></i>
-                <span>Time Tracking</span>
+                <span>{{ __('app.time.title') }}</span>
             </a>
 
             <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                 <i class="bi bi-graph-up"></i>
-                <span>Reports</span>
+                <span>{{ __('app.nav.reports') }}</span>
             </a>
 
             <hr class="my-3 mx-3 border-secondary">
 
-            <a href="{{ route('admin.profile.edit') }}" class="nav-link {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+            <a href="{{ route('profile.index') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                 <i class="bi bi-person-gear"></i>
-                <span>Profile</span>
+                <span>{{ __('app.Profile') }}</span>
             </a>
 
             <a href="{{ route('home') }}" class="nav-link">
@@ -210,7 +210,7 @@
                 @csrf
                 <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
                     <i class="bi bi-box-arrow-right"></i>
-                    <span>Logout</span>
+                    <span>{{ __('app.logout') }}</span>
                 </button>
             </form>
         </nav>
@@ -225,17 +225,17 @@
                     <button class="btn btn-link text-secondary p-0 me-3" id="sidebar-toggle">
                         <i class="bi bi-list fs-4"></i>
                     </button>
-                    <h4 class="mb-0">@yield('page-title', 'Dashboard')</h4>
+                    <h4 class="mb-0">@yield('page-title', __('app.Dashboard'))</h4>
                 </div>
                 <div class="d-flex align-items-center">
-                    <span class="text-muted me-3">Welcome, {{ Auth::user()->name }}</span>
+                    <span class="text-muted me-3">{{ __('app.welcome') }}, {{ Auth::user()->name }}</span>
                     <div class="dropdown">
                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="bi bi-person-circle"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
-                                <i class="bi bi-person-gear me-2"></i>Profile Settings
+                                <i class="bi bi-person-gear me-2"></i>{{ __('app.settings') }}
                             </a></li>
                             <li><a class="dropdown-item" href="{{ route('home') }}">
                                 <i class="bi bi-eye me-2"></i>View Site
@@ -245,7 +245,7 @@
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                        <i class="bi bi-box-arrow-right me-2"></i>{{ __('app.logout') }}
                                     </button>
                                 </form>
                             </li>
@@ -292,7 +292,7 @@
             // Sidebar toggle
             const sidebarToggle = document.getElementById('sidebar-toggle');
             const sidebar = document.getElementById('sidebar');
-            const content = document.getElementById('content');
+            const content = document..getElementById('content');
             const sidebarTitle = document.getElementById('sidebar-title');
 
             sidebarToggle.addEventListener('click', function() {
@@ -321,7 +321,7 @@
             const deleteButtons = document.querySelectorAll('[data-confirm-delete]');
             deleteButtons.forEach(function(button) {
                 button.addEventListener('click', function(e) {
-                    if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+                    if (!confirm(__('app.messages.confirm_delete'))) {
                         e.preventDefault();
                     }
                 });

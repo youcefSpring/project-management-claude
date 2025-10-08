@@ -8,12 +8,12 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">{{ __('Task Details') }}</h5>
+                <h5 class="mb-0">{{ __('app.tasks.title') }}</h5>
                 <div>
                     @can('update', $task)
                         <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil me-1"></i>
-                            {{ __('Edit') }}
+                            {{ __('app.edit') }}
                         </a>
                     @endcan
                 </div>
@@ -21,13 +21,13 @@
             <div class="card-body">
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h6>{{ __('Status') }}</h6>
+                        <h6>{{ __('app.status') }}</h6>
                         <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
                             {{ ucfirst(str_replace('_', ' ', $task->status)) }}
                         </span>
                     </div>
                     <div class="col-md-6">
-                        <h6>{{ __('Priority') }}</h6>
+                        <h6>{{ __('app.tasks.priority') }}</h6>
                         <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
                             {{ ucfirst($task->priority) }}
                         </span>
@@ -36,14 +36,14 @@
 
                 @if($task->description)
                 <div class="mb-4">
-                    <h6>{{ __('Description') }}</h6>
+                    <h6>{{ __('app.description') }}</h6>
                     <p class="text-muted">{{ $task->description }}</p>
                 </div>
                 @endif
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h6>{{ __('Project') }}</h6>
+                        <h6>{{ __('app.projects.title') }}</h6>
                         <p>
                             <a href="{{ route('projects.show', $task->project) }}" class="text-decoration-none">
                                 {{ $task->project->title }}
@@ -51,7 +51,7 @@
                         </p>
                     </div>
                     <div class="col-md-6">
-                        <h6>{{ __('Assigned To') }}</h6>
+                        <h6>{{ __('app.tasks.assigned_to') }}</h6>
                         <p>
                             @if($task->assignedUser)
                                 <i class="bi bi-person-circle me-1"></i>
@@ -65,16 +65,19 @@
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h6>{{ __('Created') }}</h6>
+                        <h6>{{ __('app.date') }}</h6>
                         <p class="text-muted">{{ $task->created_at->format('M d, Y \a\t H:i') }}</p>
                     </div>
                     <div class="col-md-6">
-                        <h6>{{ __('Due Date') }}</h6>
+                        <h6>{{ __('app.tasks.due_date') }}</h6>
                         <p class="text-muted">
                             @if($task->due_date)
-                                {{ $task->due_date->format('M d, Y') }}
-                                @if($task->due_date->isPast() && $task->status !== 'completed')
-                                    <span class="badge bg-danger ms-2">{{ __('Overdue') }}</span>
+                                @php
+                                    $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                                @endphp
+                                {{ $dueDate->format('M d, Y') }}
+                                @if($dueDate->isPast() && $task->status !== 'completed')
+                                    <span class="badge bg-danger ms-2">{{ __('app.tasks.overdue') }}</span>
                                 @endif
                             @else
                                 {{ __('No due date') }}
@@ -97,7 +100,7 @@
                                 <input type="hidden" name="priority" value="{{ $task->priority }}">
                                 <button type="submit" class="btn btn-sm btn-warning">
                                     <i class="bi bi-play me-1"></i>
-                                    {{ __('Start Working') }}
+                                    {{ __('app.time.start_timer') }}
                                 </button>
                             </form>
                         @endif
@@ -112,7 +115,7 @@
                                 <input type="hidden" name="priority" value="{{ $task->priority }}">
                                 <button type="submit" class="btn btn-sm btn-success">
                                     <i class="bi bi-check-circle me-1"></i>
-                                    {{ __('Mark Complete') }}
+                                    {{ __('app.tasks.completed') }}
                                 </button>
                             </form>
                         @endif
@@ -147,8 +150,8 @@
                                                 @csrf
                                                 @method('PUT')
                                                 <textarea class="form-control mb-2" name="content" rows="3" required>{{ $note->content }}</textarea>
-                                                <button type="submit" class="btn btn-sm btn-primary">{{ __('Update') }}</button>
-                                                <button type="button" class="btn btn-sm btn-secondary ms-1" onclick="toggleEdit({{ $note->id }})">{{ __('Cancel') }}</button>
+                                                <button type="submit" class="btn btn-sm btn-primary">{{ __('app.update') }}</button>
+                                                <button type="button" class="btn btn-sm btn-secondary ms-1" onclick="toggleEdit({{ $note->id }})">{{ __('app.cancel') }}</button>
                                             </form>
                                         </div>
                                     </div>
@@ -159,7 +162,7 @@
                                             </button>
                                         @endif
                                         @if($note->canBeDeletedBy(auth()->user()))
-                                            <form method="POST" action="{{ route('tasks.notes.destroy', $note) }}" style="display: inline;" onsubmit="return confirm('{{ __('Are you sure you want to delete this comment?') }}')">
+                                            <form method="POST" action="{{ route('tasks.notes.destroy', $note) }}" style="display: inline;" onsubmit="return confirm('{{ __("app.messages.confirm_delete") }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -179,7 +182,7 @@
                     <form method="POST" action="{{ route('tasks.notes.store', $task) }}">
                         @csrf
                         <div class="mb-3">
-                            <label for="content" class="form-label">{{ __('Add a comment') }}</label>
+                            <label for="content" class="form-label">{{ __('app.comments.add_comment') }}</label>
                             <textarea class="form-control @error('content') is-invalid @enderror"
                                       id="content" name="content" rows="3"
                                       placeholder="{{ __('Write your comment here...') }}" required>{{ old('content') }}</textarea>
@@ -189,7 +192,7 @@
                         </div>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-chat-left-text me-1"></i>
-                            {{ __('Add Comment') }}
+                            {{ __('app.comments.add_comment') }}
                         </button>
                     </form>
                 @endif
@@ -199,10 +202,10 @@
         <!-- Time Entries -->
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">{{ __('Time Entries') }}</h5>
+                <h5 class="mb-0">{{ __('app.time.title') }}</h5>
                 <a href="{{ route('timesheet.create', ['task_id' => $task->id]) }}" class="btn btn-sm btn-outline-primary">
                     <i class="bi bi-plus-circle me-1"></i>
-                    {{ __('Log Time') }}
+                    {{ __('app.time.log_time') }}
                 </a>
             </div>
             <div class="card-body">
@@ -211,34 +214,40 @@
                         <table class="table table-sm">
                             <thead>
                                 <tr>
-                                    <th>{{ __('Date') }}</th>
-                                    <th>{{ __('User') }}</th>
-                                    <th>{{ __('Duration') }}</th>
-                                    <th>{{ __('Description') }}</th>
+                                    <th>{{ __('app.date') }}</th>
+                                    <th>{{ __('app.users.title') }}</th>
+                                    <th>{{ __('app.time.duration') }}</th>
+                                    <th>{{ __('app.description') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($task->timeEntries as $entry)
                                     <tr>
-                                        <td>{{ $entry->start_time->format('M d, Y') }}</td>
+                                        <td>
+                                            @if($entry->start_time)
+                                                {{ is_string($entry->start_time) ? \Carbon\Carbon::parse($entry->start_time)->format('M d, Y') : $entry->start_time->format('M d, Y') }}
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                         <td>{{ $entry->user->name }}</td>
                                         <td>{{ number_format($entry->duration_hours, 1) }}h</td>
-                                        <td>{{ $entry->description ?? '-' }}</td>
+                                        <td>{{ $entry->comment ?? $entry->description ?? '-' }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
                     <div class="mt-3">
-                        <strong>{{ __('Total Time:') }}</strong>
+                        <strong>{{ __('app.time.total_time') }}:</strong>
                         {{ number_format($task->timeEntries->sum('duration_hours'), 1) }}h
                     </div>
                 @else
                     <div class="text-center py-3">
                         <i class="bi bi-clock text-muted fs-2"></i>
-                        <p class="text-muted mt-2">{{ __('No time entries logged yet.') }}</p>
+                        <p class="text-muted mt-2">{{ __('app.time.no_entries') }}</p>
                         <a href="{{ route('timesheet.create', ['task_id' => $task->id]) }}" class="btn btn-sm btn-primary">
-                            {{ __('Log First Entry') }}
+                            {{ __('app.time.log_time') }}
                         </a>
                     </div>
                 @endif
@@ -249,31 +258,31 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Task Actions') }}</h5>
+                <h5 class="mb-0">{{ __('app.actions') }}</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
                     @can('update', $task)
                         <a href="{{ route('tasks.edit', $task) }}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil me-2"></i>
-                            {{ __('Edit Task') }}
+                            {{ __('app.tasks.edit') }}
                         </a>
                     @endcan
 
                     <a href="{{ route('timesheet.create', ['task_id' => $task->id]) }}" class="btn btn-outline-success">
                         <i class="bi bi-clock me-2"></i>
-                        {{ __('Log Time') }}
+                        {{ __('app.time.log_time') }}
                     </a>
 
                     <a href="{{ route('projects.show', $task->project) }}" class="btn btn-outline-info">
                         <i class="bi bi-folder me-2"></i>
-                        {{ __('View Project') }}
+                        {{ __('app.projects.title') }}
                     </a>
 
                     @can('delete', $task)
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="bi bi-trash me-2"></i>
-                            {{ __('Delete Task') }}
+                            {{ __('app.delete') }}
                         </button>
                     @endcan
                 </div>
@@ -286,21 +295,24 @@
             </div>
             <div class="card-body">
                 <div class="mb-2">
-                    <strong>{{ __('Total Time Logged') }}:</strong>
+                    <strong>{{ __('app.time.total_time') }}:</strong>
                     <span class="float-end">{{ number_format($task->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
                 </div>
                 <div class="mb-2">
-                    <strong>{{ __('Created') }}:</strong>
+                    <strong>{{ __('app.date') }}:</strong>
                     <span class="float-end">{{ $task->created_at->diffForHumans() }}</span>
                 </div>
                 @if($task->due_date)
+                @php
+                    $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                @endphp
                 <div class="mb-2">
                     <strong>{{ __('Time Remaining') }}:</strong>
                     <span class="float-end">
-                        @if($task->due_date->isFuture())
-                            {{ $task->due_date->diffForHumans() }}
+                        @if($dueDate->isFuture())
+                            {{ $dueDate->diffForHumans() }}
                         @else
-                            <span class="text-danger">{{ __('Overdue') }}</span>
+                            <span class="text-danger">{{ __('app.tasks.overdue') }}</span>
                         @endif
                     </span>
                 </div>
@@ -316,23 +328,23 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">{{ __('Delete Task') }}</h5>
+                <h5 class="modal-title" id="deleteModalLabel">{{ __('app.delete') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>{{ __('Are you sure you want to delete this task?') }}</p>
+                <p>{{ __('app.messages.confirm_delete') }}</p>
                 <p class="text-danger">
-                    <strong>{{ __('Warning:') }}</strong>
-                    {{ __('This action cannot be undone and will also delete all associated time entries.') }}
+                    <strong>{{ __('app.warning') }}:</strong>
+                    {{ __('app.messages.action_cannot_be_undone') }}
                 </p>
-                <p><strong>{{ __('Task:') }}</strong> {{ $task->title }}</p>
+                <p><strong>{{ __('app.tasks.title') }}:</strong> {{ $task->title }}</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
                 <form method="POST" action="{{ route('tasks.destroy', $task) }}" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger">{{ __('Delete Task') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ __('app.delete') }}</button>
                 </form>
             </div>
         </div>

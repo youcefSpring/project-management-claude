@@ -25,12 +25,20 @@
 
     <!-- Filters -->
     <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="{{ route('projects.index') }}" class="row g-3">
-                    <div class="col-md-4">
-                        <label for="status" class="form-label">{{ __('Status') }}</label>
-                        <select class="form-select" id="status" name="status">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="bi bi-funnel me-2"></i>{{ __('Project Filters') }}
+                </h6>
+                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('Toggle Filters') }}">
+                    <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
+                </button>
+            </div>
+            <div class="card-body p-3" id="filtersContent">
+                <form method="GET" action="{{ route('projects.index') }}" class="row g-3 align-items-end">
+                    <div class="{{ auth()->user()->isAdmin() ? 'col-md-3' : 'col-md-4' }}">
+                        <label for="status" class="form-label small text-muted">{{ __('Status') }}</label>
+                        <select class="form-select form-select-sm" id="status" name="status">
                             <option value="">{{ __('All Statuses') }}</option>
                             <option value="planning" {{ request('status') === 'planning' ? 'selected' : '' }}>
                                 {{ __('Planning') }}
@@ -51,9 +59,9 @@
                     </div>
 
                     @if(auth()->user()->isAdmin())
-                    <div class="col-md-4">
-                        <label for="manager_id" class="form-label">{{ __('Manager') }}</label>
-                        <select class="form-select" id="manager_id" name="manager_id">
+                    <div class="col-md-3">
+                        <label for="manager_id" class="form-label small text-muted">{{ __('Manager') }}</label>
+                        <select class="form-select form-select-sm" id="manager_id" name="manager_id">
                             <option value="">{{ __('All Managers') }}</option>
                             @foreach($managers as $manager)
                                 <option value="{{ $manager->id }}" {{ request('manager_id') == $manager->id ? 'selected' : '' }}>
@@ -64,21 +72,21 @@
                     </div>
                     @endif
 
-                    <div class="col-md-4">
-                        <label for="search" class="form-label">{{ __('Search') }}</label>
-                        <input type="text" class="form-control" id="search" name="search"
+                    <div class="{{ auth()->user()->isAdmin() ? 'col-md-4' : 'col-md-6' }}">
+                        <label for="search" class="form-label small text-muted">{{ __('Search') }}</label>
+                        <input type="text" class="form-control form-control-sm" id="search" name="search"
                                value="{{ request('search') }}" placeholder="{{ __('Search projects...') }}">
                     </div>
 
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-search me-2"></i>
-                            {{ __('Filter') }}
-                        </button>
-                        <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary ms-2">
-                            <i class="bi bi-x-circle me-2"></i>
-                            {{ __('Clear') }}
-                        </a>
+                    <div class="col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -224,3 +232,44 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setupFiltersToggle();
+});
+
+function setupFiltersToggle() {
+    const toggleBtn = document.getElementById('toggleFilters');
+    const filtersContent = document.getElementById('filtersContent');
+    const toggleIcon = document.getElementById('toggleFiltersIcon');
+
+    // Check localStorage for saved state (default: visible)
+    const isHidden = localStorage.getItem('projectFiltersHidden') === 'true';
+
+    if (isHidden) {
+        filtersContent.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        filtersContent.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const isCurrentlyVisible = filtersContent.style.display !== 'none';
+
+        if (isCurrentlyVisible) {
+            // Hide filters
+            filtersContent.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+            localStorage.setItem('projectFiltersHidden', 'true');
+        } else {
+            // Show filters
+            filtersContent.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+            localStorage.setItem('projectFiltersHidden', 'false');
+        }
+    });
+}
+</script>
+@endpush

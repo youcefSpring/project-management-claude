@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('page-title', 'Dashboard')
+@section('page-title', __('app.Dashboard'))
 
 @section('content')
 <!-- Stats Cards -->
@@ -10,7 +10,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h3 class="stats-number mb-0">{{ $stats['total_users'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Total Users</p>
+                    <p class="text-muted mb-0">{{ __('app.dashboard.total_users') }}</p>
                 </div>
                 <div class="text-primary">
                     <i class="bi bi-people" style="font-size: 2.5rem;"></i>
@@ -18,7 +18,7 @@
             </div>
             <div class="mt-2">
                 <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-eye me-1"></i>View All
+                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
                 </a>
             </div>
         </div>
@@ -29,7 +29,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h3 class="stats-number mb-0">{{ $stats['projects'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Projects</p>
+                    <p class="text-muted mb-0">{{ __('app.dashboard.projects') }}</p>
                 </div>
                 <div class="text-success">
                     <i class="bi bi-folder" style="font-size: 2.5rem;"></i>
@@ -37,7 +37,7 @@
             </div>
             <div class="mt-2">
                 <a href="{{ route('admin.projects.index') }}" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-eye me-1"></i>View All
+                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
                 </a>
             </div>
         </div>
@@ -48,7 +48,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h3 class="stats-number mb-0">{{ $stats['completed_tasks'] ?? 0 }}</h3>
-                    <p class="text-muted mb-0">Completed Tasks</p>
+                    <p class="text-muted mb-0">{{ __('app.dashboard.completed_tasks') }}</p>
                 </div>
                 <div class="text-info">
                     <i class="bi bi-check2-square" style="font-size: 2.5rem;"></i>
@@ -56,7 +56,7 @@
             </div>
             <div class="mt-2">
                 <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-outline-info">
-                    <i class="bi bi-eye me-1"></i>View All
+                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
                 </a>
             </div>
         </div>
@@ -67,7 +67,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h3 class="stats-number mb-0">{{ number_format($stats['total_time_logged'] ?? 0, 1) }}h</h3>
-                    <p class="text-muted mb-0">Time Logged</p>
+                    <p class="text-muted mb-0">{{ __('app.dashboard.time_logged') }}</p>
                 </div>
                 <div class="text-warning">
                     <i class="bi bi-clock" style="font-size: 2.5rem;"></i>
@@ -75,7 +75,7 @@
             </div>
             <div class="mt-2">
                 <a href="{{ route('timesheet.index') }}" class="btn btn-sm btn-outline-warning">
-                    <i class="bi bi-eye me-1"></i>View All
+                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
                 </a>
             </div>
         </div>
@@ -97,37 +97,37 @@
                     <div class="col-md-4">
                         <a href="{{ route('admin.users.create') }}" class="btn btn-outline-primary w-100">
                             <i class="bi bi-plus-circle me-2"></i>
-                            Add User
+                            {{ __('app.users.create') }}
                         </a>
                     </div>
                     <div class="col-md-4">
                         <a href="{{ route('projects.create') }}" class="btn btn-outline-success w-100">
                             <i class="bi bi-plus-circle me-2"></i>
-                            Add Project
+                            {{ __('app.projects.create') }}
                         </a>
                     </div>
                     <div class="col-md-4">
                         <a href="{{ route('tasks.create') }}" class="btn btn-outline-info w-100">
                             <i class="bi bi-plus-circle me-2"></i>
-                            Add Task
+                            {{ __('app.tasks.create') }}
                         </a>
                     </div>
                     <div class="col-md-4">
                         <a href="{{ route('admin.settings.index') }}" class="btn btn-outline-secondary w-100">
                             <i class="bi bi-gear me-2"></i>
-                            System Settings
+                            {{ __('app.settings') }}
                         </a>
                     </div>
                     <div class="col-md-4">
                         <a href="{{ route('reports.index') }}" class="btn btn-outline-warning w-100">
                             <i class="bi bi-graph-up me-2"></i>
-                            View Reports
+                            {{ __('app.reports.title') }}
                         </a>
                     </div>
                     <div class="col-md-4">
                         <a href="{{ route('admin.translations.index') }}" class="btn btn-outline-dark w-100">
                             <i class="bi bi-translate me-2"></i>
-                            Translations
+                            {{ __('app.Translations') }}
                         </a>
                     </div>
                 </div>
@@ -145,17 +145,17 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Active Projects</span>
+                    <span>{{ __('app.dashboard.active_projects') }}</span>
                     <span class="badge bg-primary">{{ $stats['active_projects'] ?? 0 }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span>Total Users</span>
+                    <span>{{ __('app.dashboard.total_users') }}</span>
                     <span class="badge bg-secondary">{{ $stats['total_users'] ?? 0 }}</span>
                 </div>
                 <div class="d-grid">
                     <a href="{{ route('admin.users.index') }}" class="btn btn-primary btn-sm">
                         <i class="bi bi-people me-1"></i>
-                        Manage Users
+                        {{ __('app.users.title') }}
                     </a>
                 </div>
             </div>
@@ -170,7 +170,7 @@
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-clock-history text-primary me-2"></i>
-                    Recent Activity
+                    {{ __('app.dashboard.recent_activity') }}
                 </h5>
                 <small class="text-muted">Last 7 days</small>
             </div>
@@ -211,8 +211,8 @@
                 @else
                     <div class="text-center py-4">
                         <i class="bi bi-clock text-muted mb-3" style="font-size: 3rem;"></i>
-                        <h6 class="text-muted">No recent activity</h6>
-                        <p class="text-muted mb-0">Your recent actions will appear here</p>
+                        <h6 class="text-muted">{{ __('app.dashboard.no_recent_activity') }}</h6>
+                        <p class="text-muted mb-0">{{ __('app.dashboard.recent_actions_appear_here') }}</p>
                     </div>
                 @endif
             </div>
@@ -240,7 +240,7 @@
 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Profile Completeness</span>
+                        <span class="small">{{ __('app.dashboard.profile_completeness') }}</span>
                         <span class="small fw-bold">{{ $stats['profile_completion'] ?? 70 }}%</span>
                     </div>
                     <div class="progress" style="height: 8px;">
@@ -250,7 +250,7 @@
 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Response Rate</span>
+                        <span class="small">{{ __('app.dashboard.response_rate') }}</span>
                         <span class="small fw-bold">{{ $stats['response_rate'] ?? 95 }}%</span>
                     </div>
                     <div class="progress" style="height: 8px;">
@@ -270,15 +270,15 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">Application</span>
-                    <span class="badge bg-success">Online</span>
+                    <span class="small">{{ __('app.dashboard.application') }}</span>
+                    <span class="badge bg-success">{{ __('app.dashboard.online') }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">Database</span>
-                    <span class="badge bg-success">Connected</span>
+                    <span class="small">{{ __('app.dashboard.database') }}</span>
+                    <span class="badge bg-success">{{ __('app.dashboard.connected') }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="small">File Storage</span>
+                    <span class="small">{{ __('app.dashboard.file_storage') }}</span>
                     <span class="badge bg-success">Available</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">

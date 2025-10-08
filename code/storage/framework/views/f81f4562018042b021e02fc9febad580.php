@@ -174,39 +174,29 @@
                 <span>Dashboard</span>
             </a>
 
-            <a href="<?php echo e(route('admin.courses.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.courses.*') ? 'active' : ''); ?>">
-                <i class="bi bi-book"></i>
-                <span>Courses</span>
-            </a>
-
-            <a href="<?php echo e(route('admin.projects.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.projects.*') ? 'active' : ''); ?>">
-                <i class="bi bi-code-slash"></i>
+            <a href="<?php echo e(route('projects.index')); ?>" class="nav-link <?php echo e(request()->routeIs('projects.*') ? 'active' : ''); ?>">
+                <i class="bi bi-folder"></i>
                 <span>Projects</span>
             </a>
 
-            <a href="<?php echo e(route('admin.publications.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.publications.*') ? 'active' : ''); ?>">
-                <i class="bi bi-journal-text"></i>
-                <span>Publications</span>
+            <a href="<?php echo e(route('tasks.index')); ?>" class="nav-link <?php echo e(request()->routeIs('tasks.*') ? 'active' : ''); ?>">
+                <i class="bi bi-check2-square"></i>
+                <span>Tasks</span>
             </a>
 
-            <a href="<?php echo e(route('admin.blog.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.blog.*') ? 'active' : ''); ?>">
-                <i class="bi bi-pencil-square"></i>
-                <span>Blog Posts</span>
+            <a href="<?php echo e(route('timesheet.index')); ?>" class="nav-link <?php echo e(request()->routeIs('timesheet.*') ? 'active' : ''); ?>">
+                <i class="bi bi-clock"></i>
+                <span>Time Tracking</span>
             </a>
 
-            <a href="<?php echo e(route('admin.tags.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.tags.*') ? 'active' : ''); ?>">
-                <i class="bi bi-tags"></i>
-                <span>Tags</span>
-            </a>
-
-            <a href="<?php echo e(route('admin.contact.index')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.contact.*') ? 'active' : ''); ?>">
-                <i class="bi bi-envelope"></i>
-                <span>Messages</span>
+            <a href="<?php echo e(route('reports.index')); ?>" class="nav-link <?php echo e(request()->routeIs('reports.*') ? 'active' : ''); ?>">
+                <i class="bi bi-graph-up"></i>
+                <span>Reports</span>
             </a>
 
             <hr class="my-3 mx-3 border-secondary">
 
-            <a href="<?php echo e(route('admin.profile.edit')); ?>" class="nav-link <?php echo e(request()->routeIs('admin.profile.*') ? 'active' : ''); ?>">
+            <a href="<?php echo e(route('profile.index')); ?>" class="nav-link <?php echo e(request()->routeIs('profile.*') ? 'active' : ''); ?>">
                 <i class="bi bi-person-gear"></i>
                 <span>Profile</span>
             </a>

@@ -105,7 +105,7 @@ class DashboardService
         $recentTimeEntries = TimeEntry::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
-            ->with(['task', 'project'])
+            ->with(['task.project'])
             ->get();
 
         // Combine and sort by date
@@ -121,9 +121,10 @@ class DashboardService
         }
 
         foreach ($recentTimeEntries as $entry) {
+            $taskTitle = $entry->task ? $entry->task->title : 'Unknown Task';
             $activities->push([
                 'type' => 'time_entry',
-                'description' => "Logged {$entry->duration} hours on: {$entry->task->title}",
+                'description' => "Logged {$entry->duration} hours on: {$taskTitle}",
                 'date' => $entry->created_at,
                 'model' => $entry,
             ]);

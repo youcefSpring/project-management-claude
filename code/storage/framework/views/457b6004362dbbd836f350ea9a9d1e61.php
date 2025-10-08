@@ -21,7 +21,7 @@
 
                 <!-- Action Buttons -->
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <a href="<?php echo e(route('dashboard')); ?>" class="btn btn-primary">
+                    <a href="<?php echo e(route('dashboard',['locale' => app()->getLocale()])); ?>" class="btn btn-primary">
                         <i class="bi bi-house me-2"></i>
                         <?php echo e(__('Go to Dashboard')); ?>
 
@@ -33,7 +33,7 @@
 
                     </button>
 
-                    <a href="<?php echo e(route('projects.index')); ?>" class="btn btn-outline-info">
+                    <a href="<?php echo e(route('projects.index',['locale' => app()->getLocale()])); ?>" class="btn btn-outline-info">
                         <i class="bi bi-folder me-2"></i>
                         <?php echo e(__('Browse Projects')); ?>
 
@@ -42,7 +42,7 @@
 
                 <!-- Search -->
                 <div class="mt-4">
-                    <form action="<?php echo e(route('search')); ?>" method="GET" class="d-flex justify-content-center">
+                    <form action="<?php echo e(route('search.results')); ?>" method="GET" class="d-flex justify-content-center">
                         <div class="input-group" style="max-width: 400px;">
                             <input type="text" name="q" class="form-control"
                                    placeholder="<?php echo e(__('Search for projects, tasks...')); ?>">

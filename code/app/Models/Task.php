@@ -121,9 +121,13 @@ class Task extends Model
      */
     public function isOverdue(): bool
     {
-        return $this->due_date &&
-               $this->due_date->isPast() &&
-               ! $this->isCompleted();
+        if (!$this->due_date) {
+            return false;
+        }
+
+        $dueDate = is_string($this->due_date) ? \Carbon\Carbon::parse($this->due_date) : $this->due_date;
+
+        return $dueDate->isPast() && !$this->isCompleted();
     }
 
     /**

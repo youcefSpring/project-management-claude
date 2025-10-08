@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('Dashboard'))
-@section('page-title', __('Dashboard'))
+@section('title', __('app.Dashboard'))
+@section('page-title', __('app.Dashboard'))
 
 @section('content')
 <div class="row">
@@ -14,7 +14,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h3 class="mb-0">{{ $stats['total_projects'] ?? 0 }}</h3>
-                                <p class="mb-0">{{ __('Projects') }}</p>
+                                <p class="mb-0">{{ __('app.Projects') }}</p>
                             </div>
                             <div class="opacity-75">
                                 <i class="bi bi-folder fs-1"></i>
@@ -29,7 +29,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h3 class="mb-0">{{ $stats['total_tasks'] ?? 0 }}</h3>
-                                <p class="mb-0">{{ __('Total Tasks') }}</p>
+                                <p class="mb-0">{{ __('app.tasks.title') }}</p>
                             </div>
                             <div class="opacity-75">
                                 <i class="bi bi-check2-square fs-1"></i>
@@ -44,7 +44,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h3 class="mb-0">{{ $stats['pending_tasks'] ?? 0 }}</h3>
-                                <p class="mb-0">{{ __('My Tasks') }}</p>
+                                <p class="mb-0">{{ __('app.dashboard.my_tasks') }}</p>
                             </div>
                             <div class="opacity-75">
                                 <i class="bi bi-person-check fs-1"></i>
@@ -59,7 +59,7 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-grow-1">
                                 <h3 class="mb-0">{{ number_format($stats['total_time_this_week'] ?? 0, 1) }}h</h3>
-                                <p class="mb-0">{{ __('This Week') }}</p>
+                                <p class="mb-0">{{ __('app.time.this_week') }}</p>
                             </div>
                             <div class="opacity-75">
                                 <i class="bi bi-clock fs-1"></i>
@@ -78,7 +78,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-activity me-2"></i>
-                    {{ __('Recent Activity') }}
+                    {{ __('app.dashboard.recent_activity') }}
                 </h5>
             </div>
             <div class="card-body">
@@ -100,7 +100,7 @@
                 @else
                     <div class="text-center text-muted">
                         <i class="bi bi-activity fs-2"></i>
-                        <p class="mt-2">{{ __('No recent activity') }}</p>
+                        <p class="mt-2">{{ __('app.dashboard.no_recent_activity') }}</p>
                     </div>
                 @endif
             </div>
@@ -111,10 +111,10 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-check2-square me-2"></i>
-                    {{ __('My Tasks') }}
+                    {{ __('app.dashboard.my_tasks') }}
                 </h5>
                 <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-primary">
-                    {{ __('View All') }}
+                    {{ __('app.View all') }}
                 </a>
             </div>
             <div class="card-body">
@@ -129,7 +129,7 @@
                         @endphp
 
                         <div class="col-md-4">
-                            <h6 class="text-warning">{{ __('To Do') }}</h6>
+                            <h6 class="text-warning">{{ __('app.tasks.pending') }}</h6>
                             @foreach($tasksByStatus['pending'] as $task)
                                 <div class="card border-start border-warning border-3 mb-2">
                                     <div class="card-body p-2">
@@ -138,7 +138,7 @@
                                         </h6>
                                         <small class="text-muted">{{ $task->project->title ?? '' }}</small>
                                         @if($task->due_date)
-                                            <br><small class="text-muted">{{ __('Due') }}: {{ $task->due_date->format('M d, Y') }}</small>
+                                            <br><small class="text-muted">{{ __('app.tasks.due_date') }}: {{ is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date)->format('M d, Y') : $task->due_date->format('M d, Y') }}</small>
                                         @endif
                                     </div>
                                 </div>
@@ -146,7 +146,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <h6 class="text-info">{{ __('In Progress') }}</h6>
+                            <h6 class="text-info">{{ __('app.tasks.in_progress') }}</h6>
                             @foreach($tasksByStatus['in_progress'] as $task)
                                 <div class="card border-start border-info border-3 mb-2">
                                     <div class="card-body p-2">
@@ -155,7 +155,7 @@
                                         </h6>
                                         <small class="text-muted">{{ $task->project->title ?? '' }}</small>
                                         @if($task->due_date)
-                                            <br><small class="text-muted">{{ __('Due') }}: {{ $task->due_date->format('M d, Y') }}</small>
+                                            <br><small class="text-muted">{{ __('app.tasks.due_date') }}: {{ is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date)->format('M d, Y') : $task->due_date->format('M d, Y') }}</small>
                                         @endif
                                     </div>
                                 </div>
@@ -163,7 +163,7 @@
                         </div>
 
                         <div class="col-md-4">
-                            <h6 class="text-success">{{ __('Done') }}</h6>
+                            <h6 class="text-success">{{ __('app.tasks.completed') }}</h6>
                             @foreach($tasksByStatus['completed'] as $task)
                                 <div class="card border-start border-success border-3 mb-2">
                                     <div class="card-body p-2">
@@ -172,7 +172,7 @@
                                         </h6>
                                         <small class="text-muted">{{ $task->project->title ?? '' }}</small>
                                         @if($task->due_date)
-                                            <br><small class="text-muted">{{ __('Due') }}: {{ $task->due_date->format('M d, Y') }}</small>
+                                            <br><small class="text-muted">{{ __('app.tasks.due_date') }}: {{ is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date)->format('M d, Y') : $task->due_date->format('M d, Y') }}</small>
                                         @endif
                                     </div>
                                 </div>
@@ -182,7 +182,7 @@
                 @else
                     <div class="text-center text-muted">
                         <i class="bi bi-check2-square fs-2"></i>
-                        <p class="mt-2">{{ __('No tasks assigned') }}</p>
+                        <p class="mt-2">{{ __('app.tasks.no_tasks') }}</p>
                         <a href="{{ route('tasks.index') }}" class="btn btn-outline-primary">
                             {{ __('Browse Available Tasks') }}
                         </a>
@@ -207,21 +207,21 @@
                     @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                     <a href="{{ route('projects.create') }}" class="btn btn-outline-primary">
                         <i class="bi bi-plus-circle me-2"></i>
-                        {{ __('New Project') }}
+                        {{ __('app.projects.create') }}
                     </a>
                     <a href="{{ route('tasks.create') }}" class="btn btn-outline-success">
                         <i class="bi bi-plus-square me-2"></i>
-                        {{ __('New Task') }}
+                        {{ __('app.tasks.create') }}
                     </a>
                     @endif
                     <a href="{{ route('timesheet.create') }}" class="btn btn-outline-info">
                         <i class="bi bi-clock me-2"></i>
-                        {{ __('Log Time') }}
+                        {{ __('app.time.log_time') }}
                     </a>
                     @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                     <a href="{{ route('reports.index') }}" class="btn btn-outline-warning">
                         <i class="bi bi-graph-up me-2"></i>
-                        {{ __('View Reports') }}
+                        {{ __('app.reports.title') }}
                     </a>
                     @endif
                 </div>
@@ -233,7 +233,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-bell me-2"></i>
-                    {{ __('Notifications') }}
+                    {{ __('app.Notifications') }}
                 </h5>
                 @if($notifications && count($notifications) > 0)
                     <span class="badge bg-primary">{{ count($notifications) }}</span>
@@ -258,7 +258,7 @@
                 @else
                     <div class="text-center text-muted">
                         <i class="bi bi-bell-slash fs-2"></i>
-                        <p class="mt-2">{{ __('No notifications') }}</p>
+                        <p class="mt-2">{{ __('app.No notifications') }}</p>
                     </div>
                 @endif
             </div>
@@ -269,29 +269,29 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-stopwatch me-2"></i>
-                    {{ __('Time Summary') }}
+                    {{ __('app.reports.time_summary') }}
                 </h5>
             </div>
             <div class="card-body">
                 <div class="text-center mb-3">
                     <div class="fs-4 fw-bold text-primary">{{ number_format($stats['total_time_today'] ?? 0, 1) }}h</div>
-                    <p class="text-muted">{{ __('Today\'s Total') }}</p>
+                    <p class="text-muted">{{ __("app.time.today") }}</p>
                 </div>
 
                 <div class="mb-3">
-                    <small class="text-muted">{{ __('This week: ') }}</small>
+                    <small class="text-muted">{{ __('app.time.this_week') }}: </small>
                     <span class="fw-bold">{{ number_format($stats['total_time_this_week'] ?? 0, 1) }}h</span>
                 </div>
 
                 <div class="mb-3">
-                    <small class="text-muted">{{ __('This month: ') }}</small>
+                    <small class="text-muted">{{ __('app.time.this_month') }}: </small>
                     <span class="fw-bold">{{ number_format($stats['total_time_this_month'] ?? 0, 1) }}h</span>
                 </div>
 
                 <div class="d-grid">
                     <a href="{{ route('timesheet.create') }}" class="btn btn-success btn-sm">
                         <i class="bi bi-plus-circle me-1"></i>
-                        {{ __('Log Time') }}
+                        {{ __('app.time.log_time') }}
                     </a>
                 </div>
             </div>

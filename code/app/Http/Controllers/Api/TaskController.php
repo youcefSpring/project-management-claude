@@ -23,23 +23,36 @@ class TaskController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $filters = $request->only(['project_id', 'assigned_to', 'status', 'due_date']);
-            $tasks = $this->taskService->getTasks($filters, $request->user());
+            $filters = $request->only(['project_id', 'assigned_to', 'status', 'due_date', 'search']);
+
+            // Clean up empty values
+            $filters = array_filter($filters, function($value) {
+                return $value !== null && $value !== '';
+            });
+
+            $tasks = $this->taskService->getAccessibleTasks($request->user(), $filters);
+
+            // Load relationships for API response
+            $tasks->load(['project', 'assignedUser']);
 
             return response()->json([
-                'data' => $tasks->items(),
-                'meta' => [
-                    'current_page' => $tasks->currentPage(),
-                    'last_page' => $tasks->lastPage(),
-                    'per_page' => $tasks->perPage(),
-                    'total' => $tasks->total(),
-                ],
+                'success' => true,
+                'data' => $tasks->values(), // Convert to array with numeric keys
+                'count' => $tasks->count(),
+                'message' => 'Tasks retrieved successfully',
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('API Task index error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'filters' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la récupération des tâches',
+                'message' => 'Error retrieving tasks',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
             ], 500);
         }
     }

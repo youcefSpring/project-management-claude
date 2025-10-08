@@ -116,22 +116,8 @@ class TaskNote extends Model
      */
     public function canBeEditedBy(User $user): bool
     {
-        // Admin can edit any note
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        // Manager can edit notes in their projects
-        if ($user->isManager() && $this->task->project->manager_id === $user->id) {
-            return true;
-        }
-
-        // Users can edit their own notes within time limit
-        if ($this->user_id === $user->id && $this->canBeModified()) {
-            return true;
-        }
-
-        return false;
+        // Users can only edit their own notes within time limit
+        return $this->user_id === $user->id && $this->canBeModified();
     }
 
     /**

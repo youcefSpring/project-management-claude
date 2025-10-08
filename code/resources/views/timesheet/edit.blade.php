@@ -22,7 +22,7 @@
                             @foreach($availableTasks as $task)
                                 <option value="{{ $task->id }}"
                                     {{ old('task_id', $timeEntry->task_id) == $task->id ? 'selected' : '' }}>
-                                    {{ $task->title }} ({{ $task->project->title }})
+                                    {{ $task->title }} ({{ optional($task->project)->title ?? __('No Project') }})
                                 </option>
                             @endforeach
                         </select>
@@ -120,8 +120,8 @@
                 <h5 class="mb-0">{{ __('Current Entry Info') }}</h5>
             </div>
             <div class="card-body">
-                <p><strong>{{ __('Task:') }}</strong> {{ $timeEntry->task->title }}</p>
-                <p><strong>{{ __('Project:') }}</strong> {{ $timeEntry->task->project->title }}</p>
+                <p><strong>{{ __('Task:') }}</strong> {{ optional($timeEntry->task)->title ?? __('No Task') }}</p>
+                <p><strong>{{ __('Project:') }}</strong> {{ optional(optional($timeEntry->task)->project)->title ?? __('No Project') }}</p>
                 <p><strong>{{ __('Current Duration:') }}</strong> {{ $timeEntry->duration_formatted }}</p>
                 <p><strong>{{ __('Created:') }}</strong> {{ $timeEntry->created_at->format('M d, Y H:i') }}</p>
             </div>

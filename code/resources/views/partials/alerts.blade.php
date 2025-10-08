@@ -33,7 +33,7 @@
 @if($errors->any())
 <div class="alert alert-danger alert-dismissible fade show" role="alert">
     <i class="bi bi-exclamation-triangle me-2"></i>
-    <strong>{{ __('Please correct the following errors:') }}</strong>
+    <strong>{{ __('app.messages.please_correct_errors') }}</strong>
     <ul class="mb-0 mt-2">
         @foreach($errors->all() as $error)
             <li>{{ $error }}</li>

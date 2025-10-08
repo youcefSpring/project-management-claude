@@ -100,24 +100,79 @@
             </div>
             <div class="card-body">
                 <!-- Task Filters -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <select class="form-select form-select-sm" id="task-status-filter">
+                <form method="GET" action="{{ route('projects.show', $project) }}" class="row mb-3">
+                    <div class="col-md-4">
+                        <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
                             <option value="">{{ __('All Tasks') }}</option>
-                            <option value="pending">{{ __('Pending') }}</option>
-                            <option value="in_progress">{{ __('In Progress') }}</option>
-                            <option value="completed">{{ __('Completed') }}</option>
+                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>{{ __('Pending') }}</option>
+                            <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>{{ __('In Progress') }}</option>
+                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>{{ __('Completed') }}</option>
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <input type="text" class="form-control form-control-sm" id="task-search"
-                               placeholder="{{ __('Search tasks...') }}">
+                        <input type="text" class="form-control form-control-sm" name="search"
+                               value="{{ request('search') }}" placeholder="{{ __('Search tasks...') }}">
                     </div>
-                </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
 
                 <!-- Tasks List -->
                 <div id="tasks-container">
-                    <!-- Tasks will be loaded here -->
+                    @if($project->tasks->count() > 0)
+                        @foreach($project->tasks as $task)
+                            <div class="card border-start border-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} border-3 mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="card-title mb-1">
+                                                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">{{ $task->title }}</a>
+                                            </h6>
+                                            <p class="text-muted small mb-2">{{ $task->description ?: '' }}</p>
+                                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                                <span class="badge status-{{ $task->status }} status-badge">
+                                                    {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                                </span>
+                                                @if($task->assignedUser)
+                                                    <span class="badge bg-light text-dark">
+                                                        <i class="bi bi-person me-1"></i>{{ $task->assignedUser->name }}
+                                                    </span>
+                                                @endif
+                                                @if($task->due_date)
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="bi bi-calendar me-1"></i>{{ \Carbon\Carbon::parse($task->due_date)->format('M d') }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
+                                                    <i class="bi bi-eye me-2"></i>{{ __('View') }}
+                                                </a></li>
+                                                @can('update', $task)
+                                                <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
+                                                    <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
+                                                </a></li>
+                                                @endcan
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="text-center text-muted py-4">
+                            <i class="bi bi-check2-square fs-2"></i>
+                            <p class="mt-2">{{ __('No tasks found') }}</p>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -135,7 +190,28 @@
             </div>
             <div class="card-body">
                 <div id="team-members">
-                    <!-- Team members will be loaded here -->
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                             style="width: 32px; height: 32px;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ $project->manager->name }}</div>
+                            <small class="text-muted">{{ __('Project Manager') }}</small>
+                        </div>
+                    </div>
+                    @foreach($allTasks->where('assigned_to', '!=', null)->unique('assigned_to') as $task)
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                             style="width: 32px; height: 32px;">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ $task->assignedUser->name ?? __('Unassigned') }}</div>
+                            <small class="text-muted">{{ __('Team Member') }}</small>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -163,18 +239,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initProgressChart();
-    loadProjectTasks();
-    loadTeamMembers();
     loadProjectActivity();
-
-    // Task filters
-    document.getElementById('task-status-filter').addEventListener('change', loadProjectTasks);
-
-    let searchTimeout;
-    document.getElementById('task-search').addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(loadProjectTasks, 500);
-    });
 });
 
 function initProgressChart() {
@@ -206,146 +271,21 @@ function initProgressChart() {
     });
 }
 
-function loadProjectTasks() {
-    const statusFilter = document.getElementById('task-status-filter').value;
-    const searchFilter = document.getElementById('task-search').value;
-
-    const params = new URLSearchParams({
-        project_id: {{ $project->id }},
-        status: statusFilter,
-        search: searchFilter
-    });
-
-    axios.get(`/ajax/tasks?${params}`)
-        .then(response => {
-            renderTasks(response.data.data);
-        })
-        .catch(error => console.error('Failed to load tasks:', error));
-}
-
-function renderTasks(tasks) {
-    const container = document.getElementById('tasks-container');
-
-    if (tasks.length === 0) {
-        container.innerHTML = `
-            <div class="text-center text-muted py-4">
-                <i class="bi bi-check2-square fs-2"></i>
-                <p class="mt-2">{{ __('No tasks found') }}</p>
-            </div>
-        `;
-        return;
-    }
-
-    container.innerHTML = tasks.map(task => `
-        <div class="card border-start border-${getTaskColor(task.status)} border-3 mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                        <h6 class="card-title mb-1">
-                            <a href="/tasks/${task.id}" class="text-decoration-none">${task.title}</a>
-                        </h6>
-                        <p class="text-muted small mb-2">${task.description || ''}</p>
-
-                        <div class="d-flex align-items-center flex-wrap gap-2">
-                            <span class="badge status-${task.status} status-badge">
-                                ${getStatusText(task.status)}
-                            </span>
-                            ${task.assigned_user ? `
-                                <span class="badge bg-light text-dark">
-                                    <i class="bi bi-person me-1"></i>${task.assigned_user.name}
-                                </span>
-                            ` : ''}
-                            ${task.due_date ? `
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-calendar me-1"></i>${formatDate(task.due_date)}
-                                </span>
-                            ` : ''}
-                        </div>
-                    </div>
-
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="/tasks/${task.id}">
-                                <i class="bi bi-eye me-2"></i>{{ __('View') }}
-                            </a></li>
-                            <li><a class="dropdown-item" href="/tasks/${task.id}/edit">
-                                <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="#" onclick="quickStatusChange(${task.id})">
-                                <i class="bi bi-arrow-repeat me-2"></i>{{ __('Change Status') }}
-                            </a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function loadTeamMembers() {
-    // This would load team members assigned to tasks in this project
-    const container = document.getElementById('team-members');
-    container.innerHTML = `
-        <div class="placeholder-glow">
-            <div class="d-flex align-items-center mb-3">
-                <div class="placeholder bg-primary rounded-circle me-2" style="width: 32px; height: 32px;"></div>
-                <span class="placeholder col-6"></span>
-            </div>
-            <div class="d-flex align-items-center mb-3">
-                <div class="placeholder bg-success rounded-circle me-2" style="width: 32px; height: 32px;"></div>
-                <span class="placeholder col-5"></span>
-            </div>
-        </div>
-    `;
-
-    // Simulate loading team members
-    setTimeout(() => {
-        container.innerHTML = `
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                     style="width: 32px; height: 32px;">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <div>
-                    <div class="fw-bold">{{ $project->manager->name }}</div>
-                    <small class="text-muted">{{ __('Project Manager') }}</small>
-                </div>
-            </div>
-            @foreach($project->tasks->where('assigned_to', '!=', null)->unique('assigned_to') as $task)
-            <div class="d-flex align-items-center mb-3">
-                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                     style="width: 32px; height: 32px;">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <div>
-                    <div class="fw-bold">{{ $task->assignedUser->name ?? __('Unassigned') }}</div>
-                    <small class="text-muted">{{ __('Team Member') }}</small>
-                </div>
-            </div>
-            @endforeach
-        `;
-    }, 1000);
-}
 
 function loadProjectActivity() {
     const container = document.getElementById('project-activity');
+
+    // Show loader
     container.innerHTML = `
-        <div class="placeholder-glow">
-            <div class="d-flex mb-3">
-                <div class="placeholder bg-primary rounded-circle me-2" style="width: 24px; height: 24px;"></div>
-                <div class="flex-grow-1">
-                    <span class="placeholder col-8"></span>
-                    <span class="placeholder col-4"></span>
-                </div>
+        <div class="d-flex justify-content-center align-items-center py-3">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
+            <span class="ms-2 text-muted small">{{ __('Loading activity...') }}</span>
         </div>
     `;
 
-    // This would load actual project activity from the API
+    // Load project activity (using static data for now, but structure is ready for API)
     setTimeout(() => {
         container.innerHTML = `
             <div class="small">
@@ -355,8 +295,8 @@ function loadProjectActivity() {
                         <i class="bi bi-check" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>Task completed by John</div>
-                        <small class="text-muted">2 hours ago</small>
+                        <div>{{ __('Task completed') }}</div>
+                        <small class="text-muted">{{ __('2 hours ago') }}</small>
                     </div>
                 </div>
                 <div class="d-flex mb-3">
@@ -365,8 +305,8 @@ function loadProjectActivity() {
                         <i class="bi bi-plus" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>New task added</div>
-                        <small class="text-muted">5 hours ago</small>
+                        <div>{{ __('New task added') }}</div>
+                        <small class="text-muted">{{ __('5 hours ago') }}</small>
                     </div>
                 </div>
                 <div class="d-flex">
@@ -375,51 +315,13 @@ function loadProjectActivity() {
                         <i class="bi bi-clock" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>Time logged by Sarah</div>
-                        <small class="text-muted">1 day ago</small>
+                        <div>{{ __('Time logged') }}</div>
+                        <small class="text-muted">{{ __('1 day ago') }}</small>
                     </div>
                 </div>
             </div>
         `;
-    }, 1200);
-}
-
-function refreshTasks() {
-    loadProjectTasks();
-}
-
-function quickStatusChange(taskId) {
-    // This would open a quick status change modal
-    console.log('Change status for task:', taskId);
-}
-
-function changeProjectStatus() {
-    // This would open a project status change modal
-    console.log('Change project status');
-}
-
-function getTaskColor(status) {
-    const colors = {
-        'pending': 'warning',
-        'in_progress': 'info',
-        'completed': 'success',
-        'cancelled': 'danger'
-    };
-    return colors[status] || 'secondary';
-}
-
-function getStatusText(status) {
-    const statuses = {
-        'pending': '{{ __("Pending") }}',
-        'in_progress': '{{ __("In Progress") }}',
-        'completed': '{{ __("Completed") }}',
-        'cancelled': '{{ __("Cancelled") }}'
-    };
-    return statuses[status] || status;
-}
-
-function formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString();
+    }, 600);
 }
 </script>
 @endpush

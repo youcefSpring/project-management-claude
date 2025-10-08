@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Barryvdh\TranslationManager\Models\Translation;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Configure translation manager to load from database
+        $this->app->singleton('translation.loader', function ($app) {
+            return new \Barryvdh\TranslationManager\TranslationManager($app['files'], $app['path.lang']);
+        });
 
         // Register custom Blade directives for permissions
         Blade::if('hasPermission', function ($permission, $resource = null) {
@@ -114,6 +121,18 @@ class AppServiceProvider extends ServiceProvider
 
         Blade::if('canWorkOnTasks', function () {
             return auth()->check() && auth()->user()->canWorkOnTasks();
+        });
+
+        // URL Macro for localized routes
+        URL::macro('localized', function ($name, $parameters = [], $locale = null) {
+            $locale = $locale ?: app()->getLocale();
+            $parameters = array_merge(['locale' => $locale], $parameters);
+            return route($name, $parameters);
+        });
+
+        // View composer to inject locale into all views
+        view()->composer('*', function ($view) {
+            $view->with('currentLocale', app()->getLocale());
         });
     }
 }

@@ -1,19 +1,19 @@
 @extends('layouts.auth')
 
-@section('title', __('Login'))
+@section('title', __('app.login'))
 
 @section('content')
-<h2>{{ __('Welcome Back') }}</h2>
-<p class="subtitle">{{ __('Sign in to your account to continue') }}</p>
+<h2>{{ __('app.welcome') }}</h2>
+<p class="subtitle">{{ __('app.auth.login_title') }}</p>
 
 @include('partials.alerts')
 
-<form id="login-form" method="POST" action="{{ route('login') }}">
+<form id="login-form" method="POST" action="{{ route('login.post') }}">
     @csrf
 
     <!-- Email Field -->
     <div class="mb-3">
-        <label for="email" class="form-label">{{ __('Email Address') }}</label>
+        <label for="email" class="form-label">{{ __('app.email') }}</label>
         <div class="input-group">
             <span class="input-group-text">
                 <i class="bi bi-envelope"></i>
@@ -25,7 +25,7 @@
                    value="{{ old('email') }}"
                    required
                    autofocus
-                   placeholder="{{ __('Enter your email') }}">
+                   placeholder="{{ __('app.validation.email') }}">
         </div>
         @error('email')
             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -34,7 +34,7 @@
 
     <!-- Password Field -->
     <div class="mb-3">
-        <label for="password" class="form-label">{{ __('Password') }}</label>
+        <label for="password" class="form-label">{{ __('app.password') }}</label>
         <div class="input-group">
             <span class="input-group-text">
                 <i class="bi bi-lock"></i>
@@ -44,7 +44,7 @@
                    id="password"
                    name="password"
                    required
-                   placeholder="{{ __('Enter your password') }}">
+                   placeholder="{{ __('app.validation.password_min') }}">
             <button type="button" class="btn btn-outline-secondary" id="toggle-password">
                 <i class="bi bi-eye"></i>
             </button>
@@ -59,7 +59,7 @@
         <div class="form-check">
             <input class="form-check-input" type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
             <label class="form-check-label" for="remember">
-                {{ __('Remember me') }}
+                {{ __('app.auth.remember_me') }}
             </label>
         </div>
     </div>
@@ -67,9 +67,9 @@
     <!-- Submit Button -->
     <div class="d-grid mb-3">
         <button type="submit" class="btn btn-primary" id="login-btn">
-            <span class="login-text">{{ __('Sign In') }}</span>
+            <span class="login-text">{{ __('app.login') }}</span>
             <span class="login-spinner spinner-border spinner-border-sm d-none" role="status">
-                <span class="visually-hidden">{{ __('Loading...') }}</span>
+                <span class="visually-hidden">{{ __('app.loading') }}</span>
             </span>
         </button>
     </div>
@@ -77,7 +77,7 @@
     <!-- Forgot Password -->
     <div class="text-center mb-3">
         <a href="{{ route('password.request') }}" class="btn-link">
-            {{ __('Forgot your password?') }}
+            {{ __('app.auth.forgot_password') }}
         </a>
     </div>
 
@@ -89,8 +89,8 @@
     <!-- Register Link -->
     <div class="text-center">
         <p class="mb-0">
-            {{ __("Don't have an account?") }}
-            <a href="{{ route('register') }}" class="btn-link">{{ __('Sign up') }}</a>
+            {{ __("app.auth.dont_have_account") }}
+            <a href="{{ route('register') }}" class="btn-link">{{ __('app.register') }}</a>
         </p>
     </div>
 </form>
@@ -104,17 +104,17 @@
             <div class="row">
                 <div class="col-4">
                     <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="fillLogin('admin@demo.com', 'password')">
-                        {{ __('Admin') }}
+                        {{ __('app.users.admin') }}
                     </button>
                 </div>
                 <div class="col-4">
                     <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="fillLogin('manager@demo.com', 'password')">
-                        {{ __('Manager') }}
+                        {{ __('app.users.manager') }}
                     </button>
                 </div>
                 <div class="col-4">
                     <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="fillLogin('member@demo.com', 'password')">
-                        {{ __('Member') }}
+                        {{ __('app.users.member') }}
                     </button>
                 </div>
             </div>
@@ -158,14 +158,14 @@ document.addEventListener('DOMContentLoaded', function() {
         axios.post(form.action, formData)
             .then(response => {
                 if (response.data.success) {
-                    showSuccess(response.data.message || '{{ __("Login successful! Redirecting...") }}');
+                    showSuccess(response.data.message || '{{ __("app.auth.login_successful") }}');
 
                     // Redirect after short delay
                     setTimeout(() => {
                         window.location.href = response.data.redirect || '{{ route("dashboard") }}';
                     }, 1000);
                 } else {
-                    showError(response.data.message || '{{ __("Login failed. Please try again.") }}');
+                    showError(response.data.message || '{{ __("app.messages.operation_failed") }}');
                     resetForm();
                 }
             })
@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Validation errors
                     showFieldErrors(error.response.data.errors);
                 } else if (error.response?.status === 401) {
-                    showError('{{ __("Invalid credentials. Please check your email and password.") }}');
+                    showError('{{ __("app.auth.invalid_credentials") }}');
                 } else {
-                    showError('{{ __("An error occurred. Please try again.") }}');
+                    showError('{{ __("app.messages.server_error") }}');
                 }
                 resetForm();
             });

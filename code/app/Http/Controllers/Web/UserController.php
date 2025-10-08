@@ -168,7 +168,7 @@ class UserController extends Controller
         // Prevent deleting the last admin
         if ($user->isAdmin() && User::where('role', 'admin')->count() <= 1) {
             return redirect()->route('users.index')
-                ->with('error', __('Cannot delete the last administrator.'));
+                ->with('error', __('app.messages.cannot_delete_last_admin'));
         }
 
         // Check if user has any associated data
@@ -178,7 +178,7 @@ class UserController extends Controller
 
         if ($hasProjects || $hasTasks || $hasTimeEntries) {
             return redirect()->route('users.index')
-                ->with('error', __('Cannot delete user with associated projects, tasks, or time entries.'));
+                ->with('error', __('app.messages.cannot_delete_user_with_data'));
         }
 
         $user->delete();

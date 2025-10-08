@@ -6,7 +6,7 @@
 
 <?php echo $__env->make('partials.alerts', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
-<form id="login-form" method="POST" action="<?php echo e(route('login')); ?>">
+<form id="login-form" method="POST" action="<?php echo e(route('login.post')); ?>">
     <?php echo csrf_field(); ?>
 
     <!-- Email Field -->

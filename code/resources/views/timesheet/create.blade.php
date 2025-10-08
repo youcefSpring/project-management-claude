@@ -21,7 +21,7 @@
                             @foreach($availableTasks as $task)
                                 <option value="{{ $task->id }}"
                                     {{ old('task_id', request('task_id')) == $task->id ? 'selected' : '' }}>
-                                    {{ $task->title }} ({{ $task->project->title }})
+                                    {{ $task->title }} ({{ optional($task->project)->title ?? __('No Project') }})
                                 </option>
                             @endforeach
                         </select>

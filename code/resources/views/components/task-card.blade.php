@@ -16,26 +16,26 @@
                 <ul class="dropdown-menu">
                     <li>
                         <a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
-                            <i class="bi bi-eye me-2"></i>{{ __('View') }}
+                            <i class="bi bi-eye me-2"></i>{{ __('app.View all') }}
                         </a>
                     </li>
                     @can('update', $task)
                     <li>
                         <a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
-                            <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
+                            <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
                         </a>
                     </li>
                     @endcan
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item" href="#" onclick="quickStatusChange({{ $task->id }})">
-                            <i class="bi bi-arrow-repeat me-2"></i>{{ __('Change Status') }}
+                            <i class="bi bi-arrow-repeat me-2"></i>{{ __('app.status') }}
                         </a>
                     </li>
                     @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                     <li>
                         <a class="dropdown-item" href="{{ route('timesheet.create') }}?task_id={{ $task->id }}">
-                            <i class="bi bi-clock me-2"></i>{{ __('Log Time') }}
+                            <i class="bi bi-clock me-2"></i>{{ __('app.time.log_time') }}
                         </a>
                     </li>
                     @endif
@@ -83,13 +83,16 @@
         @endif
 
         @if($task->due_date)
+        @php
+            $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+        @endphp
         <div class="d-flex align-items-center">
-            <i class="bi bi-calendar me-1 {{ $task->due_date->isPast() && $task->status !== 'fait' ? 'text-danger' : 'text-muted' }}"></i>
-            <small class="{{ $task->due_date->isPast() && $task->status !== 'fait' ? 'text-danger fw-bold' : 'text-muted' }}">
-                {{ $task->due_date->format('M d, Y') }}
+            <i class="bi bi-calendar me-1 {{ $dueDate->isPast() && $task->status !== 'fait' ? 'text-danger' : 'text-muted' }}"></i>
+            <small class="{{ $dueDate->isPast() && $task->status !== 'fait' ? 'text-danger fw-bold' : 'text-muted' }}">
+                {{ $dueDate->format('M d, Y') }}
             </small>
-            @if($task->due_date->isPast() && $task->status !== 'fait')
-                <i class="bi bi-exclamation-triangle text-danger ms-1" title="{{ __('Overdue') }}"></i>
+            @if($dueDate->isPast() && $task->status !== 'fait')
+                <i class="bi bi-exclamation-triangle text-danger ms-1" title="{{ __('app.tasks.overdue') }}"></i>
             @endif
         </div>
         @endif

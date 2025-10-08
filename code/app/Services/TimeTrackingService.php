@@ -171,6 +171,50 @@ class TimeTrackingService
     }
 
     /**
+     * Restore a soft deleted time entry
+     */
+    public function restore(TimeEntry $timeEntry, User $user): bool
+    {
+        // Check permissions
+        if (! $user->isAdmin()) {
+            throw new \UnauthorizedHttpException('You are not authorized to restore this time entry.');
+        }
+
+        // Log before restoration
+        \Log::info('Time entry restored', [
+            'time_entry_id' => $timeEntry->id,
+            'task_id' => $timeEntry->task_id,
+            'user_id' => $timeEntry->user_id,
+            'duration' => $timeEntry->duration,
+            'restored_by' => $user->id,
+        ]);
+
+        return $timeEntry->restore();
+    }
+
+    /**
+     * Permanently delete a time entry
+     */
+    public function forceDelete(TimeEntry $timeEntry, User $user): bool
+    {
+        // Check permissions
+        if (! $user->isAdmin()) {
+            throw new \UnauthorizedHttpException('You are not authorized to permanently delete this time entry.');
+        }
+
+        // Log before permanent deletion
+        \Log::info('Time entry permanently deleted', [
+            'time_entry_id' => $timeEntry->id,
+            'task_id' => $timeEntry->task_id,
+            'user_id' => $timeEntry->user_id,
+            'duration' => $timeEntry->duration,
+            'permanently_deleted_by' => $user->id,
+        ]);
+
+        return $timeEntry->forceDelete();
+    }
+
+    /**
      * Get time entries for user
      */
     public function getUserTimeEntries(User $user, array $filters = []): Collection
@@ -227,6 +271,23 @@ class TimeTrackingService
 
         if (! empty($filters['user_id'])) {
             $query->forUser($filters['user_id']);
+        }
+
+        // Apply search filter
+        if (! empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('comment', 'like', "%{$search}%")
+                  ->orWhereHas('task', function ($taskQuery) use ($search) {
+                      $taskQuery->where('title', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('task.project', function ($projectQuery) use ($search) {
+                      $projectQuery->where('title', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('user', function ($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
 
         return $query->with(['task.project', 'user'])

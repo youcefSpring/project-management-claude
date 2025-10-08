@@ -6,10 +6,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class TimeEntry extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -38,15 +39,6 @@ class TimeEntry extends Model
         ];
     }
 
-    /**
-     * The attributes that should be mutated to dates.
-     *
-     * @var array
-     */
-    protected $dates = [
-        'start_time',
-        'end_time',
-    ];
 
     /**
      * Get the task this time entry belongs to
@@ -69,7 +61,7 @@ class TimeEntry extends Model
      */
     public function project()
     {
-        return $this->task->project();
+        return $this->task ? $this->task->project : null;
     }
 
     /**
@@ -135,21 +127,21 @@ class TimeEntry extends Model
     }
 
     /**
-     * Check if user can edit this time entry
+     * Check if user can view this time entry
      */
-    public function canBeEditedBy(User $user): bool
+    public function canBeViewedBy(User $user): bool
     {
-        // Admin can edit any time entry
+        // Admin can view any time entry
         if ($user->isAdmin()) {
             return true;
         }
 
-        // Manager can edit time entries for their projects
-        if ($user->isManager() && $this->task->project->manager_id === $user->id) {
+        // Manager can view time entries for projects they manage
+        if ($user->isManager() && $this->task && $this->task->project && $this->task->project->manager_id === $user->id) {
             return true;
         }
 
-        // Users can edit their own time entries
+        // Users can view their own time entries
         if ($this->user_id === $user->id) {
             return true;
         }
@@ -158,12 +150,48 @@ class TimeEntry extends Model
     }
 
     /**
+     * Check if user can edit this time entry
+     */
+    public function canBeEditedBy(User $user): bool
+    {
+        // Only the developer who worked on the task can edit their own time entry
+        return $this->user_id === $user->id;
+    }
+
+    /**
      * Check if user can delete this time entry
      */
     public function canBeDeletedBy(User $user): bool
     {
-        // Only the owner or admin can delete
-        return $user->isAdmin() || $this->user_id === $user->id;
+        // Admin can delete any time entry
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Manager can delete time entries for projects they manage
+        if ($user->isManager() && $this->task && $this->task->project && $this->task->project->manager_id === $user->id) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can restore this time entry
+     */
+    public function canBeRestoredBy(User $user): bool
+    {
+        // Only admin can restore time entries
+        return $user->isAdmin();
+    }
+
+    /**
+     * Check if user can permanently delete this time entry
+     */
+    public function canBeForceDeletedBy(User $user): bool
+    {
+        // Only admin can permanently delete time entries
+        return $user->isAdmin();
     }
 
     /**
@@ -212,7 +240,11 @@ class TimeEntry extends Model
      */
     public function scopeDateRange($query, Carbon $startDate, Carbon $endDate)
     {
-        return $query->whereBetween('start_time', [$startDate, $endDate]);
+        // Convert dates to proper datetime ranges to include all entries in the date range
+        $startDateTime = $startDate->copy()->startOfDay();
+        $endDateTime = $endDate->copy()->endOfDay();
+
+        return $query->whereBetween('start_time', [$startDateTime, $endDateTime]);
     }
 
     /**
@@ -242,6 +274,22 @@ class TimeEntry extends Model
     }
 
     /**
+     * Scope to get only soft deleted entries
+     */
+    public function scopeOnlyTrashed($query)
+    {
+        return $query->onlyTrashed();
+    }
+
+    /**
+     * Scope to get entries including soft deleted ones
+     */
+    public function scopeWithTrashed($query)
+    {
+        return $query->withTrashed();
+    }
+
+    /**
      * Scope to filter time entries user has access to
      */
     public function scopeAccessibleBy($query, User $user)
@@ -250,14 +298,19 @@ class TimeEntry extends Model
             return $query;
         }
 
-        if ($user->isManager()) {
-            return $query->whereHas('task.project', function ($projectQuery) use ($user) {
+        // Use the same logic as Project::accessibleBy for consistency
+        return $query->where(function ($q) use ($user) {
+            // Show user's own time entries
+            $q->where('user_id', $user->id)
+            // OR time entries for projects they manage (legacy support)
+            ->orWhereHas('task.project', function ($projectQuery) use ($user) {
                 $projectQuery->where('manager_id', $user->id);
+            })
+            // OR time entries for projects they are members of
+            ->orWhereHas('task.project.activeMemberships', function ($membershipQuery) use ($user) {
+                $membershipQuery->where('user_id', $user->id);
             });
-        }
-
-        // For members, show only their own time entries
-        return $query->where('user_id', $user->id);
+        });
     }
 
     /**

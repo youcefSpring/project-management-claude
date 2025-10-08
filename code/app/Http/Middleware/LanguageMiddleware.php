@@ -30,6 +30,11 @@ class LanguageMiddleware
         // Store in session for persistence
         Session::put('locale', $language);
 
+        // Set text direction for RTL languages
+        $rtlLanguages = ['ar', 'he', 'fa', 'ur'];
+        $direction = in_array($language, $rtlLanguages) ? 'rtl' : 'ltr';
+        Session::put('direction', $direction);
+
         return $next($request);
     }
 

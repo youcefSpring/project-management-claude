@@ -1,5 +1,6 @@
 <?php
 
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskNoteController;
 use App\Http\Controllers\Web\TimeEntryController;
 use App\Http\Controllers\Web\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -23,41 +25,66 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public Routes
+// Root redirect to default language
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    $locale = session('locale', config('app.locale', 'en'));
+    return redirect("/{$locale}");
 })->name('home');
 
-// Authentication Routes (Guest only)
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
+// Language switching route (outside prefix)
+Route::post('/language', function () {
+    $language = request('language');
+    $currentLocale = app()->getLocale();
 
-    Route::get('/register', [RegisterController::class, 'show'])->name('register');
-    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+    if (in_array($language, ['fr', 'en', 'ar', 'es'])) {
+        auth()->user()->update(['language' => $language]);
+        session(['language' => $language]);
+        app()->setLocale($language);
 
-    // Password Reset Routes
-    Route::get('/forgot-password', function () {
-        return view('auth.forgot-password');
-    })->name('password.request');
+        // Redirect to the same page with new language prefix
+        $currentPath = str_replace('/' . $currentLocale, '', request()->headers->get('referer'));
+        $newPath = parse_url($currentPath, PHP_URL_PATH);
+        $cleanPath = ltrim(str_replace('/' . $currentLocale, '', $newPath), '/');
 
-    Route::post('/forgot-password', function () {
-        // Password reset logic would go here
-        return back()->with('status', 'Password reset link sent!');
-    })->name('password.email');
+        return redirect("/{$language}/" . $cleanPath);
+    }
 
-    Route::get('/reset-password/{token}', function ($token) {
-        return view('auth.reset-password', ['token' => $token]);
-    })->name('password.reset');
+    return back();
+})->name('language.switch')->middleware('auth');
 
-    Route::post('/reset-password', function () {
-        // Password reset logic would go here
-        return redirect()->route('login')->with('status', 'Password has been reset!');
-    })->name('password.update');
-});
+// Routes with MCamara language prefix
+Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']], function () {
 
-// Authenticated Routes
-Route::middleware('auth')->group(function () {
+    // Authentication Routes (Guest only)
+    Route::middleware('guest')->group(function () {
+        Route::get('/login', [LoginController::class, 'show'])->name('login');
+        Route::post('/login', [LoginController::class, 'authenticate'])->name('login.post');
+
+        Route::get('/register', [RegisterController::class, 'show'])->name('register');
+        Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+        // Password Reset Routes
+        Route::get('/forgot-password', function () {
+            return view('auth.forgot-password');
+        })->name('password.request');
+
+        Route::post('/forgot-password', function () {
+            // Password reset logic would go here
+            return back()->with('status', 'Password reset link sent!');
+        })->name('password.email');
+
+        Route::get('/reset-password/{token}', function ($token) {
+            return view('auth.reset-password', ['token' => $token]);
+        })->name('password.reset');
+
+        Route::post('/reset-password', function () {
+            // Password reset logic would go here
+            return redirect()->route('login')->with('status', 'Password has been reset!');
+        })->name('password.update');
+    });
+
+    // Authenticated Routes
+    Route::middleware('auth')->group(function () {
 
     // Logout
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
@@ -237,28 +264,33 @@ Route::middleware('auth')->group(function () {
         return view('help.index');
     })->name('help');
 
+    // Translation Manager (Admin only)
+    Route::middleware('permission:access.admin.dashboard')->group(function () {
+        Route::get('/translations', '\Barryvdh\TranslationManager\Controller@getIndex');
+        Route::get('/translations/view/{group?}', '\Barryvdh\TranslationManager\Controller@getView')->where('group', '.*');
+        Route::post('/translations/add/{group}', '\Barryvdh\TranslationManager\Controller@postAdd')->where('group', '.*');
+        Route::post('/translations/edit/{group}', '\Barryvdh\TranslationManager\Controller@postEdit')->where('group', '.*');
+        Route::post('/translations/delete/{group}/{key?}', '\Barryvdh\TranslationManager\Controller@postDelete')->where('group', '.*');
+        Route::post('/translations/import', '\Barryvdh\TranslationManager\Controller@postImport');
+        Route::post('/translations/find', '\Barryvdh\TranslationManager\Controller@postFind');
+        Route::post('/translations/locales/add', '\Barryvdh\TranslationManager\Controller@postAddLocale');
+        Route::post('/translations/locales/remove', '\Barryvdh\TranslationManager\Controller@postRemoveLocale');
+        Route::post('/translations/publish/{group}', '\Barryvdh\TranslationManager\Controller@postPublish')->where('group', '.*');
+        Route::post('/translations/publish', '\Barryvdh\TranslationManager\Controller@postPublish');
+    });
+
     // Search (Global)
     Route::get('/search', function () {
         $query = request('q');
 
         return view('search.results', compact('query'));
-    })->name('search');
-});
+    })->name('search.results');
 
-// Language Switching (for authenticated users)
-Route::middleware('auth')->post('/language', function () {
-    $language = request('language');
+    }); // End of authenticated routes
 
-    if (in_array($language, ['fr', 'en', 'ar'])) {
-        auth()->user()->update(['language' => $language]);
-        session(['language' => $language]);
-        app()->setLocale($language);
-    }
+}); // End of language prefix group
 
-    return back()->with('success', 'Langue mise à jour avec succès');
-})->name('language.switch');
-
-// File Downloads (for reports)
+// File Downloads (for reports) - Outside language prefix
 Route::middleware('auth')->get('/downloads/{file}', function ($file) {
     $path = storage_path('app/reports/'.$file);
 
@@ -268,6 +300,44 @@ Route::middleware('auth')->get('/downloads/{file}', function ($file) {
 
     return response()->download($path);
 })->where('file', '.*')->name('download');
+
+// AJAX Routes for web pages
+Route::middleware('auth')->group(function () {
+    Route::get('/ajax/project-tasks', function (Request $request) {
+        try {
+            $filters = $request->only(['project_id', 'status', 'search']);
+
+            // Clean up empty values
+            $filters = array_filter($filters, function($value) {
+                return $value !== null && $value !== '';
+            });
+
+            $taskService = app(\App\Services\TaskService::class);
+            $tasks = $taskService->getAccessibleTasks($request->user(), $filters);
+
+            // Load relationships for the frontend
+            $tasks->load(['project', 'assignedUser']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $tasks->values(),
+                'count' => $tasks->count(),
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('AJAX Project Tasks error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'filters' => $request->all(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error loading tasks',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    })->name('ajax.project-tasks');
+});
 
 // Health Check for Web
 Route::get('/health', function () {

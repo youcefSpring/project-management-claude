@@ -150,8 +150,11 @@
                                             </td>
                                             <td>
                                                 @if($task->due_date)
-                                                    {{ $task->due_date->format('M d, Y') }}
-                                                    @if($task->due_date->isPast() && $task->status !== 'completed')
+                                                    @php
+                                                        $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                                                    @endphp
+                                                    {{ $dueDate->format('M d, Y') }}
+                                                    @if($dueDate->isPast() && $task->status !== 'completed')
                                                         <span class="badge bg-danger ms-1">{{ __('Overdue') }}</span>
                                                     @endif
                                                 @else

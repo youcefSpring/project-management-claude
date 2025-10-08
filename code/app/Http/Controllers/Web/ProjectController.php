@@ -34,27 +34,52 @@ class ProjectController extends Controller
         return view('projects.index', compact('projects', 'managers'));
     }
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
         $this->authorize('view', $project);
 
+        // Get filters from request
+        $filters = $request->only(['status', 'search']);
+
+        // Load project with relationships
         $project->load([
             'manager',
+            'tasks' => function ($query) use ($filters) {
+                if (!empty($filters['status'])) {
+                    $query->where('status', $filters['status']);
+                }
+                if (!empty($filters['search'])) {
+                    $query->where(function ($q) use ($filters) {
+                        $q->where('title', 'like', '%' . $filters['search'] . '%')
+                          ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+                    });
+                }
+                return $query->with(['assignedUser', 'timeEntries']);
+            },
             'tasks.assignedUser',
             'tasks.timeEntries',
         ]);
 
+        // Calculate stats based on all tasks (not filtered)
+        $allTasks = $project->tasks()->with(['timeEntries'])->get();
         $stats = [
-            'total_tasks' => $project->tasks->count(),
-            'completed_tasks' => $project->tasks->where('status', 'fait')->count(),
-            'total_hours' => $project->total_hours,
-            'progress_percentage' => $project->getProgressPercentage(),
+            'total_tasks' => $allTasks->count(),
+            'completed_tasks' => $allTasks->where('status', 'completed')->count(),
+            'total_hours' => $allTasks->sum(function ($task) {
+                return $task->timeEntries->sum('duration_hours');
+            }),
+            'progress_percentage' => $allTasks->count() > 0
+                ? round(($allTasks->where('status', 'completed')->count() / $allTasks->count()) * 100)
+                : 0,
         ];
 
         // Get available users for task assignment
         $availableUsers = User::where('role', 'member')->get();
 
-        return view('projects.show', compact('project', 'stats', 'availableUsers'));
+        // Get all tasks for team members display (unfiltered)
+        $allTasks = $project->tasks()->with(['assignedUser'])->get();
+
+        return view('projects.show', compact('project', 'stats', 'availableUsers', 'allTasks'));
     }
 
     public function create()

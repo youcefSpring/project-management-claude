@@ -4,6 +4,115 @@
 @section('page-title', __('Timesheet Management'))
 
 @section('content')
+<!-- Statistics Section -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="bi bi-graph-up me-2"></i>{{ __('Timesheet Statistics') }}
+                </h6>
+                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="{{ __('Toggle Statistics') }}">
+                    <i class="bi bi-chevron-up" id="toggleIcon"></i>
+                </button>
+            </div>
+            <div class="card-body p-3" id="statsContent">
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <div class="bg-primary rounded-circle p-2 me-2">
+                                        <i class="bi bi-clock text-white"></i>
+                                    </div>
+                                    <h4 class="card-title text-primary mb-0">{{ $summary['total_hours'] ?? 0 }}h</h4>
+                                </div>
+                                <p class="card-text text-muted small mb-0">{{ __('Total Hours') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-success h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <div class="bg-success rounded-circle p-2 me-2">
+                                        <i class="bi bi-check-circle text-white"></i>
+                                    </div>
+                                    <h4 class="card-title text-success mb-0">{{ $summary['approved_hours'] ?? 0 }}h</h4>
+                                </div>
+                                <p class="card-text text-muted small mb-0">{{ __('Approved Hours') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-warning h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <div class="bg-warning rounded-circle p-2 me-2">
+                                        <i class="bi bi-clock-history text-white"></i>
+                                    </div>
+                                    <h4 class="card-title text-warning mb-0">{{ $summary['pending_hours'] ?? 0 }}h</h4>
+                                </div>
+                                <p class="card-text text-muted small mb-0">{{ __('Pending Hours') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <div class="card border-danger h-100">
+                            <div class="card-body text-center py-3">
+                                <div class="d-flex align-items-center justify-content-center mb-2">
+                                    <div class="bg-danger rounded-circle p-2 me-2">
+                                        <i class="bi bi-x-circle text-white"></i>
+                                    </div>
+                                    <h4 class="card-title text-danger mb-0">{{ $summary['rejected_hours'] ?? 0 }}h</h4>
+                                </div>
+                                <p class="card-text text-muted small mb-0">{{ __('Rejected Hours') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Statistics Row -->
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-2 bg-light rounded">
+                            <i class="bi bi-calendar-week text-primary me-2"></i>
+                            <div>
+                                <div class="fw-bold">{{ $timeEntries->count() }}</div>
+                                <small class="text-muted">{{ __('Total Entries') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-2 bg-light rounded">
+                            <i class="bi bi-people text-info me-2"></i>
+                            <div>
+                                <div class="fw-bold">{{ $timeEntries->pluck('user_id')->unique()->count() }}</div>
+                                <small class="text-muted">{{ __('Active Users') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-2 bg-light rounded">
+                            <i class="bi bi-clock text-success me-2"></i>
+                            <div>
+                                <div class="fw-bold">
+                                    @if($timeEntries->count() > 0)
+                                        {{ number_format(($summary['total_hours'] ?? 0) / $timeEntries->count(), 1) }}h
+                                    @else
+                                        0h
+                                    @endif
+                                </div>
+                                <small class="text-muted">{{ __('Avg. per Entry') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -11,8 +120,12 @@
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history me-2"></i>
                     {{ __('Timesheet Entries') }}
+                    <span class="badge bg-secondary ms-2">{{ $timeEntries->count() }} {{ __('entries') }}</span>
                 </h5>
                 <div>
+                    <a href="{{ route('timesheet.index', ['show_all' => 1]) }}" class="btn btn-outline-info btn-sm me-2">
+                        <i class="bi bi-eye me-1"></i>{{ __('Show All') }}
+                    </a>
                     <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
                         <i class="bi bi-plus-circle me-1"></i>{{ __('Add Time Entry') }}
                     </a>
@@ -60,21 +173,36 @@
                             <tr>
                                 <th>{{ __('Date') }}</th>
                                 <th>{{ __('User') }}</th>
-                                <th>{{ __('Project') }}</th>
                                 <th>{{ __('Task') }}</th>
-                                <th>{{ __('Description') }}</th>
                                 <th>{{ __('Hours') }}</th>
                                 <th>{{ __('Status') }}</th>
                                 <th>{{ __('Actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="timesheet-tbody">
-                            @forelse($timesheets ?? [] as $timesheet)
+                            @forelse($timeEntries ?? [] as $timeEntry)
                                 <tr>
                                     <td>
-                                        <span class="fw-bold">{{ \Carbon\Carbon::parse($timesheet->date)->format('M d, Y') }}</span>
-                                        <br>
-                                        <small class="text-muted">{{ \Carbon\Carbon::parse($timesheet->date)->format('l') }}</small>
+                                        @if($timeEntry->start_time && $timeEntry->end_time)
+                                            @php
+                                                try {
+                                                    $startTime = $timeEntry->start_time instanceof \Carbon\Carbon
+                                                        ? $timeEntry->start_time
+                                                        : \Carbon\Carbon::parse($timeEntry->start_time);
+                                                    $endTime = $timeEntry->end_time instanceof \Carbon\Carbon
+                                                        ? $timeEntry->end_time
+                                                        : \Carbon\Carbon::parse($timeEntry->end_time);
+                                                } catch (\Exception $e) {
+                                                    $startTime = \Carbon\Carbon::now();
+                                                    $endTime = \Carbon\Carbon::now();
+                                                }
+                                            @endphp
+                                            <span class="fw-bold">{{ $startTime->format('M d, Y') }}</span>
+                                            <br>
+                                            <small class="text-muted">{{ $startTime->format('H:i') }} - {{ $endTime->format('H:i') }}</small>
+                                        @else
+                                            <span class="text-muted">{{ __('Invalid date') }}</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -83,47 +211,40 @@
                                                 <i class="bi bi-person-fill"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-bold">{{ $timesheet->user->name ?? __('Unknown') }}</div>
-                                                <small class="text-muted">{{ $timesheet->user->email ?? '' }}</small>
+                                                <div class="fw-bold">{{ $timeEntry->user->name ?? __('Unknown') }}</div>
+                                                <small class="text-muted">{{ $timeEntry->user->email ?? '' }}</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                                                 style="width: 24px; height: 24px;">
-                                                <i class="bi bi-folder-fill" style="font-size: 0.8rem;"></i>
+                                        <div class="d-flex flex-column">
+                                            <div class="d-flex align-items-center mb-1">
+                                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                     style="width: 20px; height: 20px;">
+                                                    <i class="bi bi-folder-fill" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <small class="text-muted">{{ optional(optional($timeEntry->task)->project)->title ?? __('No Project') }}</small>
                                             </div>
-                                            <span>{{ $timesheet->project->title ?? __('No Project') }}</span>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-info rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                     style="width: 20px; height: 20px;">
+                                                    <i class="bi bi-check-square" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <span class="fw-bold">
+                                                    @if($timeEntry->task)
+                                                        {{ $timeEntry->task->title }}
+                                                    @else
+                                                        {{ __('General Task') }}
+                                                    @endif
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>
-                                        @if($timesheet->task)
-                                            <span class="badge bg-info">{{ $timesheet->task->title }}</span>
-                                        @else
-                                            <span class="text-muted">{{ __('General') }}</span>
-                                        @endif
+                                        <span class="badge bg-primary fs-6">{{ number_format($timeEntry->duration_hours ?? 0, 2) }}h</span>
                                     </td>
                                     <td>
-                                        <div class="text-truncate" style="max-width: 200px;" title="{{ $timesheet->description }}">
-                                            {{ $timesheet->description ?: __('No description') }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-primary fs-6">{{ $timesheet->hours }}h</span>
-                                    </td>
-                                    <td>
-                                        @php
-                                            $statusColors = [
-                                                'pending' => 'warning',
-                                                'approved' => 'success',
-                                                'rejected' => 'danger'
-                                            ];
-                                            $color = $statusColors[$timesheet->status ?? 'pending'] ?? 'secondary';
-                                        @endphp
-                                        <span class="badge bg-{{ $color }}">
-                                            {{ ucfirst($timesheet->status ?? 'pending') }}
-                                        </span>
+                                        <span class="badge bg-success">{{ __('Logged') }}</span>
                                     </td>
                                     <td>
                                         <div class="dropdown">
@@ -131,46 +252,167 @@
                                                 <i class="bi bi-three-dots"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li>
-                                                    <a class="dropdown-item" href="{{ route('timesheet.show', $timesheet->id) }}">
-                                                        <i class="bi bi-eye me-2"></i>{{ __('View') }}
-                                                    </a>
-                                                </li>
-                                                @if(auth()->user()->id === $timesheet->user_id || auth()->user()->isAdmin())
+                                                @php
+                                                    $canView = $timeEntry->canBeViewedBy(auth()->user());
+                                                    $canEdit = $timeEntry->canBeEditedBy(auth()->user());
+                                                    $canDelete = $timeEntry->canBeDeletedBy(auth()->user());
+                                                @endphp
+
+                                                @if($canView)
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('timesheet.edit', $timesheet->id) }}">
+                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ $timeEntry->id }}">
+                                                            <i class="bi bi-eye me-2"></i>{{ __('View') }}
+                                                        </a>
+                                                    </li>
+                                                @endif
+
+                                                @if($canEdit)
+                                                    <li>
+                                                        <a class="dropdown-item" href="{{ route('timesheet.edit', $timeEntry->id) }}">
                                                             <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
                                                         </a>
                                                     </li>
                                                 @endif
-                                                @if(auth()->user()->isManager() || auth()->user()->isAdmin())
-                                                    <li><hr class="dropdown-divider"></li>
+
+                                                @if($canDelete)
+                                                    @if($canView || $canEdit)<li><hr class="dropdown-divider"></li>@endif
                                                     <li>
-                                                        <a class="dropdown-item" href="#" onclick="changeStatus({{ $timesheet->id }}, 'approved')">
-                                                            <i class="bi bi-check-circle me-2 text-success"></i>{{ __('Approve') }}
-                                                        </a>
-                                                    </li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" onclick="changeStatus({{ $timesheet->id }}, 'rejected')">
-                                                            <i class="bi bi-x-circle me-2 text-danger"></i>{{ __('Reject') }}
-                                                        </a>
-                                                    </li>
-                                                @endif
-                                                @if(auth()->user()->id === $timesheet->user_id || auth()->user()->isAdmin())
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#" onclick="deleteEntry({{ $timesheet->id }})">
+                                                        <a class="dropdown-item text-danger" href="#"
+                                                           onclick="if(confirm('{{ __('Are you sure?') }}')) {
+                                                               document.getElementById('delete-form-{{ $timeEntry->id }}').submit();
+                                                           }">
                                                             <i class="bi bi-trash me-2"></i>{{ __('Delete') }}
                                                         </a>
+                                                        <form id="delete-form-{{ $timeEntry->id }}"
+                                                              action="{{ route('timesheet.destroy', $timeEntry->id) }}"
+                                                              method="POST" style="display: none;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                        </form>
                                                     </li>
                                                 @endif
                                             </ul>
                                         </div>
                                     </td>
                                 </tr>
+
+                                <!-- View Modal for this entry -->
+                                @if($timeEntry->canBeViewedBy(auth()->user()))
+                                    <div class="modal fade" id="viewModal{{ $timeEntry->id }}" tabindex="-1" aria-labelledby="viewModalLabel{{ $timeEntry->id }}" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="viewModalLabel{{ $timeEntry->id }}">
+                                                        <i class="bi bi-clock-history me-2"></i>{{ __('Time Entry Details') }}
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6 class="text-muted mb-3">{{ __('Basic Information') }}</h6>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('Date') }}:</strong><br>
+                                                                @if($timeEntry->start_time && $timeEntry->end_time)
+                                                                    @php
+                                                                        try {
+                                                                            $startTime = $timeEntry->start_time instanceof \Carbon\Carbon
+                                                                                ? $timeEntry->start_time
+                                                                                : \Carbon\Carbon::parse($timeEntry->start_time);
+                                                                            $endTime = $timeEntry->end_time instanceof \Carbon\Carbon
+                                                                                ? $timeEntry->end_time
+                                                                                : \Carbon\Carbon::parse($timeEntry->end_time);
+                                                                        } catch (\Exception $e) {
+                                                                            $startTime = \Carbon\Carbon::now();
+                                                                            $endTime = \Carbon\Carbon::now();
+                                                                        }
+                                                                    @endphp
+                                                                    <span class="badge bg-primary">{{ $startTime->format('M d, Y') }}</span><br>
+                                                                    <small class="text-muted">{{ $startTime->format('H:i') }} - {{ $endTime->format('H:i') }}</small>
+                                                                @else
+                                                                    <span class="text-muted">{{ __('Invalid date') }}</span>
+                                                                @endif
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('Duration') }}:</strong><br>
+                                                                <span class="badge bg-success fs-6">{{ number_format($timeEntry->duration_hours ?? 0, 2) }} {{ __('hours') }}</span>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('User') }}:</strong><br>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                                         style="width: 32px; height: 32px;">
+                                                                        <i class="bi bi-person-fill"></i>
+                                                                    </div>
+                                                                    <div>
+                                                                        <div>{{ $timeEntry->user->name ?? __('Unknown') }}</div>
+                                                                        <small class="text-muted">{{ $timeEntry->user->email ?? '' }}</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6 class="text-muted mb-3">{{ __('Project & Task') }}</h6>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('Project') }}:</strong><br>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                                         style="width: 24px; height: 24px;">
+                                                                        <i class="bi bi-folder-fill" style="font-size: 0.8rem;"></i>
+                                                                    </div>
+                                                                    <span>{{ optional(optional($timeEntry->task)->project)->title ?? __('No Project') }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('Task') }}:</strong><br>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="bg-info rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                                         style="width: 24px; height: 24px;">
+                                                                        <i class="bi bi-check-square" style="font-size: 0.8rem;"></i>
+                                                                    </div>
+                                                                    <span>
+                                                                        @if($timeEntry->task)
+                                                                            {{ $timeEntry->task->title }}
+                                                                        @else
+                                                                            {{ __('General Task') }}
+                                                                        @endif
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <strong>{{ __('Status') }}:</strong><br>
+                                                                <span class="badge bg-success">{{ __('Logged') }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <h6 class="text-muted mb-3">{{ __('Description') }}</h6>
+                                                            <div class="border rounded p-3 bg-light">
+                                                                @if($timeEntry->comment)
+                                                                    <p class="mb-0">{{ $timeEntry->comment }}</p>
+                                                                @else
+                                                                    <p class="mb-0 text-muted fst-italic">{{ __('No description provided') }}</p>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    @if($timeEntry->canBeEditedBy(auth()->user()))
+                                                        <a href="{{ route('timesheet.edit', $timeEntry->id) }}" class="btn btn-primary">
+                                                            <i class="bi bi-pencil me-2"></i>{{ __('Edit Entry') }}
+                                                        </a>
+                                                    @endif
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Close') }}</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-4">
+                                    <td colspan="6" class="text-center py-4">
                                         <div class="text-muted">
                                             <i class="bi bi-clock-history fs-2"></i>
                                             <p class="mt-2">{{ __('No timesheet entries found') }}</p>
@@ -192,41 +434,6 @@
                     </div>
                 @endif
 
-                <!-- Summary Section -->
-                <div class="row mt-4">
-                    <div class="col-md-3">
-                        <div class="card border-primary">
-                            <div class="card-body text-center">
-                                <h5 class="card-title text-primary">{{ $summary['total_hours'] ?? 0 }}h</h5>
-                                <p class="card-text">{{ __('Total Hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-success">
-                            <div class="card-body text-center">
-                                <h5 class="card-title text-success">{{ $summary['approved_hours'] ?? 0 }}h</h5>
-                                <p class="card-text">{{ __('Approved Hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-warning">
-                            <div class="card-body text-center">
-                                <h5 class="card-title text-warning">{{ $summary['pending_hours'] ?? 0 }}h</h5>
-                                <p class="card-text">{{ __('Pending Hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-danger">
-                            <div class="card-body text-center">
-                                <h5 class="card-title text-danger">{{ $summary['rejected_hours'] ?? 0 }}h</h5>
-                                <p class="card-text">{{ __('Rejected Hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -237,6 +444,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setupFilters();
+    setupStatsToggle();
 });
 
 function setupFilters() {
@@ -295,6 +503,39 @@ function clearFilters() {
     document.getElementById('date-from').value = '';
     document.getElementById('date-to').value = '';
     window.location.href = window.location.pathname;
+}
+
+function setupStatsToggle() {
+    const toggleBtn = document.getElementById('toggleStats');
+    const statsContent = document.getElementById('statsContent');
+    const toggleIcon = document.getElementById('toggleIcon');
+
+    // Check localStorage for saved state (default: visible)
+    const isHidden = localStorage.getItem('statsHidden') === 'true';
+
+    if (isHidden) {
+        statsContent.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        statsContent.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const isCurrentlyVisible = statsContent.style.display !== 'none';
+
+        if (isCurrentlyVisible) {
+            // Hide stats
+            statsContent.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+            localStorage.setItem('statsHidden', 'true');
+        } else {
+            // Show stats
+            statsContent.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+            localStorage.setItem('statsHidden', 'false');
+        }
+    });
 }
 
 function changeStatus(timesheetId, status) {

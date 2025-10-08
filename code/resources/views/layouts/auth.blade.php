@@ -1,15 +1,20 @@
+@php
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ LaravelLocalization::getCurrentLocaleDirection() }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Authentication') - {{ config('app.name', 'Gestion de Projets') }}</title>
+    <title>@yield('title', __('app.auth.login_title')) - {{ config('app.name', 'Gestion de Projets') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Arabic Font Support -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -33,6 +38,91 @@
         /* RTL Support */
         [dir="rtl"] {
             text-align: right;
+        }
+
+        [dir="rtl"] .form-label {
+            text-align: right;
+        }
+
+        [dir="rtl"] .input-group {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .input-group .form-control {
+            text-align: right;
+        }
+
+        [dir="rtl"] .btn i {
+            margin-left: 0.5rem;
+            margin-right: 0;
+        }
+
+        [dir="rtl"] .alert {
+            text-align: right;
+        }
+
+        /* LTR Support */
+        [dir="ltr"] {
+            text-align: left;
+        }
+
+        [dir="ltr"] .form-label {
+            text-align: left;
+        }
+
+        [dir="ltr"] .input-group {
+            flex-direction: row;
+        }
+
+        [dir="ltr"] .input-group .form-control {
+            text-align: left;
+        }
+
+        [dir="ltr"] .btn i {
+            margin-right: 0.5rem;
+            margin-left: 0;
+        }
+
+        [dir="ltr"] .alert {
+            text-align: left;
+        }
+
+        /* Arabic Font Support */
+        [lang="ar"], [dir="rtl"] {
+            font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Language Switcher Styles */
+        .language-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        [dir="rtl"] .language-switcher {
+            right: auto;
+            left: 20px;
+        }
+
+        .dropdown-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .dropdown-item.active:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .language-switcher .dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .language-switcher .dropdown-item i.bi-check2 {
+            color: #28a745;
         }
 
         .auth-container {
@@ -275,12 +365,22 @@
         <div class="dropdown">
             <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-globe me-1"></i>
-                {{ strtoupper(app()->getLocale()) }}
+                {{ LaravelLocalization::getCurrentLocaleName() }}
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('fr')">Français</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeLanguage('ar')">العربية</a></li>
+                @foreach(LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
+                    <li>
+                        <a class="dropdown-item {{ app()->getLocale() == $localeCode ? 'active' : '' }}"
+                           rel="alternate"
+                           hreflang="{{ $localeCode }}"
+                           href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
+                            {{ $properties['native'] }}
+                            @if(app()->getLocale() == $localeCode)
+                                <i class="bi bi-check2 ms-auto"></i>
+                            @endif
+                        </a>
+                    </li>
+                @endforeach
             </ul>
         </div>
     </div>
@@ -337,9 +437,9 @@
          style="background: rgba(255, 255, 255, 0.8); z-index: 9999; display: none !important;">
         <div class="text-center">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">{{ __('Loading...') }}</span>
+                <span class="visually-hidden">{{ __('app.loading') }}</span>
             </div>
-            <p class="mt-2">{{ __('Loading...') }}</p>
+            <p class="mt-2">{{ __('app.loading') }}</p>
         </div>
     </div>
 
@@ -355,12 +455,7 @@
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-        // Language Switcher
-        function changeLanguage(lang) {
-            axios.post('/language', { language: lang })
-                .then(() => window.location.reload())
-                .catch(error => console.error('Language change failed:', error));
-        }
+        // Language switching is now handled by direct links with MCamara
 
         // Loading Functions
         function showLoading() {
