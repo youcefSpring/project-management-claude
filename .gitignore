@@ -1,1 +1,3 @@
 /code/vendor
+/code/.env
+/code/node_modules
