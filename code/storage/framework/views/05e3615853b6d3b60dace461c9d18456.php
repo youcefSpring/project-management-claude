@@ -496,8 +496,8 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                                 <i class="bi bi-person-fill text-primary"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-white"><?php echo e(auth()->user()->name); ?></div>
-                                <small class="text-light opacity-75"><?php echo e(ucfirst(auth()->user()->role)); ?></small>
+                                <div class="fw-bold text-white"><?php echo e(auth()->user()?->name ?? 'Guest'); ?></div>
+                                <small class="text-light opacity-75"><?php echo e(auth()->user()?->role ? ucfirst(auth()->user()->role) : 'Visitor'); ?></small>
                             </div>
                         </div>
                     </div>
@@ -565,26 +565,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                     </li>
                     <?php endif; ?>
 
-                    <?php if (\Illuminate\Support\Facades\Blade::check('hasPermission', 'access.admin.dashboard')): ?>
-                    <hr class="my-3 text-light">
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->routeIs('admin.*') ? 'active' : ''); ?>"
-                           href="<?php echo e(route('admin.dashboard')); ?>">
-                            <i class="bi bi-gear"></i>
-                            <?php echo e(__('app.Administration')); ?>
-
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link <?php echo e(request()->is('translations*') ? 'active' : ''); ?>"
-                           href="/translations">
-                            <i class="bi bi-translate"></i>
-                            <?php echo e(__('app.Translations')); ?>
-
-                        </a>
-                    </li>
-                    <?php endif; ?>
+                    
 
                     <hr class="my-3 text-light">
 
@@ -656,8 +637,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                                 <i class="bi bi-bell"></i>
                                 <?php
                                     $notificationService = app(\App\Services\NotificationService::class);
-                                    $headerNotifications = $notificationService->getUserNotifications(auth()->user(), 5);
-                                    $unreadCount = $notificationService->getUnreadCount(auth()->user());
+                                    $user = auth()->user();
+                                    $headerNotifications = $user ? $notificationService->getUserNotifications($user, 5) : collect();
+                                    $unreadCount = $user ? $notificationService->getUnreadCount($user) : 0;
                                 ?>
                                 <?php if($unreadCount > 0): ?>
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">

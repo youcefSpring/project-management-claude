@@ -8,7 +8,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Task Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.tasks.task_information') }}</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('tasks.update', $task) }}">
@@ -112,7 +112,7 @@
                                 <label for="due_date" class="form-label">{{ __('Due Date') }}</label>
                                 <input type="date" class="form-control @error('due_date') is-invalid @enderror"
                                        id="due_date" name="due_date"
-                                       value="{{ old('due_date', $task->due_date?->format('Y-m-d')) }}">
+                                       value="{{ old('due_date', $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('Y-m-d') : '') }}">
                                 @error('due_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

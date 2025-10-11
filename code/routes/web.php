@@ -136,6 +136,9 @@ Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['lo
         Route::delete('/{task}', [TaskController::class, 'destroy'])
             ->middleware('permission:edit.task')
             ->name('destroy');
+        Route::post('/{task}/status', [TaskController::class, 'updateStatus'])
+            ->middleware('permission:edit.task')
+            ->name('update-status');
 
         // Task Notes
         Route::post('/{task}/notes', [TaskNoteController::class, 'store'])

@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', __('Timesheet')); ?>
-<?php $__env->startSection('page-title', __('Timesheet Management')); ?>
+<?php $__env->startSection('title', __('app.timesheet.title')); ?>
+<?php $__env->startSection('page-title', __('app.timesheet.management')); ?>
 
 <?php $__env->startSection('content'); ?>
 <!-- Statistics Section -->
@@ -8,10 +8,10 @@
         <div class="card shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-muted">
-                    <i class="bi bi-graph-up me-2"></i><?php echo e(__('Timesheet Statistics')); ?>
+                    <i class="bi bi-graph-up me-2"></i><?php echo e(__('app.timesheet.statistics')); ?>
 
                 </h6>
-                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('Toggle Statistics')); ?>">
+                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('app.timesheet.toggle_statistics')); ?>">
                     <i class="bi bi-chevron-up" id="toggleIcon"></i>
                 </button>
             </div>
@@ -26,7 +26,7 @@
                                     </div>
                                     <h4 class="card-title text-primary mb-0"><?php echo e($summary['total_hours'] ?? 0); ?>h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0"><?php echo e(__('Total Hours')); ?></p>
+                                <p class="card-text text-muted small mb-0"><?php echo e(__('app.timesheet.total_hours')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -39,7 +39,7 @@
                                     </div>
                                     <h4 class="card-title text-success mb-0"><?php echo e($summary['approved_hours'] ?? 0); ?>h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0"><?php echo e(__('Approved Hours')); ?></p>
+                                <p class="card-text text-muted small mb-0"><?php echo e(__('app.timesheet.approved_hours')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                                     </div>
                                     <h4 class="card-title text-warning mb-0"><?php echo e($summary['pending_hours'] ?? 0); ?>h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0"><?php echo e(__('Pending Hours')); ?></p>
+                                <p class="card-text text-muted small mb-0"><?php echo e(__('app.timesheet.pending_hours')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -65,7 +65,7 @@
                                     </div>
                                     <h4 class="card-title text-danger mb-0"><?php echo e($summary['rejected_hours'] ?? 0); ?>h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0"><?php echo e(__('Rejected Hours')); ?></p>
+                                <p class="card-text text-muted small mb-0"><?php echo e(__('app.timesheet.rejected_hours')); ?></p>
                             </div>
                         </div>
                     </div>
@@ -78,7 +78,7 @@
                             <i class="bi bi-calendar-week text-primary me-2"></i>
                             <div>
                                 <div class="fw-bold"><?php echo e($timeEntries->count()); ?></div>
-                                <small class="text-muted"><?php echo e(__('Total Entries')); ?></small>
+                                <small class="text-muted"><?php echo e(__('app.timesheet.total_entries')); ?></small>
                             </div>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                             <i class="bi bi-people text-info me-2"></i>
                             <div>
                                 <div class="fw-bold"><?php echo e($timeEntries->pluck('user_id')->unique()->count()); ?></div>
-                                <small class="text-muted"><?php echo e(__('Active Users')); ?></small>
+                                <small class="text-muted"><?php echo e(__('app.timesheet.active_users')); ?></small>
                             </div>
                         </div>
                     </div>
@@ -102,7 +102,7 @@
                                         0h
                                     <?php endif; ?>
                                 </div>
-                                <small class="text-muted"><?php echo e(__('Avg. per Entry')); ?></small>
+                                <small class="text-muted"><?php echo e(__('app.timesheet.avg_per_entry')); ?></small>
                             </div>
                         </div>
                     </div>
@@ -118,17 +118,17 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history me-2"></i>
-                    <?php echo e(__('Timesheet Entries')); ?>
+                    <?php echo e(__('app.timesheet.entries')); ?>
 
-                    <span class="badge bg-secondary ms-2"><?php echo e($timeEntries->count()); ?> <?php echo e(__('entries')); ?></span>
+                    <span class="badge bg-secondary ms-2"><?php echo e($timeEntries->count()); ?> <?php echo e(__('app.timesheet.entries_count')); ?></span>
                 </h5>
                 <div>
                     <a href="<?php echo e(route('timesheet.index', ['show_all' => 1])); ?>" class="btn btn-outline-info btn-sm me-2">
-                        <i class="bi bi-eye me-1"></i><?php echo e(__('Show All')); ?>
+                        <i class="bi bi-eye me-1"></i><?php echo e(__('app.timesheet.show_all')); ?>
 
                     </a>
                     <a href="<?php echo e(route('timesheet.create')); ?>" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i><?php echo e(__('Add Time Entry')); ?>
+                        <i class="bi bi-plus-circle me-1"></i><?php echo e(__('app.timesheet.add_entry')); ?>
 
                     </a>
                 </div>
@@ -137,11 +137,11 @@
                 <!-- Search and Filter Section -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <input type="text" class="form-control" id="search-input" placeholder="<?php echo e(__('Search...')); ?>">
+                        <input type="text" class="form-control" id="search-input" placeholder="<?php echo e(__('app.search')); ?>...">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" id="project-filter">
-                            <option value=""><?php echo e(__('All Projects')); ?></option>
+                            <option value=""><?php echo e(__('app.reports.all_projects')); ?></option>
                             <?php $__currentLoopData = $projects ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($project->id); ?>"><?php echo e($project->title); ?></option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
@@ -149,17 +149,17 @@
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" id="user-filter">
-                            <option value=""><?php echo e(__('All Users')); ?></option>
+                            <option value=""><?php echo e(__('app.reports.all_users')); ?></option>
                             <?php $__currentLoopData = $users ?? []; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($user->id); ?>"><?php echo e($user->name); ?></option>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-from" placeholder="<?php echo e(__('From Date')); ?>">
+                        <input type="date" class="form-control" id="date-from" placeholder="<?php echo e(__('app.reports.from')); ?>">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-to" placeholder="<?php echo e(__('To Date')); ?>">
+                        <input type="date" class="form-control" id="date-to" placeholder="<?php echo e(__('app.reports.to')); ?>">
                     </div>
                     <div class="col-md-1">
                         <button class="btn btn-outline-secondary" onclick="clearFilters()">
@@ -173,12 +173,12 @@
                     <table class="table table-striped table-hover" id="timesheet-table">
                         <thead class="table-dark">
                             <tr>
-                                <th><?php echo e(__('Date')); ?></th>
-                                <th><?php echo e(__('User')); ?></th>
-                                <th><?php echo e(__('Task')); ?></th>
-                                <th><?php echo e(__('Hours')); ?></th>
-                                <th><?php echo e(__('Status')); ?></th>
-                                <th><?php echo e(__('Actions')); ?></th>
+                                <th><?php echo e(__('app.date')); ?></th>
+                                <th><?php echo e(__('app.user_label')); ?></th>
+                                <th><?php echo e(__('app.tasks.title')); ?></th>
+                                <th><?php echo e(__('app.time.hours')); ?></th>
+                                <th><?php echo e(__('app.status')); ?></th>
+                                <th><?php echo e(__('app.actions')); ?></th>
                             </tr>
                         </thead>
                         <tbody id="timesheet-tbody">
@@ -237,7 +237,7 @@
                                                         <?php echo e($timeEntry->task->title); ?>
 
                                                     <?php else: ?>
-                                                        <?php echo e(__('General Task')); ?>
+                                                        <?php echo e(__('app.timesheet.general_task')); ?>
 
                                                     <?php endif; ?>
                                                 </span>
@@ -453,6 +453,28 @@
 </div>
 <?php $__env->stopSection(); ?>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?php echo e(__('app.confirm')); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"><?php echo e(__('app.timesheet.confirm_action')); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo e(__('app.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">
+                    <span id="confirmBtnText"><?php echo e(__('app.confirm')); ?></span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -551,46 +573,100 @@ function setupStatsToggle() {
     });
 }
 
+let currentTimesheetId = null;
+let currentAction = null;
+
 function changeStatus(timesheetId, status) {
-    if (confirm(`<?php echo e(__('Are you sure you want to change the status?')); ?>`)) {
-        axios.post(`/timesheet/${timesheetId}/status`, {
-            status: status,
-            _token: '<?php echo e(csrf_token()); ?>'
-        })
-        .then(response => {
-            if (response.data.success) {
-                location.reload();
-            } else {
-                alert('<?php echo e(__('Error updating status')); ?>');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('<?php echo e(__('Error updating status')); ?>');
-        });
-    }
+    currentTimesheetId = timesheetId;
+    currentAction = 'status';
+
+    document.getElementById('confirmMessage').textContent = '<?php echo e(__('app.timesheet.confirm_status_change')); ?>';
+    document.getElementById('confirmActionBtn').innerHTML = '<span id="confirmBtnText"><?php echo e(__('app.confirm')); ?></span><span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    modal.show();
 }
 
 function deleteEntry(timesheetId) {
-    if (confirm(`<?php echo e(__('Are you sure you want to delete this entry?')); ?>`)) {
-        axios.delete(`/timesheet/${timesheetId}`, {
-            headers: {
-                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
-            }
-        })
-        .then(response => {
+    currentTimesheetId = timesheetId;
+    currentAction = 'delete';
+
+    document.getElementById('confirmMessage').textContent = '<?php echo e(__('app.timesheet.confirm_delete_entry')); ?>';
+    document.getElementById('confirmActionBtn').innerHTML = '<span id="confirmBtnText"><?php echo e(__('app.delete')); ?></span><span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>';
+    document.getElementById('confirmActionBtn').className = 'btn btn-danger';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmActionBtn').addEventListener('click', function() {
+        if (!currentTimesheetId || !currentAction) return;
+
+        const btn = this;
+        const btnText = document.getElementById('confirmBtnText');
+        const spinner = document.getElementById('confirmSpinner');
+
+        // Show loading state
+        btn.disabled = true;
+        btnText.textContent = '<?php echo e(__('app.processing')); ?>';
+        spinner.classList.remove('d-none');
+
+        let request;
+        if (currentAction === 'status') {
+            request = axios.post(`/timesheet/${currentTimesheetId}/status`, {
+                status: 'approved',
+                _token: '<?php echo e(csrf_token()); ?>'
+            });
+        } else if (currentAction === 'delete') {
+            request = axios.delete(`/timesheet/${currentTimesheetId}`, {
+                headers: {
+                    'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
+                }
+            });
+        }
+
+        request.then(response => {
             if (response.data.success) {
-                location.reload();
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+
+                // Reload page
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
             } else {
-                alert('<?php echo e(__('Error deleting entry')); ?>');
+                throw new Error(response.data.message || '<?php echo e(__('app.timesheet.error_updating_status')); ?>');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('<?php echo e(__('Error deleting entry')); ?>');
+
+            // Show error in modal
+            document.getElementById('confirmMessage').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${error.response?.data?.message || (currentAction === 'delete' ? '<?php echo e(__('app.timesheet.error_deleting_entry')); ?>' : '<?php echo e(__('app.timesheet.error_updating_status')); ?>')}
+                </div>
+            `;
+        })
+        .finally(() => {
+            // Reset button state
+            btn.disabled = false;
+            btnText.textContent = currentAction === 'delete' ? '<?php echo e(__('app.delete')); ?>' : '<?php echo e(__('app.confirm')); ?>';
+            spinner.classList.add('d-none');
+
+            // Reset button color
+            if (currentAction === 'delete') {
+                btn.className = 'btn btn-danger';
+            } else {
+                btn.className = 'btn btn-primary';
+            }
         });
-    }
-}
+    });
+});
 </script>
 <?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/timesheet/index.blade.php ENDPATH**/ ?>

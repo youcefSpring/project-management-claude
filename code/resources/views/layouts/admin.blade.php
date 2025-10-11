@@ -234,11 +234,11 @@
                             <i class="bi bi-person-circle"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('admin.profile.edit') }}">
+                            <li><a class="dropdown-item" href="{{ route('profile.settings') }}">
                                 <i class="bi bi-person-gear me-2"></i>{{ __('app.settings') }}
                             </a></li>
                             <li><a class="dropdown-item" href="{{ route('home') }}">
-                                <i class="bi bi-eye me-2"></i>View Site
+                                <i class="bi bi-eye me-2"></i>{{ __('app.view_site') }}
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>

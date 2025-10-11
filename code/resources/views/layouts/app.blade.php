@@ -495,8 +495,8 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                                 <i class="bi bi-person-fill text-primary"></i>
                             </div>
                             <div>
-                                <div class="fw-bold text-white">{{ auth()->user()->name }}</div>
-                                <small class="text-light opacity-75">{{ ucfirst(auth()->user()->role) }}</small>
+                                <div class="fw-bold text-white">{{ auth()->user()?->name ?? 'Guest' }}</div>
+                                <small class="text-light opacity-75">{{ auth()->user()?->role ? ucfirst(auth()->user()->role) : 'Visitor' }}</small>
                             </div>
                         </div>
                     </div>
@@ -558,7 +558,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                     </li>
                     @endhasPermission
 
-                    @hasPermission('access.admin.dashboard')
+                    {{-- @hasPermission('access.admin.dashboard')
                     <hr class="my-3 text-light">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('admin.*') ? 'active' : '' }}"
@@ -575,7 +575,7 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                             {{ __('app.Translations') }}
                         </a>
                     </li>
-                    @endhasPermission
+                    @endhasPermission --}}
 
                     <hr class="my-3 text-light">
 
@@ -644,8 +644,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                                 <i class="bi bi-bell"></i>
                                 @php
                                     $notificationService = app(\App\Services\NotificationService::class);
-                                    $headerNotifications = $notificationService->getUserNotifications(auth()->user(), 5);
-                                    $unreadCount = $notificationService->getUnreadCount(auth()->user());
+                                    $user = auth()->user();
+                                    $headerNotifications = $user ? $notificationService->getUserNotifications($user, 5) : collect();
+                                    $unreadCount = $user ? $notificationService->getUnreadCount($user) : 0;
                                 @endphp
                                 @if($unreadCount > 0)
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">

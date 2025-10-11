@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', __('Tasks')); ?>
-<?php $__env->startSection('page-title', __('Tasks')); ?>
+<?php $__env->startSection('title', __('app.tasks.title')); ?>
+<?php $__env->startSection('page-title', __('app.tasks.title')); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="row">
@@ -7,14 +7,14 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-1"><?php echo e(__('Tasks')); ?></h2>
-                <p class="text-muted mb-0"><?php echo e(__('Manage and track your tasks')); ?></p>
+                <h2 class="mb-1"><?php echo e(__('app.tasks.title')); ?></h2>
+                <p class="text-muted mb-0"><?php echo e(__('app.tasks.manage_and_track')); ?></p>
             </div>
             <div>
                 <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                 <a href="<?php echo e(route('tasks.create')); ?>" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
-                    <?php echo e(__('New Task')); ?>
+                    <?php echo e(__('app.tasks.new_task')); ?>
 
                 </a>
                 <?php endif; ?>
@@ -28,32 +28,32 @@
             <div class="card-body">
                 <form method="GET" action="<?php echo e(route('tasks.index')); ?>" class="row g-3">
                     <div class="col-md-3">
-                        <label for="status" class="form-label"><?php echo e(__('Status')); ?></label>
+                        <label for="status" class="form-label"><?php echo e(__('app.status')); ?></label>
                         <select class="form-select" id="status" name="status">
-                            <option value=""><?php echo e(__('All Statuses')); ?></option>
+                            <option value=""><?php echo e(__('app.tasks.all_statuses')); ?></option>
                             <option value="pending" <?php echo e(request('status') === 'pending' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Pending')); ?>
+                                <?php echo e(__('app.tasks.pending')); ?>
 
                             </option>
                             <option value="in_progress" <?php echo e(request('status') === 'in_progress' ? 'selected' : ''); ?>>
-                                <?php echo e(__('In Progress')); ?>
+                                <?php echo e(__('app.tasks.in_progress')); ?>
 
                             </option>
                             <option value="completed" <?php echo e(request('status') === 'completed' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Completed')); ?>
+                                <?php echo e(__('app.tasks.completed')); ?>
 
                             </option>
                             <option value="cancelled" <?php echo e(request('status') === 'cancelled' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Cancelled')); ?>
+                                <?php echo e(__('app.tasks.cancelled')); ?>
 
                             </option>
                         </select>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="project_id" class="form-label"><?php echo e(__('Project')); ?></label>
+                        <label for="project_id" class="form-label"><?php echo e(__('app.tasks.project')); ?></label>
                         <select class="form-select" id="project_id" name="project_id">
-                            <option value=""><?php echo e(__('All Projects')); ?></option>
+                            <option value=""><?php echo e(__('app.reports.all_projects')); ?></option>
                             <?php $__currentLoopData = $projects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($project->id); ?>" <?php echo e(request('project_id') == $project->id ? 'selected' : ''); ?>>
                                     <?php echo e($project->title); ?>
@@ -65,11 +65,11 @@
 
                     <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                     <div class="col-md-3">
-                        <label for="assigned_to" class="form-label"><?php echo e(__('Assigned To')); ?></label>
+                        <label for="assigned_to" class="form-label"><?php echo e(__('app.tasks.assigned_to')); ?></label>
                         <select class="form-select" id="assigned_to" name="assigned_to">
-                            <option value=""><?php echo e(__('All Users')); ?></option>
+                            <option value=""><?php echo e(__('app.reports.all_users')); ?></option>
                             <option value="unassigned" <?php echo e(request('assigned_to') === 'unassigned' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Unassigned')); ?>
+                                <?php echo e(__('app.unassigned')); ?>
 
                             </option>
                             <?php $__currentLoopData = $users; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $user): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -83,20 +83,20 @@
                     <?php endif; ?>
 
                     <div class="col-md-3">
-                        <label for="search" class="form-label"><?php echo e(__('Search')); ?></label>
+                        <label for="search" class="form-label"><?php echo e(__('app.search')); ?></label>
                         <input type="text" class="form-control" id="search" name="search"
-                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('Search tasks...')); ?>">
+                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('app.tasks.search_placeholder')); ?>">
                     </div>
 
                     <div class="col-12">
                         <button type="submit" class="btn btn-outline-primary">
                             <i class="bi bi-search me-2"></i>
-                            <?php echo e(__('Filter')); ?>
+                            <?php echo e(__('app.filter')); ?>
 
                         </button>
                         <a href="<?php echo e(route('tasks.index')); ?>" class="btn btn-outline-secondary ms-2">
                             <i class="bi bi-x-circle me-2"></i>
-                            <?php echo e(__('Clear')); ?>
+                            <?php echo e(__('app.tasks.clear_filters')); ?>
 
                         </a>
                     </div>
@@ -110,7 +110,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <?php echo e(__('Tasks')); ?>
+                    <?php echo e(__('app.tasks.title')); ?>
 
                     <span class="badge bg-secondary ms-2"><?php echo e($tasks->count()); ?></span>
                 </h5>
@@ -121,14 +121,14 @@
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th><?php echo e(__('Task')); ?></th>
-                                    <th><?php echo e(__('Project')); ?></th>
-                                    <th><?php echo e(__('Assigned To')); ?></th>
-                                    <th><?php echo e(__('Status')); ?></th>
-                                    <th><?php echo e(__('Priority')); ?></th>
-                                    <th><?php echo e(__('Due Date')); ?></th>
-                                    <th><?php echo e(__('Created')); ?></th>
-                                    <th><?php echo e(__('Actions')); ?></th>
+                                    <th><?php echo e(__('app.tasks.task_name')); ?></th>
+                                    <th><?php echo e(__('app.tasks.project')); ?></th>
+                                    <th><?php echo e(__('app.tasks.assigned_to')); ?></th>
+                                    <th><?php echo e(__('app.status')); ?></th>
+                                    <th><?php echo e(__('app.tasks.priority')); ?></th>
+                                    <th><?php echo e(__('app.tasks.due_date')); ?></th>
+                                    <th><?php echo e(__('app.tasks.created')); ?></th>
+                                    <th><?php echo e(__('app.actions')); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -179,8 +179,14 @@
                                                 $color = $statusColors[$task->status] ?? 'secondary';
                                             ?>
                                             <span class="badge bg-<?php echo e($color); ?>">
-                                                <?php echo e(ucfirst(str_replace('_', ' ', $task->status))); ?>
+                                                <?php switch($task->status):
+                                                    case ('pending'): ?> <?php echo e(__('app.tasks.pending')); ?> <?php break; ?>
+                                                    <?php case ('in_progress'): ?> <?php echo e(__('app.tasks.in_progress')); ?> <?php break; ?>
+                                                    <?php case ('completed'): ?> <?php echo e(__('app.tasks.completed')); ?> <?php break; ?>
+                                                    <?php case ('cancelled'): ?> <?php echo e(__('app.tasks.cancelled')); ?> <?php break; ?>
+                                                    <?php default: ?> <?php echo e(ucfirst(str_replace('_', ' ', $task->status))); ?>
 
+                                                <?php endswitch; ?>
                                             </span>
                                         </td>
                                         <td>
@@ -194,8 +200,14 @@
                                                 $priorityColor = $priorityColors[$task->priority] ?? 'secondary';
                                             ?>
                                             <span class="badge bg-<?php echo e($priorityColor); ?>">
-                                                <?php echo e(ucfirst($task->priority)); ?>
+                                                <?php switch($task->priority):
+                                                    case ('low'): ?> <?php echo e(__('app.tasks.low')); ?> <?php break; ?>
+                                                    <?php case ('medium'): ?> <?php echo e(__('app.tasks.medium')); ?> <?php break; ?>
+                                                    <?php case ('high'): ?> <?php echo e(__('app.tasks.high')); ?> <?php break; ?>
+                                                    <?php case ('urgent'): ?> <?php echo e(__('app.tasks.urgent')); ?> <?php break; ?>
+                                                    <?php default: ?> <?php echo e(ucfirst($task->priority)); ?>
 
+                                                <?php endswitch; ?>
                                             </span>
                                         </td>
                                         <td>
@@ -206,15 +218,15 @@
                                                 <div>
                                                     <span class="fw-bold"><?php echo e($dueDate->format('M d, Y')); ?></span>
                                                     <?php if($dueDate->isPast() && $task->status !== 'completed'): ?>
-                                                        <br><span class="badge bg-danger"><?php echo e(__('Overdue')); ?></span>
+                                                        <br><span class="badge bg-danger"><?php echo e(__('app.tasks.overdue')); ?></span>
                                                     <?php elseif($dueDate->isToday()): ?>
-                                                        <br><span class="badge bg-warning"><?php echo e(__('Due Today')); ?></span>
+                                                        <br><span class="badge bg-warning"><?php echo e(__('app.tasks.due_today')); ?></span>
                                                     <?php elseif($dueDate->isTomorrow()): ?>
-                                                        <br><span class="badge bg-info"><?php echo e(__('Due Tomorrow')); ?></span>
+                                                        <br><span class="badge bg-info"><?php echo e(__('app.tasks.due_tomorrow')); ?></span>
                                                     <?php endif; ?>
                                                 </div>
                                             <?php else: ?>
-                                                <span class="text-muted"><?php echo e(__('No due date')); ?></span>
+                                                <span class="text-muted"><?php echo e(__('app.tasks.no_due_date')); ?></span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
@@ -234,14 +246,14 @@
                                                 <ul class="dropdown-menu">
                                                     <li>
                                                         <a class="dropdown-item" href="<?php echo e(route('tasks.show', $task)); ?>">
-                                                            <i class="bi bi-eye me-2"></i><?php echo e(__('View')); ?>
+                                                            <i class="bi bi-eye me-2"></i><?php echo e(__('app.tasks.view')); ?>
 
                                                         </a>
                                                     </li>
                                                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $task)): ?>
                                                         <li>
                                                             <a class="dropdown-item" href="<?php echo e(route('tasks.edit', $task)); ?>">
-                                                                <i class="bi bi-pencil me-2"></i><?php echo e(__('Edit')); ?>
+                                                                <i class="bi bi-pencil me-2"></i><?php echo e(__('app.edit')); ?>
 
                                                             </a>
                                                         </li>
@@ -251,7 +263,7 @@
                                                         <?php if($task->status === 'pending'): ?>
                                                             <li>
                                                                 <a class="dropdown-item" href="#" onclick="changeTaskStatus(<?php echo e($task->id); ?>, 'in_progress')">
-                                                                    <i class="bi bi-play-circle me-2 text-primary"></i><?php echo e(__('Start Task')); ?>
+                                                                    <i class="bi bi-play-circle me-2 text-primary"></i><?php echo e(__('app.tasks.start_task')); ?>
 
                                                                 </a>
                                                             </li>
@@ -259,7 +271,7 @@
                                                         <?php if($task->status === 'in_progress'): ?>
                                                             <li>
                                                                 <a class="dropdown-item" href="#" onclick="changeTaskStatus(<?php echo e($task->id); ?>, 'completed')">
-                                                                    <i class="bi bi-check-circle me-2 text-success"></i><?php echo e(__('Mark Complete')); ?>
+                                                                    <i class="bi bi-check-circle me-2 text-success"></i><?php echo e(__('app.tasks.mark_complete')); ?>
 
                                                                 </a>
                                                             </li>
@@ -302,27 +314,98 @@
 </div>
 <?php $__env->stopSection(); ?>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?php echo e(__('app.tasks.confirm_status_change')); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"><?php echo e(__('app.tasks.confirm_status_change_message')); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo e(__('app.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="confirmStatusBtn">
+                    <span id="confirmBtnText"><?php echo e(__('app.confirm')); ?></span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php $__env->startPush('scripts'); ?>
 <script>
+let currentTaskId = null;
+let currentStatus = null;
+
 function changeTaskStatus(taskId, status) {
-    if (confirm(`<?php echo e(__('Are you sure you want to change the task status?')); ?>`)) {
-        axios.post(`/tasks/${taskId}/status`, {
-            status: status,
-            _token: '<?php echo e(csrf_token()); ?>'
-        })
-        .then(response => {
-            if (response.data.success) {
-                location.reload();
-            } else {
-                alert('<?php echo e(__('Error updating task status')); ?>');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('<?php echo e(__('Error updating task status')); ?>');
-        });
-    }
+    currentTaskId = taskId;
+    currentStatus = status;
+
+    // Update modal content based on status
+    const statusMessages = {
+        'in_progress': '<?php echo e(__('app.tasks.confirm_start_task')); ?>',
+        'completed': '<?php echo e(__('app.tasks.confirm_complete_task')); ?>',
+        'cancelled': '<?php echo e(__('app.tasks.confirm_cancel_task')); ?>'
+    };
+
+    document.getElementById('confirmMessage').textContent = statusMessages[status] || '<?php echo e(__('app.tasks.confirm_status_change_message')); ?>';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmStatusModal'));
+    modal.show();
 }
+
+document.getElementById('confirmStatusBtn').addEventListener('click', function() {
+    if (!currentTaskId || !currentStatus) return;
+
+    const btn = this;
+    const btnText = document.getElementById('confirmBtnText');
+    const spinner = document.getElementById('confirmSpinner');
+
+    // Show loading state
+    btn.disabled = true;
+    btnText.textContent = '<?php echo e(__('app.processing')); ?>';
+    spinner.classList.remove('d-none');
+
+    axios.post(`/tasks/${currentTaskId}/status`, {
+        status: currentStatus,
+        _token: '<?php echo e(csrf_token()); ?>'
+    })
+    .then(response => {
+        if (response.data.success) {
+            // Hide modal
+            bootstrap.Modal.getInstance(document.getElementById('confirmStatusModal')).hide();
+
+            // Show success message and reload
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        } else {
+            throw new Error(response.data.message || '<?php echo e(__('app.tasks.error_updating_status')); ?>');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+
+        // Show error in modal
+        document.getElementById('confirmMessage').innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${error.response?.data?.message || '<?php echo e(__('app.tasks.error_updating_status')); ?>'}
+            </div>
+        `;
+    })
+    .finally(() => {
+        // Reset button state
+        btn.disabled = false;
+        btnText.textContent = '<?php echo e(__('app.confirm')); ?>';
+        spinner.classList.add('d-none');
+    });
+});
 </script>
 <?php $__env->stopPush(); ?>
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/tasks/index.blade.php ENDPATH**/ ?>

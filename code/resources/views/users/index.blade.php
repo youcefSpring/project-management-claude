@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('Users'))
-@section('page-title', __('User Management'))
+@section('title', __('app.users.title'))
+@section('page-title', __('app.User Management'))
 
 @section('content')
 <div class="row">
@@ -9,14 +9,14 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-1">{{ __('Users') }}</h2>
-                <p class="text-muted mb-0">{{ __('Manage users and their roles') }}</p>
+                <h2 class="mb-1">{{ __('app.users.title') }}</h2>
+                <p class="text-muted mb-0">{{ __('app.users.manage_and_track') }}</p>
             </div>
             <div>
                 @can('create', App\Models\User::class)
                 <a href="{{ route('users.create') }}" class="btn btn-primary">
                     <i class="bi bi-person-plus me-2"></i>
-                    {{ __('Add New User') }}
+                    {{ __('app.users.create') }}
                 </a>
                 @endcan
             </div>
@@ -29,9 +29,9 @@
             <div class="card-body">
                 <form method="GET" action="{{ route('users.index') }}" class="row g-3">
                     <div class="col-md-4">
-                        <label for="role" class="form-label">{{ __('Role') }}</label>
+                        <label for="role" class="form-label">{{ __('app.users.role') }}</label>
                         <select class="form-select" id="role" name="role">
-                            <option value="">{{ __('All Roles') }}</option>
+                            <option value="">{{ __('app.users.all_roles') }}</option>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ request('role') === $role ? 'selected' : '' }}>
                                     {{ $roleLabels[$role] }}
@@ -41,19 +41,19 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label for="search" class="form-label">{{ __('Search') }}</label>
+                        <label for="search" class="form-label">{{ __('app.search') }}</label>
                         <input type="text" class="form-control" id="search" name="search"
-                               value="{{ request('search') }}" placeholder="{{ __('Search users...') }}">
+                               value="{{ request('search') }}" placeholder="{{ __('app.users.search_placeholder') }}">
                     </div>
 
                     <div class="col-md-4 d-flex align-items-end">
                         <button type="submit" class="btn btn-outline-primary me-2">
                             <i class="bi bi-search me-2"></i>
-                            {{ __('Filter') }}
+                            {{ __('app.filter') }}
                         </button>
                         <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle me-2"></i>
-                            {{ __('Clear') }}
+                            {{ __('app.clear_filters') }}
                         </a>
                     </div>
                 </form>
@@ -66,7 +66,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    {{ __('Users') }}
+                    {{ __('app.users.title') }}
                     <span class="badge bg-secondary ms-2">{{ $users->total() }}</span>
                 </h5>
             </div>
@@ -76,13 +76,13 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th>{{ __('User') }}</th>
-                                    <th>{{ __('Role') }}</th>
-                                    <th>{{ __('Email') }}</th>
-                                    <th>{{ __('Projects') }}</th>
-                                    <th>{{ __('Tasks') }}</th>
-                                    <th>{{ __('Joined') }}</th>
-                                    <th width="200">{{ __('Actions') }}</th>
+                                    <th>{{ __('app.user_label') }}</th>
+                                    <th>{{ __('app.users.role') }}</th>
+                                    <th>{{ __('app.email') }}</th>
+                                    <th>{{ __('app.Projects') }}</th>
+                                    <th>{{ __('app.Tasks') }}</th>
+                                    <th>{{ __('app.users.joined') }}</th>
+                                    <th width="200">{{ __('app.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -96,7 +96,7 @@
                                                 <div>
                                                     <h6 class="mb-0">{{ $user->name }}</h6>
                                                     @if($user->isAdmin())
-                                                        <small class="text-primary">{{ __('Administrator') }}</small>
+                                                        <small class="text-primary">{{ __('app.users.admin') }}</small>
                                                     @endif
                                                 </div>
                                             </div>
@@ -174,19 +174,19 @@
                 @else
                     <div class="text-center py-5">
                         <i class="bi bi-people fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ __('No users found') }}</h5>
+                        <h5 class="text-muted">{{ __('app.users.no_users') }}</h5>
                         <p class="text-muted">
                             @if(request()->hasAny(['role', 'search']))
-                                {{ __('Try adjusting your filters or') }}
-                                <a href="{{ route('users.index') }}">{{ __('clear all filters') }}</a>
+                                {{ __('app.try_adjusting_filters') }}
+                                <a href="{{ route('users.index') }}">{{ __('app.clear_filters') }}</a>
                             @else
-                                {{ __('Get started by adding your first user.') }}
+                                {{ __('app.users.get_started_message') }}
                             @endif
                         </p>
                         @can('create', App\Models\User::class)
                             <a href="{{ route('users.create') }}" class="btn btn-primary">
                                 <i class="bi bi-person-plus me-2"></i>
-                                {{ __('Add First User') }}
+                                {{ __('app.users.add_first') }}
                             </a>
                         @endcan
                     </div>
@@ -201,24 +201,46 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ __('Delete User') }}</h5>
+                <h5 class="modal-title">{{ __('app.users.delete') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>{{ __('Are you sure you want to delete this user?') }}</p>
+                <p>{{ __('app.messages.confirm_delete') }}</p>
                 <p class="text-danger">
-                    <strong>{{ __('Warning:') }}</strong>
-                    {{ __('This action cannot be undone.') }}
+                    <strong>{{ __('app.warning') }}</strong>
+                    {{ __('app.messages.action_cannot_be_undone') }}
                 </p>
-                <p><strong>{{ __('User:') }}</strong> <span id="deleteUserName"></span></p>
+                <p><strong>{{ __('app.user_label') }}:</strong> <span id="deleteUserName"></span></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger">{{ __('Delete User') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ __('app.users.delete') }}</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Confirmation Modal -->
+<div class="modal fade" id="roleConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ __('app.users.confirm_role_change') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="roleConfirmMessage">{{ __('app.users.confirm_role_change') }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="confirmRoleBtn">
+                    <span class="btn-text">{{ __('app.confirm') }}</span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -240,32 +262,76 @@
 </style>
 
 <script>
+let currentUserId = null;
+let currentNewRole = null;
+
 function updateUserRole(userId, newRole) {
-    if (confirm('{{ __("Are you sure you want to change this user\'s role?") }}')) {
-        fetch(`/users/${userId}/role`, {
+    currentUserId = userId;
+    currentNewRole = newRole;
+
+    document.getElementById('roleConfirmMessage').textContent = '{{ __("app.users.confirm_role_change") }}';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('roleConfirmModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmRoleBtn').addEventListener('click', function() {
+        if (!currentUserId || !currentNewRole) return;
+
+        const btn = this;
+        const btnText = btn.querySelector('.btn-text');
+        const spinner = btn.querySelector('.spinner-border');
+
+        // Show loading state
+        btn.disabled = true;
+        btnText.textContent = '{{ __('app.processing') }}';
+        spinner.classList.remove('d-none');
+
+        fetch(`/users/${currentUserId}/role`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
-                role: newRole
+                role: currentNewRole
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById('roleConfirmModal')).hide();
+
+                // Reload page
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
             } else {
-                alert(data.message || '{{ __("Error updating user role") }}');
+                throw new Error(data.message || '{{ __("app.users.error_updating_role") }}');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('{{ __("Error updating user role") }}');
+
+            // Show error in modal
+            document.getElementById('roleConfirmMessage').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${error.message || '{{ __("app.users.error_updating_role") }}'}
+                </div>
+            `;
+        })
+        .finally(() => {
+            // Reset button state
+            btn.disabled = false;
+            btnText.textContent = '{{ __('app.confirm') }}';
+            spinner.classList.add('d-none');
         });
-    }
-}
+    });
+});
 
 function deleteUser(userId, userName) {
     document.getElementById('deleteUserName').textContent = userName;

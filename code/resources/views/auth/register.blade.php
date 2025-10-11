@@ -3,8 +3,8 @@
 @section('title', __('Register'))
 
 @section('content')
-<h2>{{ __('Create Account') }}</h2>
-<p class="subtitle">{{ __('Join us to start managing your projects efficiently') }}</p>
+<h2>{{ __('app.create_account') }}</h2>
+<p class="subtitle">{{ __('app.join_us_to_start_managing') }}</p>
 
 @include('partials.alerts')
 
@@ -13,7 +13,7 @@
 
     <!-- Name Field -->
     <div class="mb-3">
-        <label for="name" class="form-label">{{ __('Full Name') }}</label>
+        <label for="name" class="form-label">{{ __('app.full_name') }}</label>
         <div class="input-group">
             <span class="input-group-text">
                 <i class="bi bi-person"></i>
@@ -25,7 +25,7 @@
                    value="{{ old('name') }}"
                    required
                    autofocus
-                   placeholder="{{ __('Enter your full name') }}">
+                   placeholder="{{ __('app.enter_your_full_name') }}">
         </div>
         @error('name')
             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -34,7 +34,7 @@
 
     <!-- Email Field -->
     <div class="mb-3">
-        <label for="email" class="form-label">{{ __('Email Address') }}</label>
+        <label for="email" class="form-label">{{ __('app.email_address') }}</label>
         <div class="input-group">
             <span class="input-group-text">
                 <i class="bi bi-envelope"></i>
@@ -45,7 +45,7 @@
                    name="email"
                    value="{{ old('email') }}"
                    required
-                   placeholder="{{ __('Enter your email address') }}">
+                   placeholder="{{ __('app.enter_your_email_address') }}">
         </div>
         @error('email')
             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -64,13 +64,13 @@
                    id="password"
                    name="password"
                    required
-                   placeholder="{{ __('Create a password') }}">
+                   placeholder="{{ __('app.create_password') }}">
             <button type="button" class="btn btn-outline-secondary" id="toggle-password">
                 <i class="bi bi-eye"></i>
             </button>
         </div>
         <div class="form-text">
-            {{ __('Password must be at least 8 characters long') }}
+            {{ __('app.password_must_be_at_least') }}
         </div>
         @error('password')
             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -89,7 +89,7 @@
                    id="password_confirmation"
                    name="password_confirmation"
                    required
-                   placeholder="{{ __('Confirm your password') }}">
+                   placeholder="{{ __('app.confirm_your_password') }}">
             <button type="button" class="btn btn-outline-secondary" id="toggle-password-confirm">
                 <i class="bi bi-eye"></i>
             </button>
@@ -101,7 +101,7 @@
 
     <!-- Language Preference -->
     <div class="mb-3">
-        <label for="language" class="form-label">{{ __('Preferred Language') }}</label>
+        <label for="language" class="form-label">{{ __('app.preferred_language') }}</label>
         <div class="input-group">
             <span class="input-group-text">
                 <i class="bi bi-globe"></i>
@@ -127,10 +127,10 @@
                    required
                    {{ old('terms') ? 'checked' : '' }}>
             <label class="form-check-label" for="terms">
-                {{ __('I agree to the') }}
-                <a href="#" class="btn-link">{{ __('Terms of Service') }}</a>
-                {{ __('and') }}
-                <a href="#" class="btn-link">{{ __('Privacy Policy') }}</a>
+                {{ __('app.i_agree_to_the') }}
+                <a href="#" class="btn-link">{{ __('app.terms_of_service') }}</a>
+                {{ __('app.and') }}
+                <a href="#" class="btn-link">{{ __('app.privacy_policy') }}</a>
             </label>
         </div>
         @error('terms')
@@ -141,7 +141,7 @@
     <!-- Submit Button -->
     <div class="d-grid mb-3">
         <button type="submit" class="btn btn-primary" id="register-btn">
-            <span class="register-text">{{ __('Create Account') }}</span>
+            <span class="register-text">{{ __('app.create_account') }}</span>
             <span class="register-spinner spinner-border spinner-border-sm d-none" role="status">
                 <span class="visually-hidden">{{ __('Loading...') }}</span>
             </span>

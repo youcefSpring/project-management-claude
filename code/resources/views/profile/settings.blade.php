@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('Profile Settings'))
-@section('page-title', __('Profile Settings'))
+@section('title', __('app.profile.settings'))
+@section('page-title', __('app.profile.settings'))
 
 @section('content')
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Update Profile Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.profile.update_information') }}</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('profile.update') }}">
@@ -16,7 +16,7 @@
                     @method('PATCH')
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">{{ __('Name') }}</label>
+                        <label for="name" class="form-label">{{ __('app.name') }}</label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror"
                                id="name" name="name" value="{{ old('name', auth()->user()->name) }}" required>
                         @error('name')
@@ -25,7 +25,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="email" class="form-label">{{ __('Email') }}</label>
+                        <label for="email" class="form-label">{{ __('app.email') }}</label>
                         <input type="email" class="form-control @error('email') is-invalid @enderror"
                                id="email" name="email" value="{{ old('email', auth()->user()->email) }}" required>
                         @error('email')
@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="language" class="form-label">{{ __('Language') }}</label>
+                        <label for="language" class="form-label">{{ __('app.profile.language') }}</label>
                         <select class="form-select @error('language') is-invalid @enderror" id="language" name="language">
                             <option value="en" {{ auth()->user()->language === 'en' ? 'selected' : '' }}>English</option>
                             <option value="fr" {{ auth()->user()->language === 'fr' ? 'selected' : '' }}>Français</option>
@@ -47,10 +47,10 @@
 
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('profile.index') }}" class="btn btn-secondary">
-                            {{ __('Cancel') }}
+                            {{ __('app.cancel') }}
                         </a>
                         <button type="submit" class="btn btn-primary">
-                            {{ __('Update Profile') }}
+                            {{ __('app.profile.update') }}
                         </button>
                     </div>
                 </form>
@@ -61,7 +61,7 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Change Password') }}</h5>
+                <h5 class="mb-0">{{ __('app.profile.change_password') }}</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('profile.password.update') }}">
@@ -69,7 +69,7 @@
                     @method('PUT')
 
                     <div class="mb-3">
-                        <label for="current_password" class="form-label">{{ __('Current Password') }}</label>
+                        <label for="current_password" class="form-label">{{ __('app.profile.current_password') }}</label>
                         <input type="password" class="form-control @error('current_password') is-invalid @enderror"
                                id="current_password" name="current_password" required>
                         @error('current_password')
@@ -78,7 +78,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">{{ __('New Password') }}</label>
+                        <label for="password" class="form-label">{{ __('app.profile.new_password') }}</label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
                                id="password" name="password" required>
                         @error('password')
@@ -87,13 +87,13 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">{{ __('Confirm Password') }}</label>
+                        <label for="password_confirmation" class="form-label">{{ __('app.confirm_password') }}</label>
                         <input type="password" class="form-control"
                                id="password_confirmation" name="password_confirmation" required>
                     </div>
 
                     <button type="submit" class="btn btn-warning w-100">
-                        {{ __('Change Password') }}
+                        {{ __('app.profile.change_password') }}
                     </button>
                 </form>
             </div>

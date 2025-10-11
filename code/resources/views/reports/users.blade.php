@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('Users Report'))
-@section('page-title', __('Users Report'))
+@section('title', __('app.reports.user_activity'))
+@section('page-title', __('app.reports.user_activity'))
 
 @section('content')
 <div class="row">
@@ -10,16 +10,16 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-people me-2"></i>
-                    {{ __('Users Report') }}
+                    {{ __('app.reports.user_activity') }}
                 </h5>
             </div>
             <div class="card-body">
                 <!-- Filters -->
                 <form method="GET" action="{{ route('reports.users') }}" class="row mb-4">
                     <div class="col-md-3">
-                        <label for="project_id" class="form-label">{{ __('Project') }}</label>
+                        <label for="project_id" class="form-label">{{ __('app.projects.title') }}</label>
                         <select class="form-select" id="project_id" name="project_id">
-                            <option value="">{{ __('All Projects') }}</option>
+                            <option value="">{{ __('app.reports.all_projects') }}</option>
                             @if(isset($data['projects']))
                                 @foreach($data['projects'] as $project)
                                     <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>
@@ -30,19 +30,19 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label for="start_date" class="form-label">{{ __('Start Date') }}</label>
+                        <label for="start_date" class="form-label">{{ __('app.projects.start_date') }}</label>
                         <input type="date" class="form-control" id="start_date" name="start_date" value="{{ request('start_date') }}">
                     </div>
                     <div class="col-md-3">
-                        <label for="end_date" class="form-label">{{ __('End Date') }}</label>
+                        <label for="end_date" class="form-label">{{ __('app.projects.end_date') }}</label>
                         <input type="date" class="form-control" id="end_date" name="end_date" value="{{ request('end_date') }}">
                     </div>
                     <div class="col-md-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">
-                            <i class="bi bi-search me-1"></i>{{ __('Filter') }}
+                            <i class="bi bi-search me-1"></i>{{ __('app.filter') }}
                         </button>
                         <a href="{{ route('reports.users') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-1"></i>{{ __('Clear') }}
+                            <i class="bi bi-x-circle me-1"></i>{{ __('app.cancel') }}
                         </a>
                     </div>
                 </form>
@@ -53,12 +53,12 @@
                         <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>{{ __('User') }}</th>
-                                    <th>{{ __('Role') }}</th>
-                                    <th>{{ __('Total Tasks') }}</th>
-                                    <th>{{ __('Completed Tasks') }}</th>
+                                    <th>{{ __('app.users.title') }}</th>
+                                    <th>{{ __('app.users.role') }}</th>
+                                    <th>{{ __('app.tasks.title') }}</th>
+                                    <th>{{ __('app.dashboard.completed_tasks') }}</th>
                                     <th>{{ __('Completion Rate') }}</th>
-                                    <th>{{ __('Total Hours') }}</th>
+                                    <th>{{ __('app.time.total_time') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,7 +104,7 @@
                 @else
                     <div class="text-center py-5">
                         <i class="bi bi-people fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ __('No user data found') }}</h5>
+                        <h5 class="text-muted">{{ __('app.users.no_users') }}</h5>
                         <p class="text-muted">{{ __('Try adjusting your filters to see user reports.') }}</p>
                     </div>
                 @endif

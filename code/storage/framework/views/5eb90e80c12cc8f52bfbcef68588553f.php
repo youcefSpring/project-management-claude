@@ -185,7 +185,7 @@
                         <i class="bi bi-check2-square fs-2"></i>
                         <p class="mt-2"><?php echo e(__('app.tasks.no_tasks')); ?></p>
                         <a href="<?php echo e(route('tasks.index')); ?>" class="btn btn-outline-primary">
-                            <?php echo e(__('Browse Available Tasks')); ?>
+                            <?php echo e(__('app.tasks.browse_available')); ?>
 
                         </a>
                     </div>
@@ -201,7 +201,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-lightning me-2"></i>
-                    <?php echo e(__('Quick Actions')); ?>
+                    <?php echo e(__('app.dashboard.quick_actions')); ?>
 
                 </h5>
             </div>

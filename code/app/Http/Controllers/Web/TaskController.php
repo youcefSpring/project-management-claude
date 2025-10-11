@@ -143,4 +143,31 @@ class TaskController extends Controller
         return redirect()->route('tasks.index')
             ->with('success', __('Task deleted successfully.'));
     }
+
+    public function updateStatus(Request $request, Task $task)
+    {
+        $this->authorize('update', $task);
+
+        $request->validate([
+            'status' => 'required|in:pending,in_progress,completed,cancelled',
+        ]);
+
+        $task->update([
+            'status' => $request->status,
+            'updated_at' => now(),
+        ]);
+
+        // Log the status change
+        $task->notes()->create([
+            'content' => 'Status changed to ' . $request->status,
+            'user_id' => auth()->id(),
+            'is_internal' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('app.tasks.status_updated_successfully'),
+            'status' => $task->status,
+        ]);
+    }
 }

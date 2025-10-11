@@ -14,7 +14,14 @@
                         <div class="d-flex align-items-center mb-3">
                             <h1 class="mb-0 me-3">{{ $project->title }}</h1>
                             <span class="badge status-{{ $project->status }} status-badge">
-                                {{ ucfirst($project->status) }}
+                                @switch($project->status)
+                                    @case('planning') {{ __('app.projects.planning') }} @break
+                                    @case('active') {{ __('app.projects.active') }} @break
+                                    @case('on_hold') {{ __('app.projects.on_hold') }} @break
+                                    @case('completed') {{ __('app.projects.completed') }} @break
+                                    @case('cancelled') {{ __('app.projects.cancelled') }} @break
+                                    @default {{ ucfirst($project->status) }}
+                                @endswitch
                             </span>
                         </div>
                         <p class="text-muted mb-3">{{ $project->description }}</p>
@@ -22,19 +29,19 @@
                         <div class="row">
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-person-fill me-2 text-primary"></i>
-                                <strong>{{ __('Manager') }}:</strong> {{ $project->manager->name }}
+                                <strong>{{ __('app.projects.manager') }}:</strong> {{ $project->manager->name }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar me-2 text-primary"></i>
-                                <strong>{{ __('Start Date') }}:</strong> {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : 'N/A' }}
+                                <strong>{{ __('app.projects.start_date') }}:</strong> {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : __('app.not_available') }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-calendar-check me-2 text-primary"></i>
-                                <strong>{{ __('End Date') }}:</strong> {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('M d, Y') : 'N/A' }}
+                                <strong>{{ __('app.projects.end_date') }}:</strong> {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('M d, Y') : __('app.not_available') }}
                             </div>
                             <div class="col-md-6 mb-2">
                                 <i class="bi bi-clock me-2 text-primary"></i>
-                                <strong>{{ __('Total Hours') }}:</strong> {{ $stats['total_hours'] }}h
+                                <strong>{{ __('app.projects.total_hours') }}:</strong> {{ $stats['total_hours'] }}h
                             </div>
                         </div>
                     </div>
@@ -45,18 +52,18 @@
                             <canvas id="progressChart" width="150" height="150"></canvas>
                             <div class="position-absolute top-50 start-50 translate-middle text-center">
                                 <h3 class="mb-0">{{ $stats['progress_percentage'] }}%</h3>
-                                <small class="text-muted">{{ __('Complete') }}</small>
+                                <small class="text-muted">{{ __('app.projects.complete') }}</small>
                             </div>
                         </div>
 
                         <div class="row text-center">
                             <div class="col-6">
                                 <div class="fw-bold text-primary fs-4">{{ $stats['total_tasks'] }}</div>
-                                <small class="text-muted">{{ __('Total Tasks') }}</small>
+                                <small class="text-muted">{{ __('app.projects.total_tasks') }}</small>
                             </div>
                             <div class="col-6">
                                 <div class="fw-bold text-success fs-4">{{ $stats['completed_tasks'] }}</div>
-                                <small class="text-muted">{{ __('Completed') }}</small>
+                                <small class="text-muted">{{ __('app.projects.completed_tasks') }}</small>
                             </div>
                         </div>
                     </div>
@@ -65,13 +72,13 @@
                 @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                 <div class="mt-3 pt-3 border-top">
                     <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary me-2">
-                        <i class="bi bi-pencil me-2"></i>{{ __('Edit Project') }}
+                        <i class="bi bi-pencil me-2"></i>{{ __('app.projects.edit_project') }}
                     </a>
                     <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-outline-success me-2">
-                        <i class="bi bi-plus-circle me-2"></i>{{ __('Add Task') }}
+                        <i class="bi bi-plus-circle me-2"></i>{{ __('app.projects.add_task') }}
                     </a>
                     <button class="btn btn-outline-warning" onclick="changeProjectStatus()">
-                        <i class="bi bi-arrow-repeat me-2"></i>{{ __('Change Status') }}
+                        <i class="bi bi-arrow-repeat me-2"></i>{{ __('app.projects.change_status') }}
                     </button>
                 </div>
                 @endif
@@ -85,7 +92,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-check2-square me-2"></i>
-                    {{ __('Project Tasks') }}
+                    {{ __('app.projects.project_tasks') }}
                 </h5>
                 <div>
                     <button class="btn btn-sm btn-outline-secondary me-2" onclick="refreshTasks()">
@@ -93,7 +100,7 @@
                     </button>
                     @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                     <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>{{ __('Add Task') }}
+                        <i class="bi bi-plus-circle me-1"></i>{{ __('app.projects.add_task') }}
                     </a>
                     @endif
                 </div>
@@ -103,15 +110,15 @@
                 <form method="GET" action="{{ route('projects.show', $project) }}" class="row mb-3">
                     <div class="col-md-4">
                         <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
-                            <option value="">{{ __('All Tasks') }}</option>
-                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>{{ __('Pending') }}</option>
-                            <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>{{ __('In Progress') }}</option>
-                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>{{ __('Completed') }}</option>
+                            <option value="">{{ __('app.projects.all_tasks') }}</option>
+                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>{{ __('app.tasks.pending') }}</option>
+                            <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>{{ __('app.tasks.in_progress') }}</option>
+                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>{{ __('app.tasks.completed') }}</option>
                         </select>
                     </div>
                     <div class="col-md-6">
                         <input type="text" class="form-control form-control-sm" name="search"
-                               value="{{ request('search') }}" placeholder="{{ __('Search tasks...') }}">
+                               value="{{ request('search') }}" placeholder="{{ __('app.projects.search_tasks') }}">
                     </div>
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-outline-primary btn-sm w-100">
@@ -134,7 +141,13 @@
                                             <p class="text-muted small mb-2">{{ $task->description ?: '' }}</p>
                                             <div class="d-flex align-items-center flex-wrap gap-2">
                                                 <span class="badge status-{{ $task->status }} status-badge">
-                                                    {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                                    @switch($task->status)
+                                                        @case('pending') {{ __('app.tasks.pending') }} @break
+                                                        @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                                                        @case('completed') {{ __('app.tasks.completed') }} @break
+                                                        @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                                                        @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                                    @endswitch
                                                 </span>
                                                 @if($task->assignedUser)
                                                     <span class="badge bg-light text-dark">
@@ -154,11 +167,11 @@
                                             </button>
                                             <ul class="dropdown-menu">
                                                 <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
-                                                    <i class="bi bi-eye me-2"></i>{{ __('View') }}
+                                                    <i class="bi bi-eye me-2"></i>{{ __('app.view') }}
                                                 </a></li>
                                                 @can('update', $task)
                                                 <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
-                                                    <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
+                                                    <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
                                                 </a></li>
                                                 @endcan
                                             </ul>
@@ -170,7 +183,7 @@
                     @else
                         <div class="text-center text-muted py-4">
                             <i class="bi bi-check2-square fs-2"></i>
-                            <p class="mt-2">{{ __('No tasks found') }}</p>
+                            <p class="mt-2">{{ __('app.projects.no_tasks_found') }}</p>
                         </div>
                     @endif
                 </div>
@@ -185,7 +198,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-people me-2"></i>
-                    {{ __('Team Members') }}
+                    {{ __('app.projects.team_members') }}
                 </h5>
             </div>
             <div class="card-body">
@@ -197,7 +210,7 @@
                         </div>
                         <div>
                             <div class="fw-bold">{{ $project->manager->name }}</div>
-                            <small class="text-muted">{{ __('Project Manager') }}</small>
+                            <small class="text-muted">{{ __('app.projects.project_manager') }}</small>
                         </div>
                     </div>
                     @foreach($allTasks->where('assigned_to', '!=', null)->unique('assigned_to') as $task)
@@ -207,8 +220,8 @@
                             <i class="bi bi-person-fill"></i>
                         </div>
                         <div>
-                            <div class="fw-bold">{{ $task->assignedUser->name ?? __('Unassigned') }}</div>
-                            <small class="text-muted">{{ __('Team Member') }}</small>
+                            <div class="fw-bold">{{ $task->assignedUser->name ?? __('app.unassigned') }}</div>
+                            <small class="text-muted">{{ __('app.projects.team_member') }}</small>
                         </div>
                     </div>
                     @endforeach
@@ -221,7 +234,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-activity me-2"></i>
-                    {{ __('Recent Activity') }}
+                    {{ __('app.projects.recent_activity') }}
                 </h5>
             </div>
             <div class="card-body">
@@ -281,7 +294,7 @@ function loadProjectActivity() {
             <div class="spinner-border spinner-border-sm text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <span class="ms-2 text-muted small">{{ __('Loading activity...') }}</span>
+            <span class="ms-2 text-muted small">{{ __('app.projects.loading_activity') }}</span>
         </div>
     `;
 
@@ -295,8 +308,8 @@ function loadProjectActivity() {
                         <i class="bi bi-check" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>{{ __('Task completed') }}</div>
-                        <small class="text-muted">{{ __('2 hours ago') }}</small>
+                        <div>{{ __('app.projects.task_completed') }}</div>
+                        <small class="text-muted">{{ __('app.projects.hours_ago', ['hours' => 2]) }}</small>
                     </div>
                 </div>
                 <div class="d-flex mb-3">
@@ -305,8 +318,8 @@ function loadProjectActivity() {
                         <i class="bi bi-plus" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>{{ __('New task added') }}</div>
-                        <small class="text-muted">{{ __('5 hours ago') }}</small>
+                        <div>{{ __('app.projects.new_task_added') }}</div>
+                        <small class="text-muted">{{ __('app.projects.hours_ago', ['hours' => 5]) }}</small>
                     </div>
                 </div>
                 <div class="d-flex">
@@ -315,8 +328,8 @@ function loadProjectActivity() {
                         <i class="bi bi-clock" style="font-size: 0.7rem;"></i>
                     </div>
                     <div>
-                        <div>{{ __('Time logged') }}</div>
-                        <small class="text-muted">{{ __('1 day ago') }}</small>
+                        <div>{{ __('app.projects.time_logged') }}</div>
+                        <small class="text-muted">{{ __('app.projects.day_ago') }}</small>
                     </div>
                 </div>
             </div>

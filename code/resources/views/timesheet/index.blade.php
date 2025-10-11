@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('Timesheet'))
-@section('page-title', __('Timesheet Management'))
+@section('title', __('app.timesheet.title'))
+@section('page-title', __('app.timesheet.management'))
 
 @section('content')
 <!-- Statistics Section -->
@@ -10,9 +10,9 @@
         <div class="card shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-muted">
-                    <i class="bi bi-graph-up me-2"></i>{{ __('Timesheet Statistics') }}
+                    <i class="bi bi-graph-up me-2"></i>{{ __('app.timesheet.statistics') }}
                 </h6>
-                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="{{ __('Toggle Statistics') }}">
+                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="{{ __('app.timesheet.toggle_statistics') }}">
                     <i class="bi bi-chevron-up" id="toggleIcon"></i>
                 </button>
             </div>
@@ -27,7 +27,7 @@
                                     </div>
                                     <h4 class="card-title text-primary mb-0">{{ $summary['total_hours'] ?? 0 }}h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0">{{ __('Total Hours') }}</p>
+                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.total_hours') }}</p>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                                     </div>
                                     <h4 class="card-title text-success mb-0">{{ $summary['approved_hours'] ?? 0 }}h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0">{{ __('Approved Hours') }}</p>
+                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.approved_hours') }}</p>
                             </div>
                         </div>
                     </div>
@@ -53,7 +53,7 @@
                                     </div>
                                     <h4 class="card-title text-warning mb-0">{{ $summary['pending_hours'] ?? 0 }}h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0">{{ __('Pending Hours') }}</p>
+                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.pending_hours') }}</p>
                             </div>
                         </div>
                     </div>
@@ -66,7 +66,7 @@
                                     </div>
                                     <h4 class="card-title text-danger mb-0">{{ $summary['rejected_hours'] ?? 0 }}h</h4>
                                 </div>
-                                <p class="card-text text-muted small mb-0">{{ __('Rejected Hours') }}</p>
+                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.rejected_hours') }}</p>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                             <i class="bi bi-calendar-week text-primary me-2"></i>
                             <div>
                                 <div class="fw-bold">{{ $timeEntries->count() }}</div>
-                                <small class="text-muted">{{ __('Total Entries') }}</small>
+                                <small class="text-muted">{{ __('app.timesheet.total_entries') }}</small>
                             </div>
                         </div>
                     </div>
@@ -88,7 +88,7 @@
                             <i class="bi bi-people text-info me-2"></i>
                             <div>
                                 <div class="fw-bold">{{ $timeEntries->pluck('user_id')->unique()->count() }}</div>
-                                <small class="text-muted">{{ __('Active Users') }}</small>
+                                <small class="text-muted">{{ __('app.timesheet.active_users') }}</small>
                             </div>
                         </div>
                     </div>
@@ -103,7 +103,7 @@
                                         0h
                                     @endif
                                 </div>
-                                <small class="text-muted">{{ __('Avg. per Entry') }}</small>
+                                <small class="text-muted">{{ __('app.timesheet.avg_per_entry') }}</small>
                             </div>
                         </div>
                     </div>
@@ -119,15 +119,15 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-clock-history me-2"></i>
-                    {{ __('Timesheet Entries') }}
-                    <span class="badge bg-secondary ms-2">{{ $timeEntries->count() }} {{ __('entries') }}</span>
+                    {{ __('app.timesheet.entries') }}
+                    <span class="badge bg-secondary ms-2">{{ $timeEntries->count() }} {{ __('app.timesheet.entries_count') }}</span>
                 </h5>
                 <div>
                     <a href="{{ route('timesheet.index', ['show_all' => 1]) }}" class="btn btn-outline-info btn-sm me-2">
-                        <i class="bi bi-eye me-1"></i>{{ __('Show All') }}
+                        <i class="bi bi-eye me-1"></i>{{ __('app.timesheet.show_all') }}
                     </a>
                     <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>{{ __('Add Time Entry') }}
+                        <i class="bi bi-plus-circle me-1"></i>{{ __('app.timesheet.add_entry') }}
                     </a>
                 </div>
             </div>
@@ -135,11 +135,11 @@
                 <!-- Search and Filter Section -->
                 <div class="row mb-4">
                     <div class="col-md-3">
-                        <input type="text" class="form-control" id="search-input" placeholder="{{ __('Search...') }}">
+                        <input type="text" class="form-control" id="search-input" placeholder="{{ __('app.search') }}...">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" id="project-filter">
-                            <option value="">{{ __('All Projects') }}</option>
+                            <option value="">{{ __('app.reports.all_projects') }}</option>
                             @foreach($projects ?? [] as $project)
                                 <option value="{{ $project->id }}">{{ $project->title }}</option>
                             @endforeach
@@ -147,17 +147,17 @@
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" id="user-filter">
-                            <option value="">{{ __('All Users') }}</option>
+                            <option value="">{{ __('app.reports.all_users') }}</option>
                             @foreach($users ?? [] as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-from" placeholder="{{ __('From Date') }}">
+                        <input type="date" class="form-control" id="date-from" placeholder="{{ __('app.reports.from') }}">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-to" placeholder="{{ __('To Date') }}">
+                        <input type="date" class="form-control" id="date-to" placeholder="{{ __('app.reports.to') }}">
                     </div>
                     <div class="col-md-1">
                         <button class="btn btn-outline-secondary" onclick="clearFilters()">
@@ -171,12 +171,12 @@
                     <table class="table table-striped table-hover" id="timesheet-table">
                         <thead class="table-dark">
                             <tr>
-                                <th>{{ __('Date') }}</th>
-                                <th>{{ __('User') }}</th>
-                                <th>{{ __('Task') }}</th>
-                                <th>{{ __('Hours') }}</th>
-                                <th>{{ __('Status') }}</th>
-                                <th>{{ __('Actions') }}</th>
+                                <th>{{ __('app.date') }}</th>
+                                <th>{{ __('app.user_label') }}</th>
+                                <th>{{ __('app.tasks.title') }}</th>
+                                <th>{{ __('app.time.hours') }}</th>
+                                <th>{{ __('app.status') }}</th>
+                                <th>{{ __('app.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="timesheet-tbody">
@@ -234,7 +234,7 @@
                                                     @if($timeEntry->task)
                                                         {{ $timeEntry->task->title }}
                                                     @else
-                                                        {{ __('General Task') }}
+                                                        {{ __('app.timesheet.general_task') }}
                                                     @endif
                                                 </span>
                                             </div>
@@ -440,6 +440,28 @@
 </div>
 @endsection
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ __('app.confirm') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">{{ __('app.timesheet.confirm_action') }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                <button type="button" class="btn btn-primary" id="confirmActionBtn">
+                    <span id="confirmBtnText">{{ __('app.confirm') }}</span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -538,45 +560,99 @@ function setupStatsToggle() {
     });
 }
 
+let currentTimesheetId = null;
+let currentAction = null;
+
 function changeStatus(timesheetId, status) {
-    if (confirm(`{{ __('Are you sure you want to change the status?') }}`)) {
-        axios.post(`/timesheet/${timesheetId}/status`, {
-            status: status,
-            _token: '{{ csrf_token() }}'
-        })
-        .then(response => {
-            if (response.data.success) {
-                location.reload();
-            } else {
-                alert('{{ __('Error updating status') }}');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('{{ __('Error updating status') }}');
-        });
-    }
+    currentTimesheetId = timesheetId;
+    currentAction = 'status';
+
+    document.getElementById('confirmMessage').textContent = '{{ __('app.timesheet.confirm_status_change') }}';
+    document.getElementById('confirmActionBtn').innerHTML = '<span id="confirmBtnText">{{ __('app.confirm') }}</span><span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    modal.show();
 }
 
 function deleteEntry(timesheetId) {
-    if (confirm(`{{ __('Are you sure you want to delete this entry?') }}`)) {
-        axios.delete(`/timesheet/${timesheetId}`, {
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => {
+    currentTimesheetId = timesheetId;
+    currentAction = 'delete';
+
+    document.getElementById('confirmMessage').textContent = '{{ __('app.timesheet.confirm_delete_entry') }}';
+    document.getElementById('confirmActionBtn').innerHTML = '<span id="confirmBtnText">{{ __('app.delete') }}</span><span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>';
+    document.getElementById('confirmActionBtn').className = 'btn btn-danger';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmActionBtn').addEventListener('click', function() {
+        if (!currentTimesheetId || !currentAction) return;
+
+        const btn = this;
+        const btnText = document.getElementById('confirmBtnText');
+        const spinner = document.getElementById('confirmSpinner');
+
+        // Show loading state
+        btn.disabled = true;
+        btnText.textContent = '{{ __('app.processing') }}';
+        spinner.classList.remove('d-none');
+
+        let request;
+        if (currentAction === 'status') {
+            request = axios.post(`/timesheet/${currentTimesheetId}/status`, {
+                status: 'approved',
+                _token: '{{ csrf_token() }}'
+            });
+        } else if (currentAction === 'delete') {
+            request = axios.delete(`/timesheet/${currentTimesheetId}`, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+        }
+
+        request.then(response => {
             if (response.data.success) {
-                location.reload();
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById('confirmActionModal')).hide();
+
+                // Reload page
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
             } else {
-                alert('{{ __('Error deleting entry') }}');
+                throw new Error(response.data.message || '{{ __('app.timesheet.error_updating_status') }}');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('{{ __('Error deleting entry') }}');
+
+            // Show error in modal
+            document.getElementById('confirmMessage').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${error.response?.data?.message || (currentAction === 'delete' ? '{{ __('app.timesheet.error_deleting_entry') }}' : '{{ __('app.timesheet.error_updating_status') }}')}
+                </div>
+            `;
+        })
+        .finally(() => {
+            // Reset button state
+            btn.disabled = false;
+            btnText.textContent = currentAction === 'delete' ? '{{ __('app.delete') }}' : '{{ __('app.confirm') }}';
+            spinner.classList.add('d-none');
+
+            // Reset button color
+            if (currentAction === 'delete') {
+                btn.className = 'btn btn-danger';
+            } else {
+                btn.className = 'btn btn-primary';
+            }
         });
-    }
-}
+    });
+});
 </script>
 @endpush

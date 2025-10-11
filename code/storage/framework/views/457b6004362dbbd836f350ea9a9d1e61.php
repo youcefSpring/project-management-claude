@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', __('Page Not Found')); ?>
-<?php $__env->startSection('page-title', __('Error 404')); ?>
+<?php $__env->startSection('title', __('app.messages.item_not_found')); ?>
+<?php $__env->startSection('page-title', __('app.messages.item_not_found')); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="row justify-content-center">
@@ -13,7 +13,7 @@
 
                 <!-- Error Message -->
                 <h1 class="display-4 fw-bold text-primary mb-3">404</h1>
-                <h2 class="h4 mb-3"><?php echo e(__('Page Not Found')); ?></h2>
+                <h2 class="h4 mb-3"><?php echo e(__('app.messages.item_not_found')); ?></h2>
                 <p class="text-muted mb-4">
                     <?php echo e(__('The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.')); ?>
 
@@ -23,19 +23,19 @@
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     <a href="<?php echo e(route('dashboard',['locale' => app()->getLocale()])); ?>" class="btn btn-primary">
                         <i class="bi bi-house me-2"></i>
-                        <?php echo e(__('Go to Dashboard')); ?>
+                        <?php echo e(__('app.Dashboard')); ?>
 
                     </a>
 
                     <button onclick="window.history.back()" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i>
-                        <?php echo e(__('Go Back')); ?>
+                        <?php echo e(__('app.back')); ?>
 
                     </button>
 
                     <a href="<?php echo e(route('projects.index',['locale' => app()->getLocale()])); ?>" class="btn btn-outline-info">
                         <i class="bi bi-folder me-2"></i>
-                        <?php echo e(__('Browse Projects')); ?>
+                        <?php echo e(__('app.projects.title')); ?>
 
                     </a>
                 </div>
@@ -45,7 +45,7 @@
                     <form action="<?php echo e(route('search.results')); ?>" method="GET" class="d-flex justify-content-center">
                         <div class="input-group" style="max-width: 400px;">
                             <input type="text" name="q" class="form-control"
-                                   placeholder="<?php echo e(__('Search for projects, tasks...')); ?>">
+                                   placeholder="<?php echo e(__('app.Search...')); ?>">
                             <button class="btn btn-outline-primary" type="submit">
                                 <i class="bi bi-search"></i>
                             </button>
@@ -62,8 +62,8 @@
                                 <div class="card border-primary">
                                     <div class="card-body text-center">
                                         <i class="bi bi-folder text-primary fs-2"></i>
-                                        <h6 class="mt-2 mb-0"><?php echo e(__('Projects')); ?></h6>
-                                        <small class="text-muted"><?php echo e(__('View all projects')); ?></small>
+                                        <h6 class="mt-2 mb-0"><?php echo e(__('app.nav.projects')); ?></h6>
+                                        <small class="text-muted"><?php echo e(__('app.projects.title')); ?></small>
                                     </div>
                                 </div>
                             </a>
@@ -73,8 +73,8 @@
                                 <div class="card border-success">
                                     <div class="card-body text-center">
                                         <i class="bi bi-check2-square text-success fs-2"></i>
-                                        <h6 class="mt-2 mb-0"><?php echo e(__('Tasks')); ?></h6>
-                                        <small class="text-muted"><?php echo e(__('Manage tasks')); ?></small>
+                                        <h6 class="mt-2 mb-0"><?php echo e(__('app.nav.tasks')); ?></h6>
+                                        <small class="text-muted"><?php echo e(__('app.tasks.title')); ?></small>
                                     </div>
                                 </div>
                             </a>
@@ -98,4 +98,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php $__env->stopPush(); ?>
+
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/errors/404.blade.php ENDPATH**/ ?>

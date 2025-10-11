@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', __('Projects'))
-@section('page-title', __('Projects'))
+@section('title', __('app.projects.title'))
+@section('page-title', __('app.projects.title'))
 
 @section('content')
 <div class="row">
@@ -9,14 +9,14 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-1">{{ __('Projects') }}</h2>
-                <p class="text-muted mb-0">{{ __('Manage and track your projects') }}</p>
+                <h2 class="mb-1">{{ __('app.projects.title') }}</h2>
+                <p class="text-muted mb-0">{{ __('app.projects.manage_and_track') }}</p>
             </div>
             <div>
                 @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                 <a href="{{ route('projects.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
-                    {{ __('New Project') }}
+                    {{ __('app.projects.new_project') }}
                 </a>
                 @endif
             </div>
@@ -28,41 +28,41 @@
         <div class="card shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-muted">
-                    <i class="bi bi-funnel me-2"></i>{{ __('Project Filters') }}
+                    <i class="bi bi-funnel me-2"></i>{{ __('app.projects.project_filters') }}
                 </h6>
-                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('Toggle Filters') }}">
+                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('app.toggle_filters') }}">
                     <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
                 </button>
             </div>
             <div class="card-body p-3" id="filtersContent">
                 <form method="GET" action="{{ route('projects.index') }}" class="row g-3 align-items-end">
                     <div class="{{ auth()->user()->isAdmin() ? 'col-md-3' : 'col-md-4' }}">
-                        <label for="status" class="form-label small text-muted">{{ __('Status') }}</label>
+                        <label for="status" class="form-label small text-muted">{{ __('app.status') }}</label>
                         <select class="form-select form-select-sm" id="status" name="status">
-                            <option value="">{{ __('All Statuses') }}</option>
+                            <option value="">{{ __('app.projects.all_statuses') }}</option>
                             <option value="planning" {{ request('status') === 'planning' ? 'selected' : '' }}>
-                                {{ __('Planning') }}
+                                {{ __('app.projects.planning') }}
                             </option>
                             <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>
-                                {{ __('Active') }}
+                                {{ __('app.projects.active') }}
                             </option>
                             <option value="on_hold" {{ request('status') === 'on_hold' ? 'selected' : '' }}>
-                                {{ __('On Hold') }}
+                                {{ __('app.projects.on_hold') }}
                             </option>
                             <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>
-                                {{ __('Completed') }}
+                                {{ __('app.projects.completed') }}
                             </option>
                             <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>
-                                {{ __('Cancelled') }}
+                                {{ __('app.projects.cancelled') }}
                             </option>
                         </select>
                     </div>
 
                     @if(auth()->user()->isAdmin())
                     <div class="col-md-3">
-                        <label for="manager_id" class="form-label small text-muted">{{ __('Manager') }}</label>
+                        <label for="manager_id" class="form-label small text-muted">{{ __('app.projects.manager') }}</label>
                         <select class="form-select form-select-sm" id="manager_id" name="manager_id">
-                            <option value="">{{ __('All Managers') }}</option>
+                            <option value="">{{ __('app.all_managers') }}</option>
                             @foreach($managers as $manager)
                                 <option value="{{ $manager->id }}" {{ request('manager_id') == $manager->id ? 'selected' : '' }}>
                                     {{ $manager->name }}
@@ -73,9 +73,9 @@
                     @endif
 
                     <div class="{{ auth()->user()->isAdmin() ? 'col-md-4' : 'col-md-6' }}">
-                        <label for="search" class="form-label small text-muted">{{ __('Search') }}</label>
+                        <label for="search" class="form-label small text-muted">{{ __('app.search') }}</label>
                         <input type="text" class="form-control form-control-sm" id="search" name="search"
-                               value="{{ request('search') }}" placeholder="{{ __('Search projects...') }}">
+                               value="{{ request('search') }}" placeholder="{{ __('app.projects.search_placeholder') }}">
                     </div>
 
                     <div class="col-md-2">
@@ -98,7 +98,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    {{ __('Projects') }}
+                    {{ __('app.projects.title') }}
                     <span class="badge bg-secondary ms-2">{{ $projects->count() }}</span>
                 </h5>
             </div>
@@ -108,13 +108,13 @@
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>{{ __('Project') }}</th>
-                                    <th>{{ __('Manager') }}</th>
-                                    <th>{{ __('Status') }}</th>
-                                    <th>{{ __('Dates') }}</th>
-                                    <th>{{ __('Progress') }}</th>
-                                    <th>{{ __('Tasks') }}</th>
-                                    <th>{{ __('Actions') }}</th>
+                                    <th>{{ __('app.projects.name') }}</th>
+                                    <th>{{ __('app.projects.manager') }}</th>
+                                    <th>{{ __('app.status') }}</th>
+                                    <th>{{ __('app.projects.dates') }}
+                                    <th>{{ __('app.projects.progress') }}</th>
+                                    <th>{{ __('app.tasks.title') }}</th>
+                                    <th>{{ __('app.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -142,12 +142,19 @@
                                                      style="width: 32px; height: 32px;">
                                                     <i class="bi bi-person-fill"></i>
                                                 </div>
-                                                <span>{{ $project->manager->name ?? __('No manager') }}</span>
+                                                <span>{{ $project->manager->name ?? __('app.no_manager') }}</span>
                                             </div>
                                         </td>
                                         <td>
                                             <span class="badge bg-{{ $project->status === 'active' ? 'success' : ($project->status === 'completed' ? 'primary' : 'warning') }}">
-                                                {{ ucfirst($project->status) }}
+                                                @switch($project->status)
+                                                    @case('planning') {{ __('app.projects.planning') }} @break
+                                                    @case('active') {{ __('app.projects.active') }} @break
+                                                    @case('on_hold') {{ __('app.projects.on_hold') }} @break
+                                                    @case('completed') {{ __('app.projects.completed') }} @break
+                                                    @case('cancelled') {{ __('app.projects.cancelled') }} @break
+                                                    @default {{ ucfirst($project->status) }}
+                                                @endswitch
                                             </span>
                                         </td>
                                         <td>
@@ -155,7 +162,7 @@
                                                 @if($project->start_date && $project->end_date)
                                                     {{ \Carbon\Carbon::parse($project->start_date)->format('M d') }} - {{ \Carbon\Carbon::parse($project->end_date)->format('M d, Y') }}
                                                 @else
-                                                    {{ __('No dates set') }}
+                                                    {{ __('app.no_dates_set') }}
                                                 @endif
                                             </small>
                                         </td>
@@ -183,20 +190,20 @@
                                                 <ul class="dropdown-menu">
                                                     <li>
                                                         <a class="dropdown-item" href="{{ route('projects.show', $project) }}">
-                                                            <i class="bi bi-eye me-2"></i>{{ __('View') }}
+                                                            <i class="bi bi-eye me-2"></i>{{ __('app.projects.view') }}
                                                         </a>
                                                     </li>
                                                     @can('update', $project)
                                                         <li>
                                                             <a class="dropdown-item" href="{{ route('projects.edit', $project) }}">
-                                                                <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
+                                                                <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
                                                             </a>
                                                         </li>
                                                     @endcan
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item" href="{{ route('tasks.create') }}?project_id={{ $project->id }}">
-                                                            <i class="bi bi-plus-circle me-2"></i>{{ __('Add Task') }}
+                                                            <i class="bi bi-plus-circle me-2"></i>{{ __('app.projects.add_task') }}
                                                         </a>
                                                     </li>
                                                 </ul>
@@ -210,19 +217,19 @@
                 @else
                     <div class="text-center py-5">
                         <i class="bi bi-folder-x fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted">{{ __('No projects found') }}</h5>
+                        <h5 class="text-muted">{{ __('app.projects.no_projects') }}</h5>
                         <p class="text-muted">
                             @if(request()->hasAny(['status', 'manager_id', 'search']))
-                                {{ __('Try adjusting your filters or') }}
-                                <a href="{{ route('projects.index') }}">{{ __('clear all filters') }}</a>
+                                {{ __('app.try_adjusting_filters') }}
+                                <a href="{{ route('projects.index') }}">{{ __('app.clear_filters') }}</a>
                             @else
-                                {{ __('Get started by creating your first project.') }}
+                                {{ __('app.projects.get_started_message') }}
                             @endif
                         </p>
                         @if(auth()->user()->isAdmin() || auth()->user()->isManager())
                             <a href="{{ route('projects.create') }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-2"></i>
-                                {{ __('Create Project') }}
+                                {{ __('app.projects.create') }}
                             </a>
                         @endif
                     </div>

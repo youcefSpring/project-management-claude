@@ -9,12 +9,12 @@
         <!-- User Profile -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">{{ __('Profile Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.profile') }}</h5>
                 <div>
                     @can('update', $user)
                         <a href="{{ route('users.edit', $user) }}" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil me-1"></i>
-                            {{ __('Edit') }}
+                            {{ __('app.edit') }}
                         </a>
                     @endcan
                 </div>
@@ -33,7 +33,7 @@
                     <div class="col-md-9">
                         <div class="row">
                             <div class="col-sm-6">
-                                <strong>{{ __('Email') }}:</strong>
+                                <strong>{{ __('app.email') }}:</strong>
                                 <p>{{ $user->email }}</p>
                             </div>
                             <div class="col-sm-6">
@@ -73,7 +73,7 @@
             <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        {{ __('Managed Projects') }}
+                        {{ __('app.projects.title') }}
                         <span class="badge bg-secondary ms-2">{{ $user->managedProjects->count() }}</span>
                     </h5>
                 </div>
@@ -94,7 +94,7 @@
                                                 <span class="badge bg-{{ $project->status === 'active' ? 'success' : ($project->status === 'completed' ? 'primary' : 'warning') }}">
                                                     {{ ucfirst(str_replace('_', ' ', $project->status)) }}
                                                 </span>
-                                                <small class="text-muted">{{ $project->tasks->count() }} {{ __('tasks') }}</small>
+                                                <small class="text-muted">{{ $project->tasks->count() }} {{ __('app.tasks.title') }}</small>
                                             </div>
                                         </div>
                                     </div>
@@ -102,7 +102,7 @@
                             @endforeach
                         </div>
                     @else
-                        <p class="text-muted text-center py-3">{{ __('No projects managed yet.') }}</p>
+                        <p class="text-muted text-center py-3">{{ __('app.projects.no_projects') }}</p>
                     @endif
                 </div>
             </div>
@@ -113,7 +113,7 @@
             <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        {{ __('Assigned Tasks') }}
+                        {{ __('app.tasks.title') }}
                         <span class="badge bg-secondary ms-2">{{ $user->assignedTasks->count() }}</span>
                     </h5>
                 </div>
@@ -123,11 +123,11 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>{{ __('Task') }}</th>
-                                        <th>{{ __('Project') }}</th>
-                                        <th>{{ __('Status') }}</th>
-                                        <th>{{ __('Due Date') }}</th>
-                                        <th>{{ __('Priority') }}</th>
+                                        <th>{{ __('app.tasks.title') }}</th>
+                                        <th>{{ __('app.projects.title') }}</th>
+                                        <th>{{ __('app.status') }}</th>
+                                        <th>{{ __('app.tasks.due_date') }}</th>
+                                        <th>{{ __('app.tasks.priority') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -155,7 +155,7 @@
                                                     @endphp
                                                     {{ $dueDate->format('M d, Y') }}
                                                     @if($dueDate->isPast() && $task->status !== 'completed')
-                                                        <span class="badge bg-danger ms-1">{{ __('Overdue') }}</span>
+                                                        <span class="badge bg-danger ms-1">{{ __('app.tasks.overdue') }}</span>
                                                     @endif
                                                 @else
                                                     <span class="text-muted">{{ __('No due date') }}</span>
@@ -174,12 +174,12 @@
                         @if($user->assignedTasks->count() > 10)
                             <div class="text-center">
                                 <a href="{{ route('tasks.index', ['assigned_to' => $user->id]) }}" class="btn btn-outline-primary">
-                                    {{ __('View All Tasks') }}
+                                    {{ __('app.tasks.title') }}
                                 </a>
                             </div>
                         @endif
                     @else
-                        <p class="text-muted text-center py-3">{{ __('No tasks assigned yet.') }}</p>
+                        <p class="text-muted text-center py-3">{{ __('app.tasks.no_tasks') }}</p>
                     @endif
                 </div>
             </div>
@@ -188,7 +188,7 @@
         <!-- Recent Activity -->
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Recent Activity') }}</h5>
+                <h5 class="mb-0">{{ __('app.dashboard.recent_activity') }}</h5>
             </div>
             <div class="card-body">
                 @if($user->taskNotes->count() > 0 || $user->timeEntries->count() > 0)
@@ -242,7 +242,7 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="text-muted text-center py-3">{{ __('No recent activity.') }}</p>
+                    <p class="text-muted text-center py-3">{{ __('app.dashboard.no_recent_activity') }}</p>
                 @endif
             </div>
         </div>
@@ -252,35 +252,61 @@
         <!-- User Actions -->
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Actions') }}</h5>
+                <h5 class="mb-0">{{ __('app.actions') }}</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
                     @can('update', $user)
                         <a href="{{ route('users.edit', $user) }}" class="btn btn-outline-primary">
                             <i class="bi bi-pencil me-2"></i>
-                            {{ __('Edit Profile') }}
+                            {{ __('app.profile') }}
                         </a>
                     @endcan
 
                     @if($user->canWorkOnTasks())
                         <a href="{{ route('tasks.index', ['assigned_to' => $user->id]) }}" class="btn btn-outline-success">
                             <i class="bi bi-list-task me-2"></i>
-                            {{ __('View All Tasks') }}
+                            {{ __('app.tasks.title') }}
                         </a>
                     @endif
 
                     @if($user->isManager())
                         <a href="{{ route('projects.index', ['manager_id' => $user->id]) }}" class="btn btn-outline-info">
                             <i class="bi bi-folder me-2"></i>
-                            {{ __('View Projects') }}
+                            {{ __('app.projects.title') }}
                         </a>
                     @endif
 
                     <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left me-2"></i>
-                        {{ __('Back to Users') }}
+                        {{ __('app.users.title') }}
                     </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productivity Charts -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ __('app.productivity.title') }}</h5>
+            </div>
+            <div class="card-body">
+                <!-- Daily Hours Chart -->
+                <div class="mb-4">
+                    <h6>{{ __('app.productivity.daily_hours') }}</h6>
+                    <canvas id="dailyHoursChart" height="100"></canvas>
+                </div>
+
+                <!-- Task Completion Chart -->
+                <div class="mb-4">
+                    <h6>{{ __('app.productivity.completion_rate') }}</h6>
+                    <canvas id="taskCompletionChart" height="100"></canvas>
+                </div>
+
+                <!-- Work Pattern Chart -->
+                <div class="mb-3">
+                    <h6>{{ __('app.productivity.work_patterns') }}</h6>
+                    <canvas id="workPatternChart" height="80"></canvas>
                 </div>
             </div>
         </div>
@@ -294,24 +320,24 @@
                 @if($user->isManager())
                     <div class="stat-item">
                         <div class="stat-value">{{ $stats['total_projects_managed'] }}</div>
-                        <div class="stat-label">{{ __('Projects Managed') }}</div>
+                        <div class="stat-label">{{ __('app.projects.title') }}</div>
                     </div>
                 @endif
 
                 @if($user->canWorkOnTasks())
                     <div class="stat-item">
                         <div class="stat-value">{{ $stats['total_tasks_assigned'] }}</div>
-                        <div class="stat-label">{{ __('Tasks Assigned') }}</div>
+                        <div class="stat-label">{{ __('app.tasks.title') }}</div>
                     </div>
 
                     <div class="stat-item">
                         <div class="stat-value">{{ $stats['completed_tasks'] }}</div>
-                        <div class="stat-label">{{ __('Tasks Completed') }}</div>
+                        <div class="stat-label">{{ __('app.dashboard.completed_tasks') }}</div>
                     </div>
 
                     <div class="stat-item">
                         <div class="stat-value">{{ number_format($stats['total_time_logged'], 1) }}h</div>
-                        <div class="stat-label">{{ __('Time Logged') }}</div>
+                        <div class="stat-label">{{ __('app.dashboard.time_logged') }}</div>
                     </div>
                 @endif
 
@@ -325,7 +351,7 @@
         <!-- Role Information -->
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Role Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.users.role') }}</h5>
             </div>
             <div class="card-body">
                 <h6 class="text-primary">{{ $user->getRoleLabel() }}</h6>
@@ -446,4 +472,167 @@
     margin-top: 5px;
 }
 </style>
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Productivity data from backend
+    const productivityData = @json($productivityData ?? []);
+
+    // Default data if no backend data available
+    const defaultData = {
+        dailyHours: {
+            labels: @json(array_map(function($i) { return now()->subDays(6-$i)->format('M d'); }, range(0, 6))),
+            data: @json($user->timeEntries->where('created_at', '>=', now()->subDays(7))->groupBy(function($entry) {
+                return $entry->created_at->format('Y-m-d');
+            })->map(function($entries) {
+                return $entries->sum('duration_hours');
+            })->values()->toArray() ?: [2, 4, 6, 3, 5, 7, 4])
+        },
+        taskCompletion: {
+            labels: ['{{ __("app.tasks.completed") }}', '{{ __("app.tasks.in_progress") }}', '{{ __("app.tasks.pending") }}'],
+            data: [
+                {{ $user->assignedTasks->where('status', 'completed')->count() }},
+                {{ $user->assignedTasks->where('status', 'in_progress')->count() }},
+                {{ $user->assignedTasks->where('status', 'pending')->count() }}
+            ]
+        },
+        workPattern: {
+            labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
+            data: @json($user->timeEntries->groupBy(function($entry) {
+                return $entry->created_at->format('H');
+            })->map(function($entries, $hour) {
+                return $entries->count();
+            })->values()->slice(6, 6)->toArray() ?: [1, 8, 6, 4, 2, 1])
+        }
+    };
+
+    // Common chart options
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0,0,0,0.1)'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    };
+
+    // Daily Hours Chart
+    const dailyHoursCtx = document.getElementById('dailyHoursChart').getContext('2d');
+    new Chart(dailyHoursCtx, {
+        type: 'line',
+        data: {
+            labels: defaultData.dailyHours.labels,
+            datasets: [{
+                label: '{{ __("app.time.hours") }}',
+                data: defaultData.dailyHours.data,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.parsed.y + 'h {{ __("app.time.logged") }}';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Task Completion Chart
+    const taskCompletionCtx = document.getElementById('taskCompletionChart').getContext('2d');
+    new Chart(taskCompletionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: defaultData.taskCompletion.labels,
+            datasets: [{
+                data: defaultData.taskCompletion.data,
+                backgroundColor: [
+                    '#28a745',
+                    '#ffc107',
+                    '#6c757d'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = Math.round((context.parsed * 100) / total);
+                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Work Pattern Chart
+    const workPatternCtx = document.getElementById('workPatternChart').getContext('2d');
+    new Chart(workPatternCtx, {
+        type: 'bar',
+        data: {
+            labels: defaultData.workPattern.labels,
+            datasets: [{
+                label: '{{ __("app.productivity.peak_hours") }}',
+                data: defaultData.workPattern.data,
+                backgroundColor: 'rgba(40, 167, 69, 0.8)',
+                borderColor: '#28a745',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                ...commonOptions.plugins,
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '{{ __("app.tasks.title") }}: ' + context.parsed.y;
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection

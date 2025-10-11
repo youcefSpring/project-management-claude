@@ -184,7 +184,7 @@
                         <i class="bi bi-check2-square fs-2"></i>
                         <p class="mt-2">{{ __('app.tasks.no_tasks') }}</p>
                         <a href="{{ route('tasks.index') }}" class="btn btn-outline-primary">
-                            {{ __('Browse Available Tasks') }}
+                            {{ __('app.tasks.browse_available') }}
                         </a>
                     </div>
                 @endif
@@ -199,7 +199,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-lightning me-2"></i>
-                    {{ __('Quick Actions') }}
+                    {{ __('app.dashboard.quick_actions') }}
                 </h5>
             </div>
             <div class="card-body">

@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', __('Users')); ?>
-<?php $__env->startSection('page-title', __('User Management')); ?>
+<?php $__env->startSection('title', __('app.users.title')); ?>
+<?php $__env->startSection('page-title', __('app.User Management')); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="row">
@@ -7,14 +7,14 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-1"><?php echo e(__('Users')); ?></h2>
-                <p class="text-muted mb-0"><?php echo e(__('Manage users and their roles')); ?></p>
+                <h2 class="mb-1"><?php echo e(__('app.users.title')); ?></h2>
+                <p class="text-muted mb-0"><?php echo e(__('app.users.manage_and_track')); ?></p>
             </div>
             <div>
                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create', App\Models\User::class)): ?>
                 <a href="<?php echo e(route('users.create')); ?>" class="btn btn-primary">
                     <i class="bi bi-person-plus me-2"></i>
-                    <?php echo e(__('Add New User')); ?>
+                    <?php echo e(__('app.users.create')); ?>
 
                 </a>
                 <?php endif; ?>
@@ -28,9 +28,9 @@
             <div class="card-body">
                 <form method="GET" action="<?php echo e(route('users.index')); ?>" class="row g-3">
                     <div class="col-md-4">
-                        <label for="role" class="form-label"><?php echo e(__('Role')); ?></label>
+                        <label for="role" class="form-label"><?php echo e(__('app.users.role')); ?></label>
                         <select class="form-select" id="role" name="role">
-                            <option value=""><?php echo e(__('All Roles')); ?></option>
+                            <option value=""><?php echo e(__('app.users.all_roles')); ?></option>
                             <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($role); ?>" <?php echo e(request('role') === $role ? 'selected' : ''); ?>>
                                     <?php echo e($roleLabels[$role]); ?>
@@ -41,20 +41,20 @@
                     </div>
 
                     <div class="col-md-4">
-                        <label for="search" class="form-label"><?php echo e(__('Search')); ?></label>
+                        <label for="search" class="form-label"><?php echo e(__('app.search')); ?></label>
                         <input type="text" class="form-control" id="search" name="search"
-                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('Search users...')); ?>">
+                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('app.users.search_placeholder')); ?>">
                     </div>
 
                     <div class="col-md-4 d-flex align-items-end">
                         <button type="submit" class="btn btn-outline-primary me-2">
                             <i class="bi bi-search me-2"></i>
-                            <?php echo e(__('Filter')); ?>
+                            <?php echo e(__('app.filter')); ?>
 
                         </button>
                         <a href="<?php echo e(route('users.index')); ?>" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle me-2"></i>
-                            <?php echo e(__('Clear')); ?>
+                            <?php echo e(__('app.clear_filters')); ?>
 
                         </a>
                     </div>
@@ -68,7 +68,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <?php echo e(__('Users')); ?>
+                    <?php echo e(__('app.users.title')); ?>
 
                     <span class="badge bg-secondary ms-2"><?php echo e($users->total()); ?></span>
                 </h5>
@@ -79,13 +79,13 @@
                         <table class="table table-hover">
                             <thead>
                                 <tr>
-                                    <th><?php echo e(__('User')); ?></th>
-                                    <th><?php echo e(__('Role')); ?></th>
-                                    <th><?php echo e(__('Email')); ?></th>
-                                    <th><?php echo e(__('Projects')); ?></th>
-                                    <th><?php echo e(__('Tasks')); ?></th>
-                                    <th><?php echo e(__('Joined')); ?></th>
-                                    <th width="200"><?php echo e(__('Actions')); ?></th>
+                                    <th><?php echo e(__('app.user_label')); ?></th>
+                                    <th><?php echo e(__('app.users.role')); ?></th>
+                                    <th><?php echo e(__('app.email')); ?></th>
+                                    <th><?php echo e(__('app.Projects')); ?></th>
+                                    <th><?php echo e(__('app.Tasks')); ?></th>
+                                    <th><?php echo e(__('app.users.joined')); ?></th>
+                                    <th width="200"><?php echo e(__('app.actions')); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -100,7 +100,7 @@
                                                 <div>
                                                     <h6 class="mb-0"><?php echo e($user->name); ?></h6>
                                                     <?php if($user->isAdmin()): ?>
-                                                        <small class="text-primary"><?php echo e(__('Administrator')); ?></small>
+                                                        <small class="text-primary"><?php echo e(__('app.users.admin')); ?></small>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -181,21 +181,21 @@
                 <?php else: ?>
                     <div class="text-center py-5">
                         <i class="bi bi-people fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted"><?php echo e(__('No users found')); ?></h5>
+                        <h5 class="text-muted"><?php echo e(__('app.users.no_users')); ?></h5>
                         <p class="text-muted">
                             <?php if(request()->hasAny(['role', 'search'])): ?>
-                                <?php echo e(__('Try adjusting your filters or')); ?>
+                                <?php echo e(__('app.try_adjusting_filters')); ?>
 
-                                <a href="<?php echo e(route('users.index')); ?>"><?php echo e(__('clear all filters')); ?></a>
+                                <a href="<?php echo e(route('users.index')); ?>"><?php echo e(__('app.clear_filters')); ?></a>
                             <?php else: ?>
-                                <?php echo e(__('Get started by adding your first user.')); ?>
+                                <?php echo e(__('app.users.get_started_message')); ?>
 
                             <?php endif; ?>
                         </p>
                         <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('create', App\Models\User::class)): ?>
                             <a href="<?php echo e(route('users.create')); ?>" class="btn btn-primary">
                                 <i class="bi bi-person-plus me-2"></i>
-                                <?php echo e(__('Add First User')); ?>
+                                <?php echo e(__('app.users.add_first')); ?>
 
                             </a>
                         <?php endif; ?>
@@ -211,25 +211,47 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><?php echo e(__('Delete User')); ?></h5>
+                <h5 class="modal-title"><?php echo e(__('app.users.delete')); ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p><?php echo e(__('Are you sure you want to delete this user?')); ?></p>
+                <p><?php echo e(__('app.messages.confirm_delete')); ?></p>
                 <p class="text-danger">
-                    <strong><?php echo e(__('Warning:')); ?></strong>
-                    <?php echo e(__('This action cannot be undone.')); ?>
+                    <strong><?php echo e(__('app.warning')); ?></strong>
+                    <?php echo e(__('app.messages.action_cannot_be_undone')); ?>
 
                 </p>
-                <p><strong><?php echo e(__('User:')); ?></strong> <span id="deleteUserName"></span></p>
+                <p><strong><?php echo e(__('app.user_label')); ?>:</strong> <span id="deleteUserName"></span></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo e(__('Cancel')); ?></button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo e(__('app.cancel')); ?></button>
                 <form id="deleteForm" method="POST" style="display: inline;">
                     <?php echo csrf_field(); ?>
                     <?php echo method_field('DELETE'); ?>
-                    <button type="submit" class="btn btn-danger"><?php echo e(__('Delete User')); ?></button>
+                    <button type="submit" class="btn btn-danger"><?php echo e(__('app.users.delete')); ?></button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Role Confirmation Modal -->
+<div class="modal fade" id="roleConfirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><?php echo e(__('app.users.confirm_role_change')); ?></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="roleConfirmMessage"><?php echo e(__('app.users.confirm_role_change')); ?></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?php echo e(__('app.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="confirmRoleBtn">
+                    <span class="btn-text"><?php echo e(__('app.confirm')); ?></span>
+                    <span class="spinner-border spinner-border-sm ms-2 d-none"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -251,32 +273,76 @@
 </style>
 
 <script>
+let currentUserId = null;
+let currentNewRole = null;
+
 function updateUserRole(userId, newRole) {
-    if (confirm('<?php echo e(__("Are you sure you want to change this user\'s role?")); ?>')) {
-        fetch(`/users/${userId}/role`, {
+    currentUserId = userId;
+    currentNewRole = newRole;
+
+    document.getElementById('roleConfirmMessage').textContent = '<?php echo e(__("app.users.confirm_role_change")); ?>';
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('roleConfirmModal'));
+    modal.show();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('confirmRoleBtn').addEventListener('click', function() {
+        if (!currentUserId || !currentNewRole) return;
+
+        const btn = this;
+        const btnText = btn.querySelector('.btn-text');
+        const spinner = btn.querySelector('.spinner-border');
+
+        // Show loading state
+        btn.disabled = true;
+        btnText.textContent = '<?php echo e(__('app.processing')); ?>';
+        spinner.classList.remove('d-none');
+
+        fetch(`/users/${currentUserId}/role`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
-                role: newRole
+                role: currentNewRole
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                location.reload();
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById('roleConfirmModal')).hide();
+
+                // Reload page
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
             } else {
-                alert(data.message || '<?php echo e(__("Error updating user role")); ?>');
+                throw new Error(data.message || '<?php echo e(__("app.users.error_updating_role")); ?>');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('<?php echo e(__("Error updating user role")); ?>');
+
+            // Show error in modal
+            document.getElementById('roleConfirmMessage').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    ${error.message || '<?php echo e(__("app.users.error_updating_role")); ?>'}
+                </div>
+            `;
+        })
+        .finally(() => {
+            // Reset button state
+            btn.disabled = false;
+            btnText.textContent = '<?php echo e(__('app.confirm')); ?>';
+            spinner.classList.add('d-none');
         });
-    }
-}
+    });
+});
 
 function deleteUser(userId, userName) {
     document.getElementById('deleteUserName').textContent = userName;

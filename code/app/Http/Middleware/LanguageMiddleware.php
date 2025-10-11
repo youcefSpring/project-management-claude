@@ -30,6 +30,11 @@ class LanguageMiddleware
         // Store in session for persistence
         Session::put('locale', $language);
 
+        // Update user language preference if authenticated and different
+        if (auth()->check() && auth()->user()->language !== $language) {
+            auth()->user()->update(['language' => $language]);
+        }
+
         // Set text direction for RTL languages
         $rtlLanguages = ['ar', 'he', 'fa', 'ur'];
         $direction = in_array($language, $rtlLanguages) ? 'rtl' : 'ltr';
@@ -43,18 +48,26 @@ class LanguageMiddleware
      */
     private function getLanguageFromSources(Request $request, array $availableLanguages, string $defaultLanguage): string
     {
-        // 1. Check URL parameter (highest priority)
+        // 1. Check Laravel Localization current locale (highest priority for localized routes)
+        if (class_exists('\Mcamara\LaravelLocalization\Facades\LaravelLocalization')) {
+            $currentLocale = \Mcamara\LaravelLocalization\Facades\LaravelLocalization::getCurrentLocale();
+            if ($currentLocale && in_array($currentLocale, $availableLanguages)) {
+                return $currentLocale;
+            }
+        }
+
+        // 2. Check URL parameter
         if ($request->has('lang') && in_array($request->get('lang'), $availableLanguages)) {
             return $request->get('lang');
         }
 
-        // 2. Check session
+        // 3. Check session
         $sessionLang = Session::get('locale');
         if ($sessionLang && in_array($sessionLang, $availableLanguages)) {
             return $sessionLang;
         }
 
-        // 3. Check user preference (if authenticated)
+        // 4. Check user preference (if authenticated)
         if (auth()->check() && auth()->user()->language) {
             $userLang = auth()->user()->language;
             if (in_array($userLang, $availableLanguages)) {
@@ -62,13 +75,13 @@ class LanguageMiddleware
             }
         }
 
-        // 4. Check Accept-Language header
+        // 5. Check Accept-Language header
         $browserLang = $this->getBrowserLanguage($request, $availableLanguages);
         if ($browserLang) {
             return $browserLang;
         }
 
-        // 5. Return default language
+        // 6. Return default language
         return $defaultLanguage;
     }
 

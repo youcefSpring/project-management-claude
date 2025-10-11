@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', __('Projects')); ?>
-<?php $__env->startSection('page-title', __('Projects')); ?>
+<?php $__env->startSection('title', __('app.projects.title')); ?>
+<?php $__env->startSection('page-title', __('app.projects.title')); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="row">
@@ -7,14 +7,14 @@
     <div class="col-12 mb-4">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-1"><?php echo e(__('Projects')); ?></h2>
-                <p class="text-muted mb-0"><?php echo e(__('Manage and track your projects')); ?></p>
+                <h2 class="mb-1"><?php echo e(__('app.projects.title')); ?></h2>
+                <p class="text-muted mb-0"><?php echo e(__('app.projects.manage_and_track')); ?></p>
             </div>
             <div>
                 <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                 <a href="<?php echo e(route('projects.create')); ?>" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
-                    <?php echo e(__('New Project')); ?>
+                    <?php echo e(__('app.projects.new_project')); ?>
 
                 </a>
                 <?php endif; ?>
@@ -27,37 +27,37 @@
         <div class="card shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-muted">
-                    <i class="bi bi-funnel me-2"></i><?php echo e(__('Project Filters')); ?>
+                    <i class="bi bi-funnel me-2"></i><?php echo e(__('app.projects.project_filters')); ?>
 
                 </h6>
-                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('Toggle Filters')); ?>">
+                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('app.toggle_filters')); ?>">
                     <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
                 </button>
             </div>
             <div class="card-body p-3" id="filtersContent">
                 <form method="GET" action="<?php echo e(route('projects.index')); ?>" class="row g-3 align-items-end">
                     <div class="<?php echo e(auth()->user()->isAdmin() ? 'col-md-3' : 'col-md-4'); ?>">
-                        <label for="status" class="form-label small text-muted"><?php echo e(__('Status')); ?></label>
+                        <label for="status" class="form-label small text-muted"><?php echo e(__('app.status')); ?></label>
                         <select class="form-select form-select-sm" id="status" name="status">
-                            <option value=""><?php echo e(__('All Statuses')); ?></option>
+                            <option value=""><?php echo e(__('app.projects.all_statuses')); ?></option>
                             <option value="planning" <?php echo e(request('status') === 'planning' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Planning')); ?>
+                                <?php echo e(__('app.projects.planning')); ?>
 
                             </option>
                             <option value="active" <?php echo e(request('status') === 'active' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Active')); ?>
+                                <?php echo e(__('app.projects.active')); ?>
 
                             </option>
                             <option value="on_hold" <?php echo e(request('status') === 'on_hold' ? 'selected' : ''); ?>>
-                                <?php echo e(__('On Hold')); ?>
+                                <?php echo e(__('app.projects.on_hold')); ?>
 
                             </option>
                             <option value="completed" <?php echo e(request('status') === 'completed' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Completed')); ?>
+                                <?php echo e(__('app.projects.completed')); ?>
 
                             </option>
                             <option value="cancelled" <?php echo e(request('status') === 'cancelled' ? 'selected' : ''); ?>>
-                                <?php echo e(__('Cancelled')); ?>
+                                <?php echo e(__('app.projects.cancelled')); ?>
 
                             </option>
                         </select>
@@ -65,9 +65,9 @@
 
                     <?php if(auth()->user()->isAdmin()): ?>
                     <div class="col-md-3">
-                        <label for="manager_id" class="form-label small text-muted"><?php echo e(__('Manager')); ?></label>
+                        <label for="manager_id" class="form-label small text-muted"><?php echo e(__('app.projects.manager')); ?></label>
                         <select class="form-select form-select-sm" id="manager_id" name="manager_id">
-                            <option value=""><?php echo e(__('All Managers')); ?></option>
+                            <option value=""><?php echo e(__('app.all_managers')); ?></option>
                             <?php $__currentLoopData = $managers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $manager): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($manager->id); ?>" <?php echo e(request('manager_id') == $manager->id ? 'selected' : ''); ?>>
                                     <?php echo e($manager->name); ?>
@@ -79,9 +79,9 @@
                     <?php endif; ?>
 
                     <div class="<?php echo e(auth()->user()->isAdmin() ? 'col-md-4' : 'col-md-6'); ?>">
-                        <label for="search" class="form-label small text-muted"><?php echo e(__('Search')); ?></label>
+                        <label for="search" class="form-label small text-muted"><?php echo e(__('app.search')); ?></label>
                         <input type="text" class="form-control form-control-sm" id="search" name="search"
-                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('Search projects...')); ?>">
+                               value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('app.projects.search_placeholder')); ?>">
                     </div>
 
                     <div class="col-md-2">
@@ -104,7 +104,7 @@
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <?php echo e(__('Projects')); ?>
+                    <?php echo e(__('app.projects.title')); ?>
 
                     <span class="badge bg-secondary ms-2"><?php echo e($projects->count()); ?></span>
                 </h5>
@@ -115,13 +115,14 @@
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
                                 <tr>
-                                    <th><?php echo e(__('Project')); ?></th>
-                                    <th><?php echo e(__('Manager')); ?></th>
-                                    <th><?php echo e(__('Status')); ?></th>
-                                    <th><?php echo e(__('Dates')); ?></th>
-                                    <th><?php echo e(__('Progress')); ?></th>
-                                    <th><?php echo e(__('Tasks')); ?></th>
-                                    <th><?php echo e(__('Actions')); ?></th>
+                                    <th><?php echo e(__('app.projects.name')); ?></th>
+                                    <th><?php echo e(__('app.projects.manager')); ?></th>
+                                    <th><?php echo e(__('app.status')); ?></th>
+                                    <th><?php echo e(__('app.projects.dates')); ?>
+
+                                    <th><?php echo e(__('app.projects.progress')); ?></th>
+                                    <th><?php echo e(__('app.tasks.title')); ?></th>
+                                    <th><?php echo e(__('app.actions')); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -150,13 +151,20 @@
                                                      style="width: 32px; height: 32px;">
                                                     <i class="bi bi-person-fill"></i>
                                                 </div>
-                                                <span><?php echo e($project->manager->name ?? __('No manager')); ?></span>
+                                                <span><?php echo e($project->manager->name ?? __('app.no_manager')); ?></span>
                                             </div>
                                         </td>
                                         <td>
                                             <span class="badge bg-<?php echo e($project->status === 'active' ? 'success' : ($project->status === 'completed' ? 'primary' : 'warning')); ?>">
-                                                <?php echo e(ucfirst($project->status)); ?>
+                                                <?php switch($project->status):
+                                                    case ('planning'): ?> <?php echo e(__('app.projects.planning')); ?> <?php break; ?>
+                                                    <?php case ('active'): ?> <?php echo e(__('app.projects.active')); ?> <?php break; ?>
+                                                    <?php case ('on_hold'): ?> <?php echo e(__('app.projects.on_hold')); ?> <?php break; ?>
+                                                    <?php case ('completed'): ?> <?php echo e(__('app.projects.completed')); ?> <?php break; ?>
+                                                    <?php case ('cancelled'): ?> <?php echo e(__('app.projects.cancelled')); ?> <?php break; ?>
+                                                    <?php default: ?> <?php echo e(ucfirst($project->status)); ?>
 
+                                                <?php endswitch; ?>
                                             </span>
                                         </td>
                                         <td>
@@ -165,7 +173,7 @@
                                                     <?php echo e(\Carbon\Carbon::parse($project->start_date)->format('M d')); ?> - <?php echo e(\Carbon\Carbon::parse($project->end_date)->format('M d, Y')); ?>
 
                                                 <?php else: ?>
-                                                    <?php echo e(__('No dates set')); ?>
+                                                    <?php echo e(__('app.no_dates_set')); ?>
 
                                                 <?php endif; ?>
                                             </small>
@@ -195,14 +203,14 @@
                                                 <ul class="dropdown-menu">
                                                     <li>
                                                         <a class="dropdown-item" href="<?php echo e(route('projects.show', $project)); ?>">
-                                                            <i class="bi bi-eye me-2"></i><?php echo e(__('View')); ?>
+                                                            <i class="bi bi-eye me-2"></i><?php echo e(__('app.projects.view')); ?>
 
                                                         </a>
                                                     </li>
                                                     <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $project)): ?>
                                                         <li>
                                                             <a class="dropdown-item" href="<?php echo e(route('projects.edit', $project)); ?>">
-                                                                <i class="bi bi-pencil me-2"></i><?php echo e(__('Edit')); ?>
+                                                                <i class="bi bi-pencil me-2"></i><?php echo e(__('app.edit')); ?>
 
                                                             </a>
                                                         </li>
@@ -210,7 +218,7 @@
                                                     <li><hr class="dropdown-divider"></li>
                                                     <li>
                                                         <a class="dropdown-item" href="<?php echo e(route('tasks.create')); ?>?project_id=<?php echo e($project->id); ?>">
-                                                            <i class="bi bi-plus-circle me-2"></i><?php echo e(__('Add Task')); ?>
+                                                            <i class="bi bi-plus-circle me-2"></i><?php echo e(__('app.projects.add_task')); ?>
 
                                                         </a>
                                                     </li>
@@ -225,21 +233,21 @@
                 <?php else: ?>
                     <div class="text-center py-5">
                         <i class="bi bi-folder-x fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted"><?php echo e(__('No projects found')); ?></h5>
+                        <h5 class="text-muted"><?php echo e(__('app.projects.no_projects')); ?></h5>
                         <p class="text-muted">
                             <?php if(request()->hasAny(['status', 'manager_id', 'search'])): ?>
-                                <?php echo e(__('Try adjusting your filters or')); ?>
+                                <?php echo e(__('app.try_adjusting_filters')); ?>
 
-                                <a href="<?php echo e(route('projects.index')); ?>"><?php echo e(__('clear all filters')); ?></a>
+                                <a href="<?php echo e(route('projects.index')); ?>"><?php echo e(__('app.clear_filters')); ?></a>
                             <?php else: ?>
-                                <?php echo e(__('Get started by creating your first project.')); ?>
+                                <?php echo e(__('app.projects.get_started_message')); ?>
 
                             <?php endif; ?>
                         </p>
                         <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                             <a href="<?php echo e(route('projects.create')); ?>" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-2"></i>
-                                <?php echo e(__('Create Project')); ?>
+                                <?php echo e(__('app.projects.create')); ?>
 
                             </a>
                         <?php endif; ?>

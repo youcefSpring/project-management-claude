@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
-@section('title', __('Edit User'))
-@section('page-title', __('Edit User: :name', ['name' => $user->name]))
+@section('title', __('app.users.edit'))
+@section('page-title', __('app.users.edit_user_name', ['name' => $user->name]))
 
 @section('content')
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('User Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.users.user_information') }}</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('users.update', $user) }}">
@@ -16,7 +16,7 @@
                     @method('PUT')
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">{{ __('Full Name') }} <span class="text-danger">*</span></label>
+                        <label for="name" class="form-label">{{ __('app.full_name') }} <span class="text-danger">*</span></label>
                         <input type="text" class="form-control @error('name') is-invalid @enderror"
                                id="name" name="name" value="{{ old('name', $user->name) }}" required autofocus>
                         @error('name')
@@ -25,7 +25,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="email" class="form-label">{{ __('Email Address') }} <span class="text-danger">*</span></label>
+                        <label for="email" class="form-label">{{ __('app.email_address') }} <span class="text-danger">*</span></label>
                         <input type="email" class="form-control @error('email') is-invalid @enderror"
                                id="email" name="email" value="{{ old('email', $user->email) }}" required>
                         @error('email')
@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="role" class="form-label">{{ __('Role') }} <span class="text-danger">*</span></label>
+                        <label for="role" class="form-label">{{ __('app.users.role') }} <span class="text-danger">*</span></label>
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ old('role', $user->role) === $role ? 'selected' : '' }}>
@@ -48,17 +48,17 @@
                         @if($user->isAdmin() && \App\Models\User::where('role', 'admin')->count() <= 1)
                             <div class="form-text text-warning">
                                 <i class="bi bi-exclamation-triangle me-1"></i>
-                                {{ __('This is the last administrator. Role change may restrict system access.') }}
+                                {{ __('app.users.last_admin_warning') }}
                             </div>
                         @endif
                     </div>
 
                     <div class="mb-3">
-                        <label for="language" class="form-label">{{ __('Language') }}</label>
+                        <label for="language" class="form-label">{{ __('app.profile.language') }}</label>
                         <select class="form-select @error('language') is-invalid @enderror" id="language" name="language">
-                            <option value="en" {{ old('language', $user->language) === 'en' ? 'selected' : '' }}>{{ __('English') }}</option>
-                            <option value="fr" {{ old('language', $user->language) === 'fr' ? 'selected' : '' }}>{{ __('French') }}</option>
-                            <option value="ar" {{ old('language', $user->language) === 'ar' ? 'selected' : '' }}>{{ __('Arabic') }}</option>
+                            <option value="en" {{ old('language', $user->language) === 'en' ? 'selected' : '' }}>{{ __('app.users.language_english') }}</option>
+                            <option value="fr" {{ old('language', $user->language) === 'fr' ? 'selected' : '' }}>{{ __('app.users.language_french') }}</option>
+                            <option value="ar" {{ old('language', $user->language) === 'ar' ? 'selected' : '' }}>{{ __('app.users.language_arabic') }}</option>
                         </select>
                         @error('language')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -66,10 +66,10 @@
                     </div>
 
                     <hr>
-                    <h6>{{ __('Change Password') }} <small class="text-muted">({{ __('leave blank to keep current password') }})</small></h6>
+                    <h6>{{ __('app.profile.change_password') }} <small class="text-muted">({{ __('app.users.password_leave_blank') }})</small></h6>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">{{ __('New Password') }}</label>
+                        <label for="password" class="form-label">{{ __('app.profile.new_password') }}</label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
                                id="password" name="password">
                         @error('password')
@@ -78,7 +78,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">{{ __('Confirm New Password') }}</label>
+                        <label for="password_confirmation" class="form-label">{{ __('app.users.confirm_new_password') }}</label>
                         <input type="password" class="form-control"
                                id="password_confirmation" name="password_confirmation">
                     </div>
@@ -86,11 +86,11 @@
                     <div class="d-flex justify-content-between">
                         <a href="{{ route('users.show', $user) }}" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-2"></i>
-                            {{ __('Cancel') }}
+                            {{ __('app.cancel') }}
                         </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-2"></i>
-                            {{ __('Update User') }}
+                            {{ __('app.users.update') }}
                         </button>
                     </div>
                 </form>
@@ -101,33 +101,33 @@
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('User Actions') }}</h5>
+                <h5 class="mb-0">{{ __('app.users.user_actions') }}</h5>
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
                     <a href="{{ route('users.show', $user) }}" class="btn btn-outline-primary">
                         <i class="bi bi-eye me-2"></i>
-                        {{ __('View Profile') }}
+                        {{ __('app.users.view_profile') }}
                     </a>
 
                     @if($user->canWorkOnTasks())
                         <a href="{{ route('tasks.index', ['assigned_to' => $user->id]) }}" class="btn btn-outline-success">
                             <i class="bi bi-list-task me-2"></i>
-                            {{ __('View Tasks') }}
+                            {{ __('app.users.view_tasks') }}
                         </a>
                     @endif
 
                     @if($user->isManager())
                         <a href="{{ route('projects.index', ['manager_id' => $user->id]) }}" class="btn btn-outline-info">
                             <i class="bi bi-folder me-2"></i>
-                            {{ __('View Projects') }}
+                            {{ __('app.users.view_projects') }}
                         </a>
                     @endif
 
                     @can('delete', $user)
                         <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
                             <i class="bi bi-trash me-2"></i>
-                            {{ __('Delete User') }}
+                            {{ __('app.users.delete') }}
                         </button>
                     @endcan
                 </div>
@@ -136,7 +136,7 @@
 
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Current Role') }}</h5>
+                <h5 class="mb-0">{{ __('app.users.current_role') }}</h5>
             </div>
             <div class="card-body">
                 <div id="current-role-info">
@@ -147,26 +147,26 @@
 
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('User Statistics') }}</h5>
+                <h5 class="mb-0">{{ __('app.users.user_statistics') }}</h5>
             </div>
             <div class="card-body">
                 <div class="mb-2">
-                    <strong>{{ __('Member Since') }}:</strong>
+                    <strong>{{ __('app.users.member_since') }}:</strong>
                     <span class="float-end">{{ $user->created_at->format('M d, Y') }}</span>
                 </div>
                 @if($user->isManager())
                     <div class="mb-2">
-                        <strong>{{ __('Projects Managed') }}:</strong>
+                        <strong>{{ __('app.users.projects_managed') }}:</strong>
                         <span class="float-end">{{ $user->managedProjects->count() }}</span>
                     </div>
                 @endif
                 @if($user->canWorkOnTasks())
                     <div class="mb-2">
-                        <strong>{{ __('Tasks Assigned') }}:</strong>
+                        <strong>{{ __('app.users.tasks_assigned') }}:</strong>
                         <span class="float-end">{{ $user->assignedTasks->count() }}</span>
                     </div>
                     <div class="mb-2">
-                        <strong>{{ __('Time Logged') }}:</strong>
+                        <strong>{{ __('app.users.time_logged') }}:</strong>
                         <span class="float-end">{{ number_format($user->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
                     </div>
                 @endif
@@ -181,40 +181,40 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ __('Delete User') }}</h5>
+                <h5 class="modal-title">{{ __('app.users.delete') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>{{ __('Are you sure you want to delete this user?') }}</p>
+                <p>{{ __('app.users.confirm_delete') }}</p>
                 <p class="text-danger">
-                    <strong>{{ __('Warning:') }}</strong>
-                    {{ __('This action cannot be undone.') }}
+                    <strong>{{ __('app.warning') }}:</strong>
+                    {{ __('app.users.delete_warning') }}
                 </p>
-                <p><strong>{{ __('User:') }}</strong> {{ $user->name }}</p>
+                <p><strong>{{ __('app.user_label') }}:</strong> {{ $user->name }}</p>
                 @if($user->managedProjects->count() > 0 || $user->assignedTasks->count() > 0 || $user->timeEntries->count() > 0)
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-2"></i>
-                        {{ __('This user has associated data that will prevent deletion:') }}
+                        {{ __('app.users.delete_has_data') }}
                         <ul class="mb-0 mt-2">
                             @if($user->managedProjects->count() > 0)
-                                <li>{{ __(':count managed projects', ['count' => $user->managedProjects->count()]) }}</li>
+                                <li>{{ __('app.users.count_managed_projects', ['count' => $user->managedProjects->count()]) }}</li>
                             @endif
                             @if($user->assignedTasks->count() > 0)
-                                <li>{{ __(':count assigned tasks', ['count' => $user->assignedTasks->count()]) }}</li>
+                                <li>{{ __('app.users.count_assigned_tasks', ['count' => $user->assignedTasks->count()]) }}</li>
                             @endif
                             @if($user->timeEntries->count() > 0)
-                                <li>{{ __(':count time entries', ['count' => $user->timeEntries->count()]) }}</li>
+                                <li>{{ __('app.users.count_time_entries', ['count' => $user->timeEntries->count()]) }}</li>
                             @endif
                         </ul>
                     </div>
                 @endif
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
                 <form method="POST" action="{{ route('users.destroy', $user) }}" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger">{{ __('Delete User') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ __('app.users.delete') }}</button>
                 </form>
             </div>
         </div>
@@ -225,49 +225,90 @@
 <script>
 const roleDescriptions = {
     'admin': {
-        title: 'Administrator',
-        description: 'Full system access. Can manage all users, projects, and system settings.',
-        permissions: ['Manage all users', 'Manage all projects', 'View all reports', 'System configuration']
+        title: '{{ __("app.users.admin") }}',
+        description: '{{ __("app.users.admin_desc") }}',
+        permissions: [
+            '{{ __("app.users.admin_perm1") }}',
+            '{{ __("app.users.admin_perm2") }}',
+            '{{ __("app.users.admin_perm3") }}',
+            '{{ __("app.users.admin_perm4") }}'
+        ]
     },
     'manager': {
-        title: 'Project Manager',
-        description: 'Can manage projects and teams. Has access to reports and project oversight.',
-        permissions: ['Create/manage projects', 'Assign tasks', 'View reports', 'Manage team members']
+        title: '{{ __("app.users.manager") }}',
+        description: '{{ __("app.users.manager_desc") }}',
+        permissions: [
+            '{{ __("app.users.manager_perm1") }}',
+            '{{ __("app.users.manager_perm2") }}',
+            '{{ __("app.users.manager_perm3") }}',
+            '{{ __("app.users.manager_perm4") }}'
+        ]
     },
     'developer': {
-        title: 'Developer',
-        description: 'Technical team member who works on development tasks.',
-        permissions: ['Work on assigned tasks', 'Log time entries', 'Comment on tasks', 'View project details']
+        title: '{{ __("app.users.developer") }}',
+        description: '{{ __("app.users.developer_desc") }}',
+        permissions: [
+            '{{ __("app.users.developer_perm1") }}',
+            '{{ __("app.users.developer_perm2") }}',
+            '{{ __("app.users.developer_perm3") }}',
+            '{{ __("app.users.developer_perm4") }}'
+        ]
     },
     'designer': {
-        title: 'Designer',
-        description: 'Creative team member who works on design-related tasks.',
-        permissions: ['Work on design tasks', 'Log time entries', 'Comment on tasks', 'View project details']
+        title: '{{ __("app.users.designer") }}',
+        description: '{{ __("app.users.designer_desc") }}',
+        permissions: [
+            '{{ __("app.users.designer_perm1") }}',
+            '{{ __("app.users.designer_perm2") }}',
+            '{{ __("app.users.designer_perm3") }}',
+            '{{ __("app.users.designer_perm4") }}'
+        ]
     },
     'tester': {
-        title: 'QA Tester',
-        description: 'Quality assurance team member who tests and validates work.',
-        permissions: ['Work on testing tasks', 'Log time entries', 'Report bugs', 'View project details']
+        title: '{{ __("app.users.tester") }}',
+        description: '{{ __("app.users.tester_desc") }}',
+        permissions: [
+            '{{ __("app.users.tester_perm1") }}',
+            '{{ __("app.users.tester_perm2") }}',
+            '{{ __("app.users.tester_perm3") }}',
+            '{{ __("app.users.tester_perm4") }}'
+        ]
     },
     'hr': {
-        title: 'Human Resources',
-        description: 'HR team member with access to user management and reports.',
-        permissions: ['View user reports', 'Access HR features', 'Limited project visibility']
+        title: '{{ __("app.users.hr") }}',
+        description: '{{ __("app.users.hr_desc") }}',
+        permissions: [
+            '{{ __("app.users.hr_perm1") }}',
+            '{{ __("app.users.hr_perm2") }}',
+            '{{ __("app.users.hr_perm3") }}'
+        ]
     },
     'accountant': {
-        title: 'Accountant',
-        description: 'Financial team member with access to time tracking and billing reports.',
-        permissions: ['View time reports', 'Access billing information', 'Financial reports']
+        title: '{{ __("app.users.accountant") }}',
+        description: '{{ __("app.users.accountant_desc") }}',
+        permissions: [
+            '{{ __("app.users.accountant_perm1") }}',
+            '{{ __("app.users.accountant_perm2") }}',
+            '{{ __("app.users.accountant_perm3") }}'
+        ]
     },
     'client': {
-        title: 'Client',
-        description: 'External client with limited access to view project progress.',
-        permissions: ['View assigned projects', 'View progress reports', 'Limited task visibility']
+        title: '{{ __("app.users.client") }}',
+        description: '{{ __("app.users.client_desc") }}',
+        permissions: [
+            '{{ __("app.users.client_perm1") }}',
+            '{{ __("app.users.client_perm2") }}',
+            '{{ __("app.users.client_perm3") }}'
+        ]
     },
     'member': {
-        title: 'Member',
-        description: 'General team member with basic access.',
-        permissions: ['Work on assigned tasks', 'Log time entries', 'Basic project access']
+        title: '{{ __("app.users.member") }}',
+        description: '{{ __("app.users.member_desc") }}',
+        permissions: [
+            '{{ __("app.users.member_perm1") }}',
+            '{{ __("app.users.member_perm2") }}',
+            '{{ __("app.users.member_perm3") }}'
+        ]
     }
 };
 
@@ -282,7 +323,7 @@ function updateRoleInfo() {
         infoDiv.innerHTML = `
             <h6 class="text-primary">${role.title}</h6>
             <p class="small">${role.description}</p>
-            <h6 class="mt-3">{{ __('Permissions') }}</h6>
+            <h6 class="mt-3">{{ __('app.users.permissions') }}</h6>
             <ul class="small text-muted">
                 ${permissionsList}
             </ul>
