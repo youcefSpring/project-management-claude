@@ -1,27 +1,27 @@
-<?php $__env->startSection('title', __('app.profile.title')); ?>
-<?php $__env->startSection('page-title', __('app.profile.title')); ?>
+<?php $__env->startSection('title', __('app.profile_settings.title')); ?>
+<?php $__env->startSection('page-title', __('app.profile_settings.title')); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0"><?php echo e(__('app.profile.profile_information')); ?></h5>
+                <h5 class="mb-0"><?php echo e(__('app.profile_settings.profile_information')); ?></h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <strong><?php echo e(__('app.profile.name')); ?>:</strong>
+                        <strong><?php echo e(__('app.profile_settings.name')); ?>:</strong>
                         <p><?php echo e(auth()->user()->name); ?></p>
                     </div>
                     <div class="col-md-6">
-                        <strong><?php echo e(__('app.profile.email')); ?>:</strong>
+                        <strong><?php echo e(__('app.profile_settings.email')); ?>:</strong>
                         <p><?php echo e(auth()->user()->email); ?></p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <strong><?php echo e(__('app.profile.role')); ?>:</strong>
+                        <strong><?php echo e(__('app.profile_settings.role')); ?>:</strong>
                         <p>
                             <span class="badge bg-<?php echo e(auth()->user()->role === 'admin' ? 'danger' : (auth()->user()->role === 'manager' ? 'warning' : 'info')); ?>">
                                 <?php switch(auth()->user()->role):
@@ -41,14 +41,14 @@
                         </p>
                     </div>
                     <div class="col-md-6">
-                        <strong><?php echo e(__('Member Since')); ?>:</strong>
+                        <strong><?php echo e(__('app.profile_settings.member_since')); ?>:</strong>
                         <p><?php echo e(auth()->user()->created_at->format('M d, Y')); ?></p>
                     </div>
                 </div>
                 <div class="mt-3">
                     <a href="<?php echo e(route('profile.settings')); ?>" class="btn btn-primary">
                         <i class="bi bi-gear me-2"></i>
-                        <?php echo e(__('Edit Profile')); ?>
+                        <?php echo e(__('app.profile_settings.edit_profile')); ?>
 
                     </a>
                 </div>
@@ -115,29 +115,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const user = <?php echo json_encode(auth()->user(), 15, 512) ?>;
 
     // Get last 7 days for weekly chart
-    const last7Days = <?php echo json_encode(array_map(function($i) {
-        return now()->subDays(6-$i)->format('M d');
-    }, range(0, 6))) ?>;
+    <?php
+        $last7Days = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $last7Days[] = now()->subDays($i)->format('M d');
+        }
 
-    // Get time entries for last 7 days
-    const weeklyHours = <?php echo json_encode(
-        auth()->user()->timeEntries()
+        // Get time entries for last 7 days
+        $weeklyTimeEntries = auth()->user()->timeEntries()
             ->where('start_time', '>=', now()->subDays(7))
             ->get()
             ->groupBy(function($entry) {
                 return $entry->start_time->format('Y-m-d');
-            })
-            ->map(function($entries) {
-                return $entries->sum('duration_hours');
-            })
-            ->values()
-            ->toArray()) ?> || [0, 0, 0, 0, 0, 0, 0];
+            });
+
+        $weeklyHours = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $dayHours = isset($weeklyTimeEntries[$date])
+                ? $weeklyTimeEntries[$date]->sum('duration_hours')
+                : 0;
+            $weeklyHours[] = $dayHours;
+        }
+    ?>
+
+    const last7Days = <?php echo json_encode($last7Days, 15, 512) ?>;
+    const weeklyHours = <?php echo json_encode($weeklyHours, 15, 512) ?>;
 
     // Task completion data
+    <?php
+        $user = auth()->user();
+        $completedTasks = $user->assignedTasks()->where('status', 'completed')->count();
+        $inProgressTasks = $user->assignedTasks()->where('status', 'in_progress')->count();
+        $pendingTasks = $user->assignedTasks()->where('status', 'pending')->count();
+    ?>
+
     const taskData = [
-        <?php echo e(auth()->user()->assignedTasks()->where('status', 'completed')->count()); ?>,
-        <?php echo e(auth()->user()->assignedTasks()->where('status', 'in_progress')->count()); ?>,
-        <?php echo e(auth()->user()->assignedTasks()->where('status', 'pending')->count()); ?>
+        <?php echo e($completedTasks); ?>,
+        <?php echo e($inProgressTasks); ?>,
+        <?php echo e($pendingTasks); ?>
 
     ];
 
@@ -245,4 +261,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/profile/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/profile/index.blade.php ENDPATH**/ ?>

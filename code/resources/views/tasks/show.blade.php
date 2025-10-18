@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', $task->title)
 @section('page-title', $task->title)
@@ -23,13 +23,25 @@
                     <div class="col-md-6">
                         <h6>{{ __('app.status') }}</h6>
                         <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
-                            {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                            @switch($task->status)
+                                @case('pending') {{ __('app.tasks.pending') }} @break
+                                @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                                @case('completed') {{ __('app.tasks.completed') }} @break
+                                @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                                @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                            @endswitch
                         </span>
                     </div>
                     <div class="col-md-6">
                         <h6>{{ __('app.tasks.priority') }}</h6>
                         <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
-                            {{ ucfirst($task->priority) }}
+                            @switch($task->priority)
+                                @case('low') {{ __('app.tasks.low') }} @break
+                                @case('medium') {{ __('app.tasks.medium') }} @break
+                                @case('high') {{ __('app.tasks.high') }} @break
+                                @case('urgent') {{ __('app.tasks.urgent') }} @break
+                                @default {{ ucfirst($task->priority) }}
+                            @endswitch
                         </span>
                     </div>
                 </div>
@@ -57,7 +69,7 @@
                                 <i class="bi bi-person-circle me-1"></i>
                                 {{ $task->assignedUser->name }}
                             @else
-                                <span class="text-muted">{{ __('Unassigned') }}</span>
+                                <span class="text-muted">{{ __('app.unassigned') }}</span>
                             @endif
                         </p>
                     </div>
@@ -65,7 +77,7 @@
 
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h6>{{ __('app.date') }}</h6>
+                        <h6>{{ __('app.tasks.created') }}</h6>
                         <p class="text-muted">{{ $task->created_at->format('M d, Y \a\t H:i') }}</p>
                     </div>
                     <div class="col-md-6">
@@ -80,81 +92,184 @@
                                     <span class="badge bg-danger ms-2">{{ __('app.tasks.overdue') }}</span>
                                 @endif
                             @else
-                                {{ __('No due date') }}
+                                {{ __('app.tasks.no_due_date') }}
                             @endif
                         </p>
                     </div>
                 </div>
 
-                @if($task->status !== 'completed' && $task->assignedUser === auth()->user())
+                <!-- Quick Actions -->
                 <div class="mt-4">
-                    <h6>{{ __('Quick Actions') }}</h6>
-                    <div class="d-flex gap-2">
-                        @if($task->status === 'pending')
-                            <form method="POST" action="{{ route('tasks.update', $task) }}" style="display: inline;">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="status" value="in_progress">
-                                <input type="hidden" name="title" value="{{ $task->title }}">
-                                <input type="hidden" name="project_id" value="{{ $task->project_id }}">
-                                <input type="hidden" name="priority" value="{{ $task->priority }}">
-                                <button type="submit" class="btn btn-sm btn-warning">
+                    <h6>{{ __('app.tasks.quick_actions') }}</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        @can('update', $task)
+                            @if($task->status === 'pending')
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#startTaskModal">
                                     <i class="bi bi-play me-1"></i>
-                                    {{ __('app.time.start_timer') }}
+                                    {{ __('app.tasks.start_task') }}
                                 </button>
-                            </form>
-                        @endif
+                            @endif
 
-                        @if($task->status === 'in_progress')
-                            <form method="POST" action="{{ route('tasks.update', $task) }}" style="display: inline;">
-                                @csrf
-                                @method('PUT')
-                                <input type="hidden" name="status" value="completed">
-                                <input type="hidden" name="title" value="{{ $task->title }}">
-                                <input type="hidden" name="project_id" value="{{ $task->project_id }}">
-                                <input type="hidden" name="priority" value="{{ $task->priority }}">
-                                <button type="submit" class="btn btn-sm btn-success">
+                            @if($task->status === 'in_progress')
+                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeTaskModal">
                                     <i class="bi bi-check-circle me-1"></i>
-                                    {{ __('app.tasks.completed') }}
+                                    {{ __('app.tasks.mark_complete') }}
                                 </button>
-                            </form>
+                            @endif
+
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#changePriorityModal">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                {{ __('app.tasks.change_priority') }}
+                            </button>
+
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
+                                <i class="bi bi-arrow-repeat me-1"></i>
+                                {{ __('app.tasks.change_status') }}
+                            </button>
+                        @endcan
+
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                            <i class="bi bi-chat-plus me-1"></i>
+                            {{ __('app.tasks.add_comment') }}
+                        </button>
+
+                        @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#addInterventionModal">
+                                <i class="bi bi-megaphone me-1"></i>
+                                {{ __('app.tasks.add_intervention') }}
+                            </button>
                         @endif
                     </div>
                 </div>
-                @endif
             </div>
         </div>
 
-        <!-- Comments/Notes -->
+        <!-- Task Interventions & Comments -->
         <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">{{ __('Comments') }}</h5>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-text me-2"></i>
+                    {{ __('app.tasks.interventions_comments') }}
+                </h5>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="noteFilter" id="filterAll" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="filterAll">{{ __('app.all') }}</label>
+
+                    <input type="radio" class="btn-check" name="noteFilter" id="filterComments" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="filterComments">{{ __('app.notes.comments') }}</label>
+
+                    <input type="radio" class="btn-check" name="noteFilter" id="filterStatus" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="filterStatus">{{ __('app.notes.status_changes') }}</label>
+
+                    @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                        <input type="radio" class="btn-check" name="noteFilter" id="filterInternal" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="filterInternal">{{ __('app.notes.internal') }}</label>
+                    @endif
+                </div>
             </div>
             <div class="card-body">
                 @if($task->notes && $task->notes->count() > 0)
-                    <div class="mb-4">
+                    <div id="notesList" class="mb-4">
                         @foreach($task->notes as $note)
-                            <div class="border rounded p-3 mb-3">
+                            <div class="note-item border rounded p-3 mb-3"
+                                 data-type="{{ $note->type }}"
+                                 data-internal="{{ $note->is_internal ? 'true' : 'false' }}">
+
+                                <!-- Note Header -->
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
                                         <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-person-circle me-2 text-muted"></i>
-                                            <strong>{{ $note->user->name }}</strong>
+                                            <i class="bi {{ $note->icon ?? 'bi-chat-text' }} me-2 text-{{ $note->type === 'intervention' ? 'warning' : 'muted' }}"></i>
+                                            <strong class="{{ $note->user->isAdmin() ? 'text-danger' : ($note->user->isManager() ? 'text-warning' : '') }}">
+                                                {{ $note->user->name }}
+                                                @if($note->user->isAdmin())
+                                                    <span class="badge bg-danger ms-1">{{ __('app.roles.admin') }}</span>
+                                                @elseif($note->user->isManager())
+                                                    <span class="badge bg-warning ms-1">{{ __('app.roles.manager') }}</span>
+                                                @endif
+                                            </strong>
                                             <small class="text-muted ms-2">{{ $note->created_at->diffForHumans() }}</small>
+                                            @if($note->is_internal ?? false)
+                                                <span class="badge bg-secondary ms-2">
+                                                    <i class="bi bi-eye-slash me-1"></i>{{ __('app.notes.internal') }}
+                                                </span>
+                                            @endif
+                                            <span class="badge bg-light text-dark ms-2">
+                                                @switch($note->type ?? 'comment')
+                                                    @case('comment') {{ __('app.notes.comment') }} @break
+                                                    @case('status_change') {{ __('app.notes.status_change') }} @break
+                                                    @case('intervention') {{ __('app.notes.intervention') }} @break
+                                                    @case('attachment') {{ __('app.notes.attachment') }} @break
+                                                    @default {{ ucfirst($note->type ?? 'comment') }}
+                                                @endswitch
+                                            </span>
                                         </div>
+
+                                        <!-- Note Content -->
                                         <div id="note-content-{{ $note->id }}">
-                                            <p class="mb-0">{!! nl2br(e($note->content)) !!}</p>
+                                            @if($note->content)
+                                                <div class="note-content mb-2">
+                                                    {!! nl2br(e($note->content)) !!}
+                                                </div>
+                                            @endif
+
+                                            <!-- Attachments -->
+                                            @if($note->hasAttachments && $note->hasAttachments())
+                                                <div class="note-attachments mt-2">
+                                                    <div class="row g-2">
+                                                        @foreach($note->image_attachments as $attachment)
+                                                            <div class="col-md-3">
+                                                                <div class="attachment-item">
+                                                                    <a href="{{ $attachment['versions']['original']['url'] ?? '#' }}"
+                                                                       target="_blank"
+                                                                       data-bs-toggle="modal"
+                                                                       data-bs-target="#imageModal{{ $loop->parent->index }}_{{ $loop->index }}">
+                                                                        <img src="{{ $attachment['versions']['thumbnail']['url'] ?? '#' }}"
+                                                                             class="img-thumbnail w-100"
+                                                                             style="height: 80px; object-fit: cover;"
+                                                                             alt="{{ $attachment['original_name'] ?? 'Attachment' }}">
+                                                                    </a>
+                                                                    <small class="text-muted d-block mt-1">
+                                                                        {{ $attachment['original_name'] ?? 'Image' }}
+                                                                    </small>
+                                                                </div>
+
+                                                                <!-- Image Modal -->
+                                                                <div class="modal fade" id="imageModal{{ $loop->parent->index }}_{{ $loop->index }}" tabindex="-1">
+                                                                    <div class="modal-dialog modal-lg">
+                                                                        <div class="modal-content">
+                                                                            <div class="modal-header">
+                                                                                <h5 class="modal-title">{{ $attachment['original_name'] ?? 'Image' }}</h5>
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                            </div>
+                                                                            <div class="modal-body text-center">
+                                                                                <img src="{{ $attachment['versions']['large']['url'] ?? $attachment['versions']['original']['url'] }}"
+                                                                                     class="img-fluid"
+                                                                                     alt="{{ $attachment['original_name'] ?? 'Attachment' }}">
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
+
+                                        <!-- Edit Form (Hidden by default) -->
                                         <div id="note-edit-form-{{ $note->id }}" style="display: none;">
                                             <form method="POST" action="{{ route('tasks.notes.update', $note) }}">
                                                 @csrf
                                                 @method('PUT')
-                                                <textarea class="form-control mb-2" name="content" rows="3" required>{{ $note->content }}</textarea>
+                                                <textarea class="form-control mb-2" name="content" rows="3">{{ $note->content }}</textarea>
                                                 <button type="submit" class="btn btn-sm btn-primary">{{ __('app.update') }}</button>
                                                 <button type="button" class="btn btn-sm btn-secondary ms-1" onclick="toggleEdit({{ $note->id }})">{{ __('app.cancel') }}</button>
                                             </form>
                                         </div>
                                     </div>
+
+                                    <!-- Note Actions -->
                                     <div class="ms-3">
                                         @if($note->canBeEditedBy(auth()->user()))
                                             <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="toggleEdit({{ $note->id }})">
@@ -162,7 +277,7 @@
                                             </button>
                                         @endif
                                         @if($note->canBeDeletedBy(auth()->user()))
-                                            <form method="POST" action="{{ route('tasks.notes.destroy', $note) }}" style="display: inline;" onsubmit="return confirm('{{ __("app.messages.confirm_delete") }}')">
+                                            <form method="POST" action="{{ route('tasks.notes.destroy', $note) }}" style="display: inline;" onsubmit="return confirm('{{ __('app.messages.confirm_delete') }}')">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -175,26 +290,83 @@
                             </div>
                         @endforeach
                     </div>
+                @else
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-text fs-1 mb-3"></i>
+                        <p>{{ __('app.notes.no_comments_yet') }}</p>
+                    </div>
                 @endif
 
-                <!-- Add new comment form -->
+                <!-- Add New Comment/Intervention Form -->
                 @if($task->canBeViewedBy(auth()->user()))
-                    <form method="POST" action="{{ route('tasks.notes.store', $task) }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="content" class="form-label">{{ __('app.comments.add_comment') }}</label>
-                            <textarea class="form-control @error('content') is-invalid @enderror"
-                                      id="content" name="content" rows="3"
-                                      placeholder="{{ __('Write your comment here...') }}" required>{{ old('content') }}</textarea>
-                            @error('content')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <form method="POST" action="{{ route('tasks.notes.store', $task) }}" enctype="multipart/form-data" id="commentForm">
+                                @csrf
+
+                                <!-- Comment Type Selection -->
+                                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">{{ __('app.notes.type') }}</label>
+                                            <select class="form-select" name="type" id="noteType">
+                                                <option value="comment">{{ __('app.notes.comment') }}</option>
+                                                <option value="intervention">{{ __('app.notes.intervention') }}</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" name="is_internal" id="isInternal">
+                                                <label class="form-check-label" for="isInternal">
+                                                    <i class="bi bi-eye-slash me-1"></i>
+                                                    {{ __('app.notes.internal_note') }}
+                                                    <small class="text-muted d-block">{{ __('app.notes.internal_note_help') }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Comment Content -->
+                                <div class="mb-3">
+                                    <label for="content" class="form-label">
+                                        <span id="contentLabel">{{ __('app.comments.add_comment') }}</span>
+                                    </label>
+                                    <textarea class="form-control @error('content') is-invalid @enderror"
+                                              id="content" name="content" rows="3"
+                                              placeholder="{{ __('app.notes.write_comment_placeholder') }}">{{ old('content') }}</textarea>
+                                    @error('content')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <!-- Photo Attachments -->
+                                <div class="mb-3">
+                                    <label for="attachments" class="form-label">
+                                        <i class="bi bi-camera me-1"></i>
+                                        {{ __('app.notes.attach_photos') }}
+                                    </label>
+                                    <input type="file" class="form-control" id="attachments" name="attachments[]"
+                                           multiple accept="image/*" onchange="previewImages(this)">
+                                    <small class="text-muted">{{ __('app.notes.photo_help') }}</small>
+
+                                    <!-- Image Preview -->
+                                    <div id="imagePreview" class="mt-2"></div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send me-1"></i>
+                                        <span id="submitText">{{ __('app.comments.add_comment') }}</span>
+                                    </button>
+                                    <small class="text-muted">
+                                        {{ __('app.notes.stakeholders_notified') }}
+                                    </small>
+                                </div>
+                            </form>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-chat-left-text me-1"></i>
-                            {{ __('app.comments.add_comment') }}
-                        </button>
-                    </form>
+                    </div>
                 @endif
             </div>
         </div>
@@ -289,34 +461,108 @@
             </div>
         </div>
 
+        <!-- Task Details Card -->
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Task Statistics') }}</h5>
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>{{ __('app.tasks.task_details') }}
+                </h5>
             </div>
             <div class="card-body">
-                <div class="mb-2">
-                    <strong>{{ __('app.time.total_time') }}:</strong>
-                    <span class="float-end">{{ number_format($task->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
-                </div>
-                <div class="mb-2">
-                    <strong>{{ __('app.date') }}:</strong>
-                    <span class="float-end">{{ $task->created_at->diffForHumans() }}</span>
-                </div>
-                @if($task->due_date)
-                @php
-                    $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
-                @endphp
-                <div class="mb-2">
-                    <strong>{{ __('Time Remaining') }}:</strong>
-                    <span class="float-end">
-                        @if($dueDate->isFuture())
-                            {{ $dueDate->diffForHumans() }}
-                        @else
-                            <span class="text-danger">{{ __('app.tasks.overdue') }}</span>
-                        @endif
+                <!-- Status -->
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded" style="background-color: rgba(0,123,255,0.1);">
+                    <span class="fw-bold">{{ __('app.status') }}</span>
+                    <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
+                        @switch($task->status)
+                            @case('pending') {{ __('app.tasks.pending') }} @break
+                            @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                            @case('completed') {{ __('app.tasks.completed') }} @break
+                            @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                            @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                        @endswitch
                     </span>
                 </div>
+
+                <!-- Priority -->
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded" style="background-color: rgba(255,193,7,0.1);">
+                    <span class="fw-bold">{{ __('app.tasks.priority') }}</span>
+                    <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
+                        @switch($task->priority)
+                            @case('low') {{ __('app.tasks.low') }} @break
+                            @case('medium') {{ __('app.tasks.medium') }} @break
+                            @case('high') {{ __('app.tasks.high') }} @break
+                            @case('urgent') {{ __('app.tasks.urgent') }} @break
+                            @default {{ ucfirst($task->priority) }}
+                        @endswitch
+                    </span>
+                </div>
+
+                <!-- Assigned To -->
+                <div class="mb-3 p-2 rounded" style="background-color: rgba(40,167,69,0.1);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ __('app.tasks.assigned_to') }}</span>
+                        <div class="text-end">
+                            @if($task->assignedUser)
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                         style="width: 24px; height: 24px; font-size: 0.8rem;">
+                                        {{ substr($task->assignedUser->name, 0, 1) }}
+                                    </div>
+                                    <span class="fw-bold">{{ $task->assignedUser->name }}</span>
+                                </div>
+                            @else
+                                <span class="text-muted">{{ __('app.unassigned') }}</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Due Date -->
+                @if($task->due_date)
+                    @php
+                        $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                        $isOverdue = $dueDate->isPast() && $task->status !== 'completed';
+                        $isDueToday = $dueDate->isToday();
+                    @endphp
+                    <div class="mb-3 p-2 rounded" style="background-color: rgba({{ $isOverdue ? '220,53,69' : ($isDueToday ? '255,193,7' : '108,117,125') }},0.1);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">{{ __('app.tasks.due_date') }}</span>
+                            <div class="text-end">
+                                <div class="fw-bold {{ $isOverdue ? 'text-danger' : ($isDueToday ? 'text-warning' : '') }}">
+                                    {{ $dueDate->format('M d, Y') }}
+                                </div>
+                                <small class="text-muted">{{ $dueDate->diffForHumans() }}</small>
+                                @if($isOverdue)
+                                    <br><span class="badge bg-danger">{{ __('app.tasks.overdue') }}</span>
+                                @elseif($isDueToday)
+                                    <br><span class="badge bg-warning">{{ __('app.tasks.due_today') }}</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 @endif
+
+                <!-- Time Statistics -->
+                <div class="mb-3 p-2 rounded" style="background-color: rgba(102,16,242,0.1);">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">{{ __('app.time.total_time') }}</span>
+                        <span class="badge bg-info fs-6">{{ number_format($task->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ __('app.tasks.created') }}</span>
+                        <small class="text-muted">{{ $task->created_at->diffForHumans() }}</small>
+                    </div>
+                </div>
+
+                <!-- Project Info -->
+                <div class="p-2 rounded" style="background-color: rgba(25,135,84,0.1);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ __('app.tasks.project') }}</span>
+                        <a href="{{ route('projects.show', $task->project) }}" class="btn btn-sm btn-outline-success text-decoration-none">
+                            <i class="bi bi-folder me-1"></i>{{ Str::limit($task->project->title, 15) }}
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -352,7 +598,348 @@
 </div>
 @endcan
 
+<!-- Quick Action Modals -->
+
+<!-- Start Task Modal -->
+<div class="modal fade" id="startTaskModal" tabindex="-1" aria-labelledby="startTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="startTaskModalLabel">
+                    <i class="bi bi-play-circle me-2"></i>{{ __('app.tasks.start_task') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ __('app.tasks.confirm_start_task') }}</p>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    {{ __('app.tasks.start_task_help') }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                <form method="POST" action="{{ route('tasks.update', $task) }}" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="status" value="in_progress">
+                    <input type="hidden" name="title" value="{{ $task->title }}">
+                    <input type="hidden" name="project_id" value="{{ $task->project_id }}">
+                    <input type="hidden" name="priority" value="{{ $task->priority }}">
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-play me-1"></i>{{ __('app.tasks.start_task') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Complete Task Modal -->
+<div class="modal fade" id="completeTaskModal" tabindex="-1" aria-labelledby="completeTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="completeTaskModalLabel">
+                    <i class="bi bi-check-circle me-2"></i>{{ __('app.tasks.mark_complete') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ __('app.tasks.confirm_complete_task') }}</p>
+                <div class="mb-3">
+                    <label for="completionNote" class="form-label">{{ __('app.tasks.completion_note') }} ({{ __('app.optional') }})</label>
+                    <textarea class="form-control" id="completionNote" name="completion_note" rows="3"
+                              placeholder="{{ __('app.tasks.completion_note_placeholder') }}"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                <form method="POST" action="{{ route('tasks.update', $task) }}" style="display: inline;">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="status" value="completed">
+                    <input type="hidden" name="title" value="{{ $task->title }}">
+                    <input type="hidden" name="project_id" value="{{ $task->project_id }}">
+                    <input type="hidden" name="priority" value="{{ $task->priority }}">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>{{ __('app.tasks.mark_complete') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Priority Modal -->
+<div class="modal fade" id="changePriorityModal" tabindex="-1" aria-labelledby="changePriorityModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changePriorityModalLabel">
+                    <i class="bi bi-exclamation-circle me-2"></i>{{ __('app.tasks.change_priority') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('tasks.update', $task) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <input type="hidden" name="title" value="{{ $task->title }}">
+                    <input type="hidden" name="project_id" value="{{ $task->project_id }}">
+                    <input type="hidden" name="status" value="{{ $task->status }}">
+
+                    <div class="mb-3">
+                        <label for="priority" class="form-label">{{ __('app.tasks.priority') }}</label>
+                        <select class="form-select" id="priority" name="priority" required>
+                            <option value="low" {{ $task->priority === 'low' ? 'selected' : '' }}>
+                                <span class="badge bg-secondary">{{ __('app.tasks.low') }}</span>
+                            </option>
+                            <option value="medium" {{ $task->priority === 'medium' ? 'selected' : '' }}>
+                                {{ __('app.tasks.medium') }}
+                            </option>
+                            <option value="high" {{ $task->priority === 'high' ? 'selected' : '' }}>
+                                {{ __('app.tasks.high') }}
+                            </option>
+                            <option value="urgent" {{ $task->priority === 'urgent' ? 'selected' : '' }}>
+                                {{ __('app.tasks.urgent') }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="priorityReason" class="form-label">{{ __('app.tasks.priority_change_reason') }} ({{ __('app.optional') }})</label>
+                        <textarea class="form-control" id="priorityReason" name="priority_reason" rows="2"
+                                  placeholder="{{ __('app.tasks.priority_change_reason_placeholder') }}"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ __('app.tasks.update_priority') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Change Status Modal -->
+<div class="modal fade" id="changeStatusModal" tabindex="-1" aria-labelledby="changeStatusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="changeStatusModalLabel">
+                    <i class="bi bi-arrow-repeat me-2"></i>{{ __('app.tasks.change_status') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('tasks.update', $task) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <input type="hidden" name="title" value="{{ $task->title }}">
+                    <input type="hidden" name="project_id" value="{{ $task->project_id }}">
+                    <input type="hidden" name="priority" value="{{ $task->priority }}">
+
+                    <div class="mb-3">
+                        <label for="status" class="form-label">{{ __('app.status') }}</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="pending" {{ $task->status === 'pending' ? 'selected' : '' }}>
+                                {{ __('app.tasks.pending') }}
+                            </option>
+                            <option value="in_progress" {{ $task->status === 'in_progress' ? 'selected' : '' }}>
+                                {{ __('app.tasks.in_progress') }}
+                            </option>
+                            <option value="completed" {{ $task->status === 'completed' ? 'selected' : '' }}>
+                                {{ __('app.tasks.completed') }}
+                            </option>
+                            <option value="cancelled" {{ $task->status === 'cancelled' ? 'selected' : '' }}>
+                                {{ __('app.tasks.cancelled') }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="statusReason" class="form-label">{{ __('app.tasks.status_change_reason') }} ({{ __('app.optional') }})</label>
+                        <textarea class="form-control" id="statusReason" name="status_reason" rows="2"
+                                  placeholder="{{ __('app.tasks.status_change_reason_placeholder') }}"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ __('app.tasks.update_status') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Comment Modal -->
+<div class="modal fade" id="addCommentModal" tabindex="-1" aria-labelledby="addCommentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCommentModalLabel">
+                    <i class="bi bi-chat-plus me-2"></i>{{ __('app.tasks.add_comment') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('tasks.notes.store', $task) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="task_id" value="{{ $task->id }}">
+                    <input type="hidden" name="type" value="comment">
+
+                    <div class="mb-3">
+                        <label for="commentContent" class="form-label">{{ __('app.tasks.comment') }}</label>
+                        <textarea class="form-control" id="commentContent" name="content" rows="4" required
+                                  placeholder="{{ __('app.tasks.comment_placeholder') }}"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="commentAttachments" class="form-label">{{ __('app.tasks.attach_files') }}</label>
+                        <input type="file" class="form-control" id="commentAttachments" name="attachments[]" multiple
+                               accept="image/*">
+                        <div class="form-text">{{ __('app.tasks.attach_files_help') }}</div>
+                        <div id="commentPreview" class="mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-chat-plus me-1"></i>{{ __('app.tasks.post_comment') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Intervention Modal -->
+@if(auth()->user()->isAdmin() || auth()->user()->isManager())
+<div class="modal fade" id="addInterventionModal" tabindex="-1" aria-labelledby="addInterventionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addInterventionModalLabel">
+                    <i class="bi bi-megaphone me-2"></i>{{ __('app.tasks.add_intervention') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('tasks.notes.store', $task) }}" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" name="task_id" value="{{ $task->id }}">
+                    <input type="hidden" name="type" value="intervention">
+
+                    <div class="mb-3">
+                        <label for="interventionContent" class="form-label">{{ __('app.tasks.intervention') }}</label>
+                        <textarea class="form-control" id="interventionContent" name="content" rows="4" required
+                                  placeholder="{{ __('app.tasks.intervention_placeholder') }}"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isInternal" name="is_internal" value="1">
+                            <label class="form-check-label" for="isInternal">
+                                {{ __('app.tasks.internal_note') }}
+                            </label>
+                            <div class="form-text">{{ __('app.tasks.internal_note_help') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="interventionAttachments" class="form-label">{{ __('app.tasks.attach_files') }}</label>
+                        <input type="file" class="form-control" id="interventionAttachments" name="attachments[]" multiple
+                               accept="image/*">
+                        <div class="form-text">{{ __('app.tasks.attach_files_help') }}</div>
+                        <div id="interventionPreview" class="mt-2"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-megaphone me-1"></i>{{ __('app.tasks.post_intervention') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
+@push('scripts')
 <script>
+// Modal file preview functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle file preview for comment modal
+    const commentAttachments = document.getElementById('commentAttachments');
+    if (commentAttachments) {
+        commentAttachments.addEventListener('change', function() {
+            handleFilePreview(this, 'commentPreview');
+        });
+    }
+
+    // Handle file preview for intervention modal
+    const interventionAttachments = document.getElementById('interventionAttachments');
+    if (interventionAttachments) {
+        interventionAttachments.addEventListener('change', function() {
+            handleFilePreview(this, 'interventionPreview');
+        });
+    }
+});
+
+function handleFilePreview(input, previewId) {
+    const previewContainer = document.getElementById(previewId);
+    previewContainer.innerHTML = '';
+
+    if (input.files && input.files.length > 0) {
+        Array.from(input.files).forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'position-relative d-inline-block me-2 mb-2';
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '100px';
+                    img.style.height = '100px';
+                    img.style.objectFit = 'cover';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-danger btn-sm position-absolute top-0 end-0 rounded-circle p-1';
+                    removeBtn.style.width = '20px';
+                    removeBtn.style.height = '20px';
+                    removeBtn.style.fontSize = '10px';
+                    removeBtn.style.transform = 'translate(50%, -50%)';
+                    removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+                    removeBtn.onclick = function() {
+                        imageContainer.remove();
+                        // Remove file from input
+                        const dt = new DataTransfer();
+                        Array.from(input.files).forEach((f, i) => {
+                            if (i !== index) dt.items.add(f);
+                        });
+                        input.files = dt.files;
+                    };
+
+                    imageContainer.appendChild(img);
+                    imageContainer.appendChild(removeBtn);
+                    previewContainer.appendChild(imageContainer);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+// Note editing functionality
 function toggleEdit(noteId) {
     const contentDiv = document.getElementById('note-content-' + noteId);
     const editForm = document.getElementById('note-edit-form-' + noteId);
@@ -365,6 +952,134 @@ function toggleEdit(noteId) {
         editForm.style.display = 'block';
     }
 }
+
+// Note filtering functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('input[name="noteFilter"]');
+    const noteItems = document.querySelectorAll('.note-item');
+
+    filterButtons.forEach(button => {
+        button.addEventListener('change', function() {
+            const filterType = this.id.replace('filter', '').toLowerCase();
+
+            noteItems.forEach(item => {
+                const noteType = item.dataset.type;
+                const isInternal = item.dataset.internal === 'true';
+
+                let shouldShow = false;
+
+                switch(filterType) {
+                    case 'all':
+                        shouldShow = true;
+                        break;
+                    case 'comments':
+                        shouldShow = noteType === 'comment';
+                        break;
+                    case 'status':
+                        shouldShow = noteType === 'status_change';
+                        break;
+                    case 'internal':
+                        shouldShow = isInternal;
+                        break;
+                }
+
+                item.style.display = shouldShow ? 'block' : 'none';
+            });
+        });
+    });
+
+    // Note type selection changes
+    const noteTypeSelect = document.getElementById('noteType');
+    const contentLabel = document.getElementById('contentLabel');
+    const submitText = document.getElementById('submitText');
+
+    if (noteTypeSelect) {
+        noteTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+
+            if (selectedType === 'intervention') {
+                contentLabel.textContent = '{{ __("app.notes.add_intervention") }}';
+                submitText.textContent = '{{ __("app.notes.submit_intervention") }}';
+            } else {
+                contentLabel.textContent = '{{ __("app.comments.add_comment") }}';
+                submitText.textContent = '{{ __("app.comments.add_comment") }}';
+            }
+        });
+    }
+});
+
+// Image preview functionality
+function previewImages(input) {
+    const previewContainer = document.getElementById('imagePreview');
+    previewContainer.innerHTML = '';
+
+    if (input.files) {
+        Array.from(input.files).forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'position-relative d-inline-block me-2 mb-2';
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'img-thumbnail';
+                    img.style.width = '80px';
+                    img.style.height = '80px';
+                    img.style.objectFit = 'cover';
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.type = 'button';
+                    removeBtn.className = 'btn btn-sm btn-danger position-absolute top-0 end-0 rounded-circle';
+                    removeBtn.style.transform = 'translate(50%, -50%)';
+                    removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+                    removeBtn.onclick = function() {
+                        imageContainer.remove();
+                        // Remove file from input (requires recreating the input)
+                        const dt = new DataTransfer();
+                        Array.from(input.files).forEach((f, i) => {
+                            if (i !== index) dt.items.add(f);
+                        });
+                        input.files = dt.files;
+                    };
+
+                    imageContainer.appendChild(img);
+                    imageContainer.appendChild(removeBtn);
+                    previewContainer.appendChild(imageContainer);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+// Status update functionality (if quick status change is added)
+function updateTaskStatus(taskId, newStatus) {
+    fetch(`/tasks/${taskId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Refresh page or update UI
+            location.reload();
+        } else {
+            alert('Failed to update status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred');
+    });
+}
 </script>
+@endpush
 
 @endsection

@@ -212,6 +212,10 @@ Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['lo
         Route::get('/financial', [ReportController::class, 'financial'])
             ->middleware('permission:view.financial.reports')
             ->name('financial');
+
+        Route::get('/export', [ReportController::class, 'export'])
+            ->middleware('permission:view.reports')
+            ->name('export');
     });
 
     // User Profile & Settings

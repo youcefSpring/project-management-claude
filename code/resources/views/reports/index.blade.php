@@ -1,10 +1,28 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('app.reports.title'))
 @section('page-title', __('app.reports.analytics'))
 
 @section('content')
 <div class="row">
+    <!-- Header Actions -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1">{{ __('app.reports.title') }}</h2>
+                <p class="text-muted mb-0">{{ __('app.reports.view_analytics_and_insights') }}</p>
+            </div>
+            <div>
+                <a href="{{ route('reports.export') }}" class="btn btn-outline-success me-2">
+                    <i class="bi bi-download me-2"></i>{{ __('app.export') }}
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    <i class="bi bi-graph-up me-2"></i>{{ __('app.reports.generate_report') }}
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Overview Cards -->
     <div class="col-12 mb-4">
         <div class="row">

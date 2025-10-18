@@ -187,12 +187,15 @@ class DashboardService
     private function getTotalProjects($user)
     {
         if ($user->role === 'admin') {
-            return Project::count();
+            return Project::where('organization_id', $user->organization_id)->count();
         }
 
-        return Project::where('manager_id', $user->id)
-            ->orWhereHas('tasks', function ($query) use ($user) {
-                $query->where('assigned_to', $user->id);
+        return Project::where('organization_id', $user->organization_id)
+            ->where(function ($query) use ($user) {
+                $query->where('manager_id', $user->id)
+                    ->orWhereHas('tasks', function ($taskQuery) use ($user) {
+                        $taskQuery->where('assigned_to', $user->id);
+                    });
             })
             ->distinct()
             ->count();
@@ -201,10 +204,13 @@ class DashboardService
     private function getActiveProjects($user)
     {
         if ($user->role === 'admin') {
-            return Project::where('status', 'active')->count();
+            return Project::where('status', 'active')
+                         ->where('organization_id', $user->organization_id)
+                         ->count();
         }
 
         return Project::where('status', 'active')
+            ->where('organization_id', $user->organization_id)
             ->where(function ($query) use ($user) {
                 $query->where('manager_id', $user->id)
                     ->orWhereHas('tasks', function ($subQuery) use ($user) {
@@ -218,31 +224,48 @@ class DashboardService
     private function getTotalTasks($user)
     {
         if ($user->role === 'admin') {
-            return Task::count();
+            return Task::whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })->count();
         }
 
-        return Task::where('assigned_to', $user->id)->count();
+        return Task::where('assigned_to', $user->id)
+                  ->whereHas('project', function ($query) use ($user) {
+                      $query->where('organization_id', $user->organization_id);
+                  })->count();
     }
 
     private function getCompletedTasks($user)
     {
         if ($user->role === 'admin') {
-            return Task::where('status', 'completed')->count();
+            return Task::where('status', 'completed')
+                      ->whereHas('project', function ($query) use ($user) {
+                          $query->where('organization_id', $user->organization_id);
+                      })->count();
         }
 
         return Task::where('assigned_to', $user->id)
             ->where('status', 'completed')
+            ->whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })
             ->count();
     }
 
     private function getPendingTasks($user)
     {
         if ($user->role === 'admin') {
-            return Task::whereIn('status', ['pending', 'in_progress'])->count();
+            return Task::whereIn('status', ['pending', 'in_progress'])
+                      ->whereHas('project', function ($query) use ($user) {
+                          $query->where('organization_id', $user->organization_id);
+                      })->count();
         }
 
         return Task::where('assigned_to', $user->id)
             ->whereIn('status', ['pending', 'in_progress'])
+            ->whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })
             ->count();
     }
 
@@ -251,12 +274,18 @@ class DashboardService
         if ($user->role === 'admin') {
             return Task::where('due_date', '<', Carbon::now())
                 ->where('status', '!=', 'completed')
+                ->whereHas('project', function ($query) use ($user) {
+                    $query->where('organization_id', $user->organization_id);
+                })
                 ->count();
         }
 
         return Task::where('assigned_to', $user->id)
             ->where('due_date', '<', Carbon::now())
             ->where('status', '!=', 'completed')
+            ->whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })
             ->count();
     }
 

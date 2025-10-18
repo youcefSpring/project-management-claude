@@ -1,29 +1,29 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
-@section('title', __('app.profile.title'))
-@section('page-title', __('app.profile.title'))
+@section('title', __('app.profile_settings.title'))
+@section('page-title', __('app.profile_settings.title'))
 
 @section('content')
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('app.profile.profile_information') }}</h5>
+                <h5 class="mb-0">{{ __('app.profile_settings.profile_information') }}</h5>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <strong>{{ __('app.profile.name') }}:</strong>
+                        <strong>{{ __('app.profile_settings.name') }}:</strong>
                         <p>{{ auth()->user()->name }}</p>
                     </div>
                     <div class="col-md-6">
-                        <strong>{{ __('app.profile.email') }}:</strong>
+                        <strong>{{ __('app.profile_settings.email') }}:</strong>
                         <p>{{ auth()->user()->email }}</p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6">
-                        <strong>{{ __('app.profile.role') }}:</strong>
+                        <strong>{{ __('app.profile_settings.role') }}:</strong>
                         <p>
                             <span class="badge bg-{{ auth()->user()->role === 'admin' ? 'danger' : (auth()->user()->role === 'manager' ? 'warning' : 'info') }}">
                                 @switch(auth()->user()->role)
@@ -42,14 +42,14 @@
                         </p>
                     </div>
                     <div class="col-md-6">
-                        <strong>{{ __('app.profile.member_since') }}:</strong>
+                        <strong>{{ __('app.profile_settings.member_since') }}:</strong>
                         <p>{{ auth()->user()->created_at->format('M d, Y') }}</p>
                     </div>
                 </div>
                 <div class="mt-3">
                     <a href="{{ route('profile.settings') }}" class="btn btn-primary">
                         <i class="bi bi-gear me-2"></i>
-                        {{ __('app.profile.edit_profile') }}
+                        {{ __('app.profile_settings.edit_profile') }}
                     </a>
                 </div>
             </div>
@@ -115,30 +115,45 @@ document.addEventListener('DOMContentLoaded', function() {
     const user = @json(auth()->user());
 
     // Get last 7 days for weekly chart
-    const last7Days = @json(array_map(function($i) {
-        return now()->subDays(6-$i)->format('M d');
-    }, range(0, 6)));
+    @php
+        $last7Days = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $last7Days[] = now()->subDays($i)->format('M d');
+        }
 
-    // Get time entries for last 7 days
-    const weeklyHours = @json(
-        auth()->user()->timeEntries()
+        // Get time entries for last 7 days
+        $weeklyTimeEntries = auth()->user()->timeEntries()
             ->where('start_time', '>=', now()->subDays(7))
             ->get()
             ->groupBy(function($entry) {
                 return $entry->start_time->format('Y-m-d');
-            })
-            ->map(function($entries) {
-                return $entries->sum('duration_hours');
-            })
-            ->values()
-            ->toArray()
-    ) || [0, 0, 0, 0, 0, 0, 0];
+            });
+
+        $weeklyHours = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i)->format('Y-m-d');
+            $dayHours = isset($weeklyTimeEntries[$date])
+                ? $weeklyTimeEntries[$date]->sum('duration_hours')
+                : 0;
+            $weeklyHours[] = $dayHours;
+        }
+    @endphp
+
+    const last7Days = @json($last7Days);
+    const weeklyHours = @json($weeklyHours);
 
     // Task completion data
+    @php
+        $user = auth()->user();
+        $completedTasks = $user->assignedTasks()->where('status', 'completed')->count();
+        $inProgressTasks = $user->assignedTasks()->where('status', 'in_progress')->count();
+        $pendingTasks = $user->assignedTasks()->where('status', 'pending')->count();
+    @endphp
+
     const taskData = [
-        {{ auth()->user()->assignedTasks()->where('status', 'completed')->count() }},
-        {{ auth()->user()->assignedTasks()->where('status', 'in_progress')->count() }},
-        {{ auth()->user()->assignedTasks()->where('status', 'pending')->count() }}
+        {{ $completedTasks }},
+        {{ $inProgressTasks }},
+        {{ $pendingTasks }}
     ];
 
     // Common chart options

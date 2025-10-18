@@ -17,9 +17,17 @@
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
-                </a>
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#userStatsModal">
+                        <i class="bi bi-graph-up"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -36,9 +44,17 @@
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('admin.projects.index') }}" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
-                </a>
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ route('admin.projects.index') }}" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#createProjectModal">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#projectStatsModal">
+                        <i class="bi bi-graph-up"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -55,9 +71,17 @@
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-outline-info">
-                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
-                </a>
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-outline-info">
+                        <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#taskStatsModal">
+                        <i class="bi bi-graph-up"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -74,9 +98,17 @@
                 </div>
             </div>
             <div class="mt-2">
-                <a href="{{ route('timesheet.index') }}" class="btn btn-sm btn-outline-warning">
-                    <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
-                </a>
+                <div class="btn-group w-100" role="group">
+                    <a href="{{ route('timesheet.index') }}" class="btn btn-sm btn-outline-warning">
+                        <i class="bi bi-eye me-1"></i>{{ __('app.View all') }}
+                    </a>
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#timeStatsModal">
+                        <i class="bi bi-graph-up"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#exportTimeModal">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -286,6 +318,372 @@
                     <span class="badge bg-success">Active</span>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Action Modals -->
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-plus text-primary me-2"></i>{{ __('app.users.create') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('admin.users.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="user_name" class="form-label">{{ __('app.name') }} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="user_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_email" class="form-label">{{ __('app.email') }} <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="user_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_role" class="form-label">{{ __('app.users.role') }} <span class="text-danger">*</span></label>
+                        <select class="form-select" id="user_role" name="role" required>
+                            <option value="member">{{ __('app.users.member') }}</option>
+                            <option value="manager">{{ __('app.users.manager') }}</option>
+                            <option value="admin">{{ __('app.users.admin') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user_password" class="form-label">{{ __('app.password') }} <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="user_password" name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>{{ __('app.create') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- User Statistics Modal -->
+<div class="modal fade" id="userStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up text-primary me-2"></i>{{ __('app.users.statistics') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-primary mb-1">{{ $stats['total_users'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.dashboard.total_users') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-success mb-1">{{ $stats['active_users'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.users.active') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-warning mb-1">{{ $stats['new_users_this_month'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.users.new_this_month') }}</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-primary">{{ __('app.users.manage') }}</a>
+                    <a href="{{ route('admin.users.export') }}" class="btn btn-outline-success">{{ __('app.export') }} {{ __('app.users.title') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Project Modal -->
+<div class="modal fade" id="createProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-folder-plus text-success me-2"></i>{{ __('app.projects.create') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('projects.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="project_name" class="form-label">{{ __('app.projects_dashboard.name') }} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="project_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_description" class="form-label">{{ __('app.description') }}</label>
+                        <textarea class="form-control" id="project_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="project_start_date" class="form-label">{{ __('app.projects_dashboard.start_date') }} <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="project_start_date" name="start_date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="project_end_date" class="form-label">{{ __('app.projects_dashboard.end_date') }} <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="project_end_date" name="end_date" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>{{ __('app.create') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Project Statistics Modal -->
+<div class="modal fade" id="projectStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up text-success me-2"></i>{{ __('app.projects_dashboard.statistics') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-success mb-1">{{ $stats['projects'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.projects_dashboard.total') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-primary mb-1">{{ $stats['active_projects'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.projects_dashboard.active') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-warning mb-1">{{ $stats['projects_due_soon'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.projects_dashboard.due_soon') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-info mb-1">{{ $stats['completed_projects'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.projects_dashboard.completed') }}</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('admin.projects.index') }}" class="btn btn-outline-success">{{ __('app.projects_dashboard.manage') }}</a>
+                    <a href="{{ route('reports.projects') }}" class="btn btn-outline-info">{{ __('app.reports_dashboard.detailed') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Task Modal -->
+<div class="modal fade" id="createTaskModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-square text-info me-2"></i>{{ __('app.tasks.create') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('tasks.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="task_title" class="form-label">{{ __('app.tasks.title') }} <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="task_title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="task_project" class="form-label">{{ __('app.projects_dashboard.project') }} <span class="text-danger">*</span></label>
+                        <select class="form-select" id="task_project" name="project_id" required>
+                            <option value="">{{ __('app.projects_dashboard.select') }}</option>
+                            @foreach(\App\Models\Project::where('organization_id', auth()->user()->organization_id)->get() as $project)
+                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="task_description" class="form-label">{{ __('app.description') }}</label>
+                        <textarea class="form-control" id="task_description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="task_priority" class="form-label">{{ __('app.tasks.priority') }}</label>
+                            <select class="form-select" id="task_priority" name="priority">
+                                <option value="low">{{ __('app.tasks.priority_low') }}</option>
+                                <option value="medium" selected>{{ __('app.tasks.priority_medium') }}</option>
+                                <option value="high">{{ __('app.tasks.priority_high') }}</option>
+                                <option value="urgent">{{ __('app.tasks.priority_urgent') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="task_due_date" class="form-label">{{ __('app.tasks.due_date') }}</label>
+                            <input type="date" class="form-control" id="task_due_date" name="due_date">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-info">
+                        <i class="bi bi-check-lg me-1"></i>{{ __('app.create') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Task Statistics Modal -->
+<div class="modal fade" id="taskStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up text-info me-2"></i>{{ __('app.tasks.statistics') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-info mb-1">{{ $stats['completed_tasks'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.tasks.completed') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-warning mb-1">{{ $stats['pending_tasks'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.tasks.pending') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-primary mb-1">{{ $stats['in_progress_tasks'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.tasks.in_progress') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-danger mb-1">{{ $stats['overdue_tasks'] ?? 0 }}</h4>
+                            <small class="text-muted">{{ __('app.tasks.overdue') }}</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('tasks.index') }}" class="btn btn-outline-info">{{ __('app.tasks.manage') }}</a>
+                    <a href="{{ route('reports.tasks') }}" class="btn btn-outline-primary">{{ __('app.reports_dashboard.detailed') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Time Statistics Modal -->
+<div class="modal fade" id="timeStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up text-warning me-2"></i>{{ __('app.timesheet_dashboard.statistics') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-warning mb-1">{{ number_format($stats['total_time_logged'] ?? 0, 1) }}h</h4>
+                            <small class="text-muted">{{ __('app.timesheet_dashboard.total_logged') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-success mb-1">{{ number_format($stats['time_this_week'] ?? 0, 1) }}h</h4>
+                            <small class="text-muted">{{ __('app.timesheet_dashboard.this_week') }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-3 bg-light rounded">
+                            <h4 class="text-info mb-1">{{ number_format($stats['avg_daily_hours'] ?? 0, 1) }}h</h4>
+                            <small class="text-muted">{{ __('app.timesheet_dashboard.avg_daily') }}</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ route('timesheet.index') }}" class="btn btn-outline-warning">{{ __('app.timesheet_dashboard.manage') }}</a>
+                    <a href="{{ route('reports.time') }}" class="btn btn-outline-info">{{ __('app.reports_dashboard.detailed') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Time Modal -->
+<div class="modal fade" id="exportTimeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-download text-warning me-2"></i>{{ __('app.timesheet_dashboard.export') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('timesheet.export') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="export_start_date" class="form-label">{{ __('app.date_range.start') }}</label>
+                            <input type="date" class="form-control" id="export_start_date" name="start_date" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="export_end_date" class="form-label">{{ __('app.date_range.end') }}</label>
+                            <input type="date" class="form-control" id="export_end_date" name="end_date" value="{{ now()->format('Y-m-d') }}">
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="export_format" class="form-label">{{ __('app.export_options.format') }}</label>
+                        <select class="form-select" id="export_format" name="format">
+                            <option value="xlsx">Excel (.xlsx)</option>
+                            <option value="csv">CSV (.csv)</option>
+                            <option value="pdf">PDF (.pdf)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-download me-1"></i>{{ __('app.export') }}
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

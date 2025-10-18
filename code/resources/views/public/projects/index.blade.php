@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.navbar')
 
 @section('title', 'Research Projects')
 
@@ -155,7 +155,7 @@
                                 </div>
                                 <div class="text-end">
                                     @if($project->start_date)
-                                        <small class="text-muted d-block">{{ $project->start_date->format('Y') }}</small>
+                                        <small class="text-muted d-block">{{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('Y') : $project->start_date->format('Y') }}</small>
                                     @endif
                                     @if($project->funding_amount)
                                         <small class="text-muted">${{ number_format($project->funding_amount) }}</small>

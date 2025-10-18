@@ -19,6 +19,10 @@ class TaskNote extends Model
         'task_id',
         'user_id',
         'content',
+        'attachments',
+        'is_internal',
+        'type',
+        'metadata',
     ];
 
     /**
@@ -31,6 +35,9 @@ class TaskNote extends Model
         return [
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'attachments' => 'array',
+            'metadata' => 'array',
+            'is_internal' => 'boolean',
         ];
     }
 
@@ -278,6 +285,119 @@ class TaskNote extends Model
     }
 
     /**
+     * Check if note has attachments
+     */
+    public function hasAttachments(): bool
+    {
+        return !empty($this->attachments) && is_array($this->attachments);
+    }
+
+    /**
+     * Get attachment count
+     */
+    public function getAttachmentCountAttribute(): int
+    {
+        return $this->hasAttachments() ? count($this->attachments) : 0;
+    }
+
+    /**
+     * Get image attachments only
+     */
+    public function getImageAttachmentsAttribute(): array
+    {
+        if (!$this->hasAttachments()) {
+            return [];
+        }
+
+        return array_filter($this->attachments, function ($attachment) {
+            return isset($attachment['mime_type']) && str_starts_with($attachment['mime_type'], 'image/');
+        });
+    }
+
+    /**
+     * Check if note is a status change
+     */
+    public function isStatusChange(): bool
+    {
+        return $this->type === 'status_change';
+    }
+
+    /**
+     * Check if note is internal (visible only to managers/admins)
+     */
+    public function isInternal(): bool
+    {
+        return $this->is_internal;
+    }
+
+    /**
+     * Get formatted note type
+     */
+    public function getFormattedTypeAttribute(): string
+    {
+        switch($this->type) {
+            case 'comment':
+                return __('app.notes.comment');
+            case 'status_change':
+                return __('app.notes.status_change');
+            case 'attachment':
+                return __('app.notes.attachment');
+            default:
+                return ucfirst($this->type);
+        }
+    }
+
+    /**
+     * Get note icon based on type
+     */
+    public function getIconAttribute(): string
+    {
+        switch($this->type) {
+            case 'comment':
+                return 'bi-chat-text';
+            case 'status_change':
+                return 'bi-arrow-repeat';
+            case 'attachment':
+                return 'bi-paperclip';
+            default:
+                return 'bi-chat';
+        }
+    }
+
+    /**
+     * Scope to filter by type
+     */
+    public function scopeOfType($query, string $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * Scope to filter internal notes
+     */
+    public function scopeInternal($query)
+    {
+        return $query->where('is_internal', true);
+    }
+
+    /**
+     * Scope to filter public notes
+     */
+    public function scopePublic($query)
+    {
+        return $query->where('is_internal', false);
+    }
+
+    /**
+     * Scope to filter notes with attachments
+     */
+    public function scopeWithAttachments($query)
+    {
+        return $query->whereNotNull('attachments')
+                    ->where('attachments', '!=', '[]');
+    }
+
+    /**
      * Boot method to handle model events
      */
     protected static function boot()
@@ -290,16 +410,30 @@ class TaskNote extends Model
                 // Dispatch notification job for mentioned users
                 // NotifyMentionedUsers::dispatch($note);
             }
+
+            // Send notifications to task stakeholders
+            // NotifyTaskStakeholders::dispatch($note);
         });
 
-        // Validate content length
+        // Validate content length (allow empty content if there are attachments)
         static::saving(function ($note) {
             if (strlen($note->content) > 1000) {
                 throw new \InvalidArgumentException('Note content cannot exceed 1000 characters');
             }
 
-            if (empty(trim($note->content))) {
-                throw new \InvalidArgumentException('Note content cannot be empty');
+            // Allow empty content only if there are attachments
+            if (empty(trim($note->content)) && !$note->hasAttachments()) {
+                throw new \InvalidArgumentException('Note must have either content or attachments');
+            }
+        });
+
+        // Clean up attachments when note is deleted
+        static::deleting(function ($note) {
+            if ($note->hasAttachments()) {
+                $imageService = app(\App\Services\ImageService::class);
+                foreach ($note->attachments as $attachment) {
+                    $imageService->deleteImage($attachment);
+                }
             }
         });
     }

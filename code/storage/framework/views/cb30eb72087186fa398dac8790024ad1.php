@@ -5,12 +5,12 @@
 <div class="row">
     <!-- Header Actions -->
     <div class="col-12 mb-4">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
                 <h2 class="mb-1"><?php echo e(__('app.tasks.title')); ?></h2>
                 <p class="text-muted mb-0"><?php echo e(__('app.tasks.manage_and_track')); ?></p>
             </div>
-            <div>
+            <div class="d-flex gap-2">
                 <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                 <a href="<?php echo e(route('tasks.create')); ?>" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
@@ -24,12 +24,21 @@
 
     <!-- Filters -->
     <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?php echo e(route('tasks.index')); ?>" class="row g-3">
-                    <div class="col-md-3">
-                        <label for="status" class="form-label"><?php echo e(__('app.status')); ?></label>
-                        <select class="form-select" id="status" name="status">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="bi bi-funnel me-2"></i><?php echo e(__('app.tasks.task_filters')); ?>
+
+                </h6>
+                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('app.toggle_filters')); ?>">
+                    <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
+                </button>
+            </div>
+            <div class="card-body p-3" id="filtersContent">
+                <form method="GET" action="<?php echo e(route('tasks.index')); ?>" class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-md-3">
+                        <label for="status" class="form-label small text-muted"><?php echo e(__('app.status')); ?></label>
+                        <select class="form-select form-select-sm" id="status" name="status">
                             <option value=""><?php echo e(__('app.tasks.all_statuses')); ?></option>
                             <option value="pending" <?php echo e(request('status') === 'pending' ? 'selected' : ''); ?>>
                                 <?php echo e(__('app.tasks.pending')); ?>
@@ -50,9 +59,9 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <label for="project_id" class="form-label"><?php echo e(__('app.tasks.project')); ?></label>
-                        <select class="form-select" id="project_id" name="project_id">
+                    <div class="col-sm-6 col-md-3">
+                        <label for="project_id" class="form-label small text-muted"><?php echo e(__('app.tasks.project')); ?></label>
+                        <select class="form-select form-select-sm" id="project_id" name="project_id">
                             <option value=""><?php echo e(__('app.reports.all_projects')); ?></option>
                             <?php $__currentLoopData = $projects; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $project): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($project->id); ?>" <?php echo e(request('project_id') == $project->id ? 'selected' : ''); ?>>
@@ -64,9 +73,9 @@
                     </div>
 
                     <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
-                    <div class="col-md-3">
-                        <label for="assigned_to" class="form-label"><?php echo e(__('app.tasks.assigned_to')); ?></label>
-                        <select class="form-select" id="assigned_to" name="assigned_to">
+                    <div class="col-sm-6 col-md-3">
+                        <label for="assigned_to" class="form-label small text-muted"><?php echo e(__('app.tasks.assigned_to')); ?></label>
+                        <select class="form-select form-select-sm" id="assigned_to" name="assigned_to">
                             <option value=""><?php echo e(__('app.reports.all_users')); ?></option>
                             <option value="unassigned" <?php echo e(request('assigned_to') === 'unassigned' ? 'selected' : ''); ?>>
                                 <?php echo e(__('app.unassigned')); ?>
@@ -82,23 +91,44 @@
                     </div>
                     <?php endif; ?>
 
-                    <div class="col-md-3">
-                        <label for="search" class="form-label"><?php echo e(__('app.search')); ?></label>
-                        <input type="text" class="form-control" id="search" name="search"
+                    <div class="col-sm-6 col-md-3">
+                        <label for="priority" class="form-label small text-muted"><?php echo e(__('app.tasks.priority')); ?></label>
+                        <select class="form-select form-select-sm" id="priority" name="priority">
+                            <option value=""><?php echo e(__('app.all_priorities')); ?></option>
+                            <option value="low" <?php echo e(request('priority') === 'low' ? 'selected' : ''); ?>>
+                                <?php echo e(__('app.tasks.low')); ?>
+
+                            </option>
+                            <option value="medium" <?php echo e(request('priority') === 'medium' ? 'selected' : ''); ?>>
+                                <?php echo e(__('app.tasks.medium')); ?>
+
+                            </option>
+                            <option value="high" <?php echo e(request('priority') === 'high' ? 'selected' : ''); ?>>
+                                <?php echo e(__('app.tasks.high')); ?>
+
+                            </option>
+                            <option value="urgent" <?php echo e(request('priority') === 'urgent' ? 'selected' : ''); ?>>
+                                <?php echo e(__('app.tasks.urgent')); ?>
+
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-sm-6 col-md-3">
+                        <label for="search" class="form-label small text-muted"><?php echo e(__('app.search')); ?></label>
+                        <input type="text" class="form-control form-control-sm" id="search" name="search"
                                value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('app.tasks.search_placeholder')); ?>">
                     </div>
 
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-outline-primary">
-                            <i class="bi bi-search me-2"></i>
-                            <?php echo e(__('app.filter')); ?>
-
-                        </button>
-                        <a href="<?php echo e(route('tasks.index')); ?>" class="btn btn-outline-secondary ms-2">
-                            <i class="bi bi-x-circle me-2"></i>
-                            <?php echo e(__('app.tasks.clear_filters')); ?>
-
-                        </a>
+                    <div class="col-sm-6 col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a href="<?php echo e(route('tasks.index')); ?>" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -122,13 +152,13 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th><?php echo e(__('app.tasks.task_name')); ?></th>
-                                    <th><?php echo e(__('app.tasks.project')); ?></th>
-                                    <th><?php echo e(__('app.tasks.assigned_to')); ?></th>
+                                    <th class="d-none d-md-table-cell"><?php echo e(__('app.tasks.project')); ?></th>
+                                    <th class="d-none d-lg-table-cell"><?php echo e(__('app.tasks.assigned_to')); ?></th>
                                     <th><?php echo e(__('app.status')); ?></th>
-                                    <th><?php echo e(__('app.tasks.priority')); ?></th>
-                                    <th><?php echo e(__('app.tasks.due_date')); ?></th>
-                                    <th><?php echo e(__('app.tasks.created')); ?></th>
-                                    <th><?php echo e(__('app.actions')); ?></th>
+                                    <th class="d-none d-md-table-cell"><?php echo e(__('app.tasks.priority')); ?></th>
+                                    <th class="d-none d-lg-table-cell"><?php echo e(__('app.tasks.due_date')); ?></th>
+                                    <th class="d-none d-xl-table-cell"><?php echo e(__('app.tasks.created')); ?></th>
+                                    <th width="120"><?php echo e(__('app.actions')); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,7 +176,7 @@
                                                 <?php endif; ?>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-md-table-cell">
                                             <div class="d-flex align-items-center">
                                                 <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
                                                      style="width: 24px; height: 24px;">
@@ -155,7 +185,7 @@
                                                 <span><?php echo e($task->project->title); ?></span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-lg-table-cell">
                                             <?php if($task->assignedUser): ?>
                                                 <div class="d-flex align-items-center">
                                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
@@ -165,7 +195,7 @@
                                                     <span><?php echo e($task->assignedUser->name); ?></span>
                                                 </div>
                                             <?php else: ?>
-                                                <span class="text-muted"><?php echo e(__('Unassigned')); ?></span>
+                                                <span class="text-muted"><?php echo e(__('app.unassigned')); ?></span>
                                             <?php endif; ?>
                                         </td>
                                         <td>
@@ -189,7 +219,7 @@
                                                 <?php endswitch; ?>
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-md-table-cell">
                                             <?php
                                                 $priorityColors = [
                                                     'urgent' => 'danger',
@@ -210,7 +240,7 @@
                                                 <?php endswitch; ?>
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-lg-table-cell">
                                             <?php if($task->due_date): ?>
                                                 <?php
                                                     $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
@@ -229,7 +259,7 @@
                                                 <span class="text-muted"><?php echo e(__('app.tasks.no_due_date')); ?></span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-xl-table-cell">
                                             <small class="text-muted">
                                                 <?php echo e($task->created_at->format('M d, Y')); ?>
 
@@ -239,11 +269,11 @@
                                             </small>
                                         </td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                            <div class="dropdown dropstart">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                     <i class="bi bi-three-dots"></i>
                                                 </button>
-                                                <ul class="dropdown-menu">
+                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
                                                     <li>
                                                         <a class="dropdown-item" href="<?php echo e(route('tasks.show', $task)); ?>">
                                                             <i class="bi bi-eye me-2"></i><?php echo e(__('app.tasks.view')); ?>
@@ -288,21 +318,21 @@
                 <?php else: ?>
                     <div class="text-center py-5">
                         <i class="bi bi-check2-square fs-1 text-muted mb-3"></i>
-                        <h5 class="text-muted"><?php echo e(__('No tasks found')); ?></h5>
+                        <h5 class="text-muted"><?php echo e(__('app.tasks.no_tasks')); ?></h5>
                         <p class="text-muted">
                             <?php if(request()->hasAny(['status', 'project_id', 'assigned_to', 'search'])): ?>
-                                <?php echo e(__('Try adjusting your filters or')); ?>
+                                <?php echo e(__('app.try_adjusting_filters')); ?>
 
-                                <a href="<?php echo e(route('tasks.index')); ?>"><?php echo e(__('clear all filters')); ?></a>
+                                <a href="<?php echo e(route('tasks.index')); ?>"><?php echo e(__('app.clear_filters')); ?></a>
                             <?php else: ?>
-                                <?php echo e(__('Get started by creating your first task.')); ?>
+                                <?php echo e(__('app.tasks.get_started_create_task')); ?>
 
                             <?php endif; ?>
                         </p>
                         <?php if(auth()->user()->isAdmin() || auth()->user()->isManager()): ?>
                             <a href="<?php echo e(route('tasks.create')); ?>" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-2"></i>
-                                <?php echo e(__('Create Task')); ?>
+                                <?php echo e(__('app.tasks.create')); ?>
 
                             </a>
                         <?php endif; ?>
@@ -313,6 +343,47 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
+
+<?php $__env->startPush('scripts'); ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    setupFiltersToggle();
+});
+
+function setupFiltersToggle() {
+    const toggleBtn = document.getElementById('toggleFilters');
+    const filtersContent = document.getElementById('filtersContent');
+    const toggleIcon = document.getElementById('toggleFiltersIcon');
+
+    // Check localStorage for saved state (default: visible)
+    const isHidden = localStorage.getItem('taskFiltersHidden') === 'true';
+
+    if (isHidden) {
+        filtersContent.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        filtersContent.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const isCurrentlyVisible = filtersContent.style.display !== 'none';
+
+        if (isCurrentlyVisible) {
+            // Hide filters
+            filtersContent.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+            localStorage.setItem('taskFiltersHidden', 'true');
+        } else {
+            // Show filters
+            filtersContent.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+            localStorage.setItem('taskFiltersHidden', 'false');
+        }
+    });
+}
+</script>
+<?php $__env->stopPush(); ?>
 
 <!-- Confirmation Modal -->
 <div class="modal fade" id="confirmStatusModal" tabindex="-1">
@@ -407,5 +478,45 @@ document.getElementById('confirmStatusBtn').addEventListener('click', function()
     });
 });
 </script>
+
+<style>
+/* Fix dropdown positioning and prevent overflow issues */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    z-index: 1021;
+}
+
+/* Ensure dropdowns don't break table layout */
+.dropdown {
+    position: static;
+}
+
+@media (max-width: 768px) {
+    .dropdown.dropstart .dropdown-menu {
+        --bs-position: absolute;
+        inset: 0px auto auto 0px !important;
+        transform: translate(-100%, 0px) !important;
+    }
+}
+
+/* Fix for small screens */
+@media (max-width: 576px) {
+    .dropdown.dropstart {
+        position: static;
+    }
+
+    .dropdown.dropstart .dropdown-menu {
+        position: absolute !important;
+        right: 0 !important;
+        left: auto !important;
+        transform: none !important;
+    }
+}
+</style>
 <?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/tasks/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/tasks/index.blade.php ENDPATH**/ ?>

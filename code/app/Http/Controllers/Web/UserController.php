@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $query = User::query();
+        $query = User::where('organization_id', auth()->user()->organization_id);
 
         // Apply filters
         if ($request->filled('role')) {
@@ -73,6 +73,7 @@ class UserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
             'language' => $request->language ?? 'en',
+            'organization_id' => auth()->user()->organization_id,
         ]);
 
         return redirect()->route('users.index')
@@ -165,8 +166,8 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
-        // Prevent deleting the last admin
-        if ($user->isAdmin() && User::where('role', 'admin')->count() <= 1) {
+        // Prevent deleting the last admin in the organization
+        if ($user->isAdmin() && User::where('role', 'admin')->where('organization_id', $user->organization_id)->count() <= 1) {
             return redirect()->route('users.index')
                 ->with('error', __('app.messages.cannot_delete_last_admin'));
         }
@@ -198,8 +199,8 @@ class UserController extends Controller
             'role' => ['required', Rule::in(User::getRoles())],
         ]);
 
-        // Prevent removing the last admin
-        if ($user->isAdmin() && $request->role !== 'admin' && User::where('role', 'admin')->count() <= 1) {
+        // Prevent removing the last admin in the organization
+        if ($user->isAdmin() && $request->role !== 'admin' && User::where('role', 'admin')->where('organization_id', $user->organization_id)->count() <= 1) {
             return response()->json([
                 'success' => false,
                 'message' => __('Cannot remove the last administrator role.'),
@@ -226,13 +227,17 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
+        $organizationId = auth()->user()->organization_id;
+
         $stats = [
-            'total_users' => User::count(),
-            'users_by_role' => User::selectRaw('role, COUNT(*) as count')
+            'total_users' => User::where('organization_id', $organizationId)->count(),
+            'users_by_role' => User::where('organization_id', $organizationId)
+                ->selectRaw('role, COUNT(*) as count')
                 ->groupBy('role')
                 ->pluck('count', 'role')
                 ->toArray(),
-            'recent_users' => User::latest()
+            'recent_users' => User::where('organization_id', $organizationId)
+                ->latest()
                 ->take(5)
                 ->select('id', 'name', 'email', 'role', 'created_at')
                 ->get(),

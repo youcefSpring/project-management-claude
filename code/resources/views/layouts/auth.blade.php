@@ -139,7 +139,8 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             width: 100%;
-            max-width: 1000px;
+            max-width: 1200px;
+            min-height: 80vh;
         }
 
         .auth-brand {
@@ -191,6 +192,10 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
         .auth-form {
             padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80vh;
         }
 
         .auth-form h2 {
@@ -297,16 +302,38 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
         /* Responsive */
         @media (max-width: 768px) {
+            .auth-card {
+                margin: 1rem;
+                min-height: 90vh;
+                max-width: calc(100% - 2rem);
+            }
+
             .auth-brand {
                 display: none;
             }
 
             .auth-form {
-                padding: 2rem 1rem;
+                padding: 2rem 1.5rem;
+                min-height: 90vh;
             }
 
             .auth-brand h1 {
                 font-size: 2rem;
+            }
+
+            .auth-container {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .auth-form {
+                padding: 1.5rem 1rem;
+            }
+
+            .auth-card {
+                margin: 0.5rem;
+                max-width: calc(100% - 1rem);
             }
         }
 

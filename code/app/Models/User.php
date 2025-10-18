@@ -21,6 +21,7 @@ class User extends Authenticatable
         'password',
         'role',
         'language',
+        'organization_id',
     ];
 
     /**
@@ -242,6 +243,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the organization that user belongs to
+     */
+    public function organization()
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    /**
      * Get project memberships with roles
      */
     public function projectMemberships()
@@ -275,7 +284,8 @@ class User extends Authenticatable
     public function accessibleProjects()
     {
         if ($this->isAdmin()) {
-            return Project::query();
+            // Admin can see all projects in their organization
+            return Project::where('organization_id', $this->organization_id);
         }
 
         // Get projects where user is a member

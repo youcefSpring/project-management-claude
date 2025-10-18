@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.navbar')
 
 @section('title', $project->title ?? 'Project Details')
 
@@ -59,7 +59,7 @@
                         <div class="text-white-50">
                             <i class="bi bi-calendar-event" style="font-size: 1.5rem;"></i>
                             <div class="mt-2">
-                                <strong class="text-white d-block">{{ $project->start_date->format('M Y') }}</strong>
+                                <strong class="text-white d-block">{{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('M Y') : $project->start_date->format('M Y') }}</strong>
                                 <small>Started</small>
                             </div>
                         </div>
@@ -279,14 +279,14 @@
                         @if($project->start_date)
                         <div class="mb-3">
                             <strong>Start Date:</strong><br>
-                            <span class="text-muted">{{ $project->start_date->format('F j, Y') }}</span>
+                            <span class="text-muted">{{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('F j, Y') : $project->start_date->format('F j, Y') }}</span>
                         </div>
                         @endif
 
                         @if($project->end_date)
                         <div class="mb-3">
                             <strong>End Date:</strong><br>
-                            <span class="text-muted">{{ $project->end_date->format('F j, Y') }}</span>
+                            <span class="text-muted">{{ is_string($project->end_date) ? \Carbon\Carbon::parse($project->end_date)->format('F j, Y') : $project->end_date->format('F j, Y') }}</span>
                         </div>
                         @endif
 

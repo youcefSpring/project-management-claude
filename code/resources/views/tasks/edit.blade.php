@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('Edit Task'))
 @section('page-title', __('Edit Task: :title', ['title' => $task->title]))

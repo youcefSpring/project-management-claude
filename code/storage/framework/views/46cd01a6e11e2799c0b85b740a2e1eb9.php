@@ -24,12 +24,21 @@
 
     <!-- Filters -->
     <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <form method="GET" action="<?php echo e(route('users.index')); ?>" class="row g-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="bi bi-funnel me-2"></i><?php echo e(__('app.users.user_filters')); ?>
+
+                </h6>
+                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="<?php echo e(__('app.toggle_filters')); ?>">
+                    <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
+                </button>
+            </div>
+            <div class="card-body p-3" id="filtersContent">
+                <form method="GET" action="<?php echo e(route('users.index')); ?>" class="row g-3 align-items-end">
                     <div class="col-md-4">
-                        <label for="role" class="form-label"><?php echo e(__('app.users.role')); ?></label>
-                        <select class="form-select" id="role" name="role">
+                        <label for="role" class="form-label small text-muted"><?php echo e(__('app.users.role')); ?></label>
+                        <select class="form-select form-select-sm" id="role" name="role">
                             <option value=""><?php echo e(__('app.users.all_roles')); ?></option>
                             <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <option value="<?php echo e($role); ?>" <?php echo e(request('role') === $role ? 'selected' : ''); ?>>
@@ -40,23 +49,21 @@
                         </select>
                     </div>
 
-                    <div class="col-md-4">
-                        <label for="search" class="form-label"><?php echo e(__('app.search')); ?></label>
-                        <input type="text" class="form-control" id="search" name="search"
+                    <div class="col-md-6">
+                        <label for="search" class="form-label small text-muted"><?php echo e(__('app.search')); ?></label>
+                        <input type="text" class="form-control form-control-sm" id="search" name="search"
                                value="<?php echo e(request('search')); ?>" placeholder="<?php echo e(__('app.users.search_placeholder')); ?>">
                     </div>
 
-                    <div class="col-md-4 d-flex align-items-end">
-                        <button type="submit" class="btn btn-outline-primary me-2">
-                            <i class="bi bi-search me-2"></i>
-                            <?php echo e(__('app.filter')); ?>
-
-                        </button>
-                        <a href="<?php echo e(route('users.index')); ?>" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>
-                            <?php echo e(__('app.clear_filters')); ?>
-
-                        </a>
+                    <div class="col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-outline-primary btn-sm flex-fill">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a href="<?php echo e(route('users.index')); ?>" class="btn btn-outline-secondary btn-sm flex-fill">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -76,16 +83,16 @@
             <div class="card-body">
                 <?php if($users->count() > 0): ?>
                     <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
                                 <tr>
                                     <th><?php echo e(__('app.user_label')); ?></th>
                                     <th><?php echo e(__('app.users.role')); ?></th>
-                                    <th><?php echo e(__('app.email')); ?></th>
-                                    <th><?php echo e(__('app.Projects')); ?></th>
-                                    <th><?php echo e(__('app.Tasks')); ?></th>
-                                    <th><?php echo e(__('app.users.joined')); ?></th>
-                                    <th width="200"><?php echo e(__('app.actions')); ?></th>
+                                    <th class="d-none d-md-table-cell"><?php echo e(__('app.email')); ?></th>
+                                    <th class="d-none d-lg-table-cell"><?php echo e(__('app.Projects')); ?></th>
+                                    <th class="d-none d-lg-table-cell"><?php echo e(__('app.Tasks')); ?></th>
+                                    <th class="d-none d-sm-table-cell"><?php echo e(__('app.users.joined')); ?></th>
+                                    <th width="120"><?php echo e(__('app.actions')); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -108,14 +115,14 @@
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
-                                                        type="button" data-bs-toggle="dropdown">
+                                                        type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                     <span class="role-badge badge bg-<?php echo e($user->isAdmin() ? 'danger' : ($user->isManager() ? 'warning' : 'primary')); ?>">
                                                         <?php echo e($user->getRoleLabel()); ?>
 
                                                     </span>
                                                 </button>
                                                 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $user)): ?>
-                                                <ul class="dropdown-menu">
+                                                <ul class="dropdown-menu" style="min-width: 140px;">
                                                     <?php $__currentLoopData = $roles; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $role): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                         <?php if($role !== $user->role): ?>
                                                             <li>
@@ -131,40 +138,55 @@
                                                 <?php endif; ?>
                                             </div>
                                         </td>
-                                        <td><?php echo e($user->email); ?></td>
-                                        <td>
+                                        <td class="d-none d-md-table-cell"><?php echo e($user->email); ?></td>
+                                        <td class="d-none d-lg-table-cell">
                                             <?php if($user->isManager()): ?>
                                                 <span class="badge bg-info"><?php echo e($user->managedProjects->count()); ?></span>
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-lg-table-cell">
                                             <?php if($user->canWorkOnTasks()): ?>
                                                 <span class="badge bg-success"><?php echo e($user->assignedTasks->count()); ?></span>
                                             <?php else: ?>
                                                 <span class="text-muted">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="d-none d-sm-table-cell">
                                             <small class="text-muted"><?php echo e($user->created_at->format('M d, Y')); ?></small>
                                         </td>
                                         <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="<?php echo e(route('users.show', $user)); ?>" class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $user)): ?>
-                                                    <a href="<?php echo e(route('users.edit', $user)); ?>" class="btn btn-sm btn-outline-secondary">
-                                                        <i class="bi bi-pencil"></i>
-                                                    </a>
-                                                <?php endif; ?>
-                                                <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $user)): ?>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger"
-                                                            onclick="deleteUser(<?php echo e($user->id); ?>, '<?php echo e($user->name); ?>')">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                <?php endif; ?>
+                                            <div class="dropdown dropstart">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 140px;">
+                                                    <li>
+                                                        <a class="dropdown-item" href="<?php echo e(route('users.show', $user)); ?>">
+                                                            <i class="bi bi-eye me-2"></i><?php echo e(__('app.view')); ?>
+
+                                                        </a>
+                                                    </li>
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('update', $user)): ?>
+                                                        <li>
+                                                            <a class="dropdown-item" href="<?php echo e(route('users.edit', $user)); ?>">
+                                                                <i class="bi bi-pencil me-2"></i><?php echo e(__('app.edit')); ?>
+
+                                                            </a>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                    <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('delete', $user)): ?>
+                                                        <li><hr class="dropdown-divider"></li>
+                                                        <li>
+                                                            <button type="button" class="dropdown-item text-danger"
+                                                                    onclick="deleteUser(<?php echo e($user->id); ?>, '<?php echo e($user->name); ?>')">
+                                                                <i class="bi bi-trash me-2"></i><?php echo e(__('app.delete')); ?>
+
+                                                            </button>
+                                                        </li>
+                                                    <?php endif; ?>
+                                                </ul>
                                             </div>
                                         </td>
                                     </tr>
@@ -349,6 +371,84 @@ function deleteUser(userId, userName) {
     document.getElementById('deleteForm').action = `/users/${userId}`;
     new bootstrap.Modal(document.getElementById('deleteModal')).show();
 }
+
+// Filter toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    setupFiltersToggle();
+});
+
+function setupFiltersToggle() {
+    const toggleBtn = document.getElementById('toggleFilters');
+    const filtersContent = document.getElementById('filtersContent');
+    const toggleIcon = document.getElementById('toggleFiltersIcon');
+
+    // Check localStorage for saved state (default: visible)
+    const isHidden = localStorage.getItem('userFiltersHidden') === 'true';
+
+    if (isHidden) {
+        filtersContent.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        filtersContent.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const isCurrentlyVisible = filtersContent.style.display !== 'none';
+
+        if (isCurrentlyVisible) {
+            // Hide filters
+            filtersContent.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+            localStorage.setItem('userFiltersHidden', 'true');
+        } else {
+            // Show filters
+            filtersContent.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+            localStorage.setItem('userFiltersHidden', 'false');
+        }
+    });
+}
 </script>
+
+<style>
+/* Additional styles for user index dropdown fixes */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    z-index: 1021;
+}
+
+/* Ensure dropdowns don't break table layout */
+.dropdown {
+    position: static;
+}
+
+@media (max-width: 768px) {
+    .dropdown.dropstart .dropdown-menu {
+        --bs-position: absolute;
+        inset: 0px auto auto 0px !important;
+        transform: translate(-100%, 0px) !important;
+    }
+}
+
+/* Fix for small screens */
+@media (max-width: 576px) {
+    .dropdown.dropstart {
+        position: static;
+    }
+
+    .dropdown.dropstart .dropdown-menu {
+        position: absolute !important;
+        right: 0 !important;
+        left: auto !important;
+        transform: none !important;
+    }
+}
+</style>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/users/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/users/index.blade.php ENDPATH**/ ?>

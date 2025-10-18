@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.navbar')
 
 @section('title', 'Home')
 
@@ -194,7 +194,7 @@
                                 <span class="badge bg-primary">Completed</span>
                             @endif
                             @if($project->start_date)
-                                <small class="text-muted">{{ $project->start_date->format('Y') }}</small>
+                                <small class="text-muted">{{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('Y') : $project->start_date->format('Y') }}</small>
                             @endif
                         </div>
                         <h5 class="card-title">{{ $project->title }}</h5>

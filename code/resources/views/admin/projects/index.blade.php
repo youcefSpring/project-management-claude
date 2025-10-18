@@ -92,7 +92,7 @@
                                     </td>
                                     <td>
                                         @if($project->start_date)
-                                            {{ $project->start_date->format('M d, Y') }}
+                                            {{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : $project->start_date->format('M d, Y') }}
                                         @else
                                             <span class="text-muted">Not set</span>
                                         @endif

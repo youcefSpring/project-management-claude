@@ -3,6 +3,26 @@
 
 <?php $__env->startSection('content'); ?>
 <div class="row">
+    <!-- Header Actions -->
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-1"><?php echo e(__('app.reports.title')); ?></h2>
+                <p class="text-muted mb-0"><?php echo e(__('app.reports.view_analytics_and_insights')); ?></p>
+            </div>
+            <div>
+                <a href="<?php echo e(route('reports.export')); ?>" class="btn btn-outline-success me-2">
+                    <i class="bi bi-download me-2"></i><?php echo e(__('app.export')); ?>
+
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#generateReportModal">
+                    <i class="bi bi-graph-up me-2"></i><?php echo e(__('app.reports.generate_report')); ?>
+
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Overview Cards -->
     <div class="col-12 mb-4">
         <div class="row">
@@ -169,4 +189,4 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/reports/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/reports/index.blade.php ENDPATH**/ ?>

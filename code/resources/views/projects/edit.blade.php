@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('Edit Project'))
 @section('page-title', __('Edit Project: :title', ['title' => $project->title]))
@@ -38,7 +38,7 @@
                             <div class="mb-3">
                                 <label for="start_date" class="form-label">{{ __('Start Date') }} <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('start_date') is-invalid @enderror"
-                                       id="start_date" name="start_date" value="{{ old('start_date', $project->start_date->format('Y-m-d')) }}" required>
+                                       id="start_date" name="start_date" value="{{ old('start_date', $project->start_date instanceof \Carbon\Carbon ? $project->start_date->format('Y-m-d') : $project->start_date) }}" required>
                                 @error('start_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -48,7 +48,7 @@
                             <div class="mb-3">
                                 <label for="end_date" class="form-label">{{ __('End Date') }} <span class="text-danger">*</span></label>
                                 <input type="date" class="form-control @error('end_date') is-invalid @enderror"
-                                       id="end_date" name="end_date" value="{{ old('end_date', $project->end_date->format('Y-m-d')) }}" required>
+                                       id="end_date" name="end_date" value="{{ old('end_date', $project->end_date instanceof \Carbon\Carbon ? $project->end_date->format('Y-m-d') : $project->end_date) }}" required>
                                 @error('end_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -141,7 +141,17 @@
                 </div>
                 <div class="mb-2">
                     <strong>{{ __('Duration') }}:</strong>
-                    <span class="float-end">{{ $project->start_date->diffInDays($project->end_date) }} {{ __('days') }}</span>
+                    <span class="float-end">
+                        @if($project->start_date && $project->end_date)
+                            @php
+                                $startDate = is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date) : $project->start_date;
+                                $endDate = is_string($project->end_date) ? \Carbon\Carbon::parse($project->end_date) : $project->end_date;
+                            @endphp
+                            {{ $startDate->diffInDays($endDate) }} {{ __('days') }}
+                        @else
+                            {{ __('app.no_dates_set') }}
+                        @endif
+                    </span>
                 </div>
             </div>
         </div>

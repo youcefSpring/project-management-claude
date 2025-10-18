@@ -52,6 +52,26 @@
         @enderror
     </div>
 
+    <!-- Company Name Field -->
+    <div class="mb-3">
+        <label for="company_name" class="form-label">{{ __('app.company_name') }}</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-building"></i>
+            </span>
+            <input type="text"
+                   class="form-control @error('company_name') is-invalid @enderror"
+                   id="company_name"
+                   name="company_name"
+                   value="{{ old('company_name') }}"
+                   required
+                   placeholder="{{ __('app.enter_your_company_name') }}">
+        </div>
+        @error('company_name')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
+
     <!-- Password Field -->
     <div class="mb-3">
         <label for="password" class="form-label">{{ __('Password') }}</label>

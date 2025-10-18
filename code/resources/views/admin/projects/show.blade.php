@@ -173,14 +173,14 @@
                 @if($project->start_date)
                     <div class="mb-3">
                         <label class="form-label fw-bold">Start Date</label>
-                        <div>{{ $project->start_date->format('F d, Y') }}</div>
+                        <div>{{ is_string($project->start_date) ? \Carbon\Carbon::parse($project->start_date)->format('F d, Y') : $project->start_date->format('F d, Y') }}</div>
                     </div>
                 @endif
 
                 @if($project->end_date)
                     <div class="mb-3">
                         <label class="form-label fw-bold">End Date</label>
-                        <div>{{ $project->end_date->format('F d, Y') }}</div>
+                        <div>{{ is_string($project->end_date) ? \Carbon\Carbon::parse($project->end_date)->format('F d, Y') : $project->end_date->format('F d, Y') }}</div>
                     </div>
                 @endif
 

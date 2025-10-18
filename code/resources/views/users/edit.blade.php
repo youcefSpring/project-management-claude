@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('app.users.edit'))
 @section('page-title', __('app.users.edit_user_name', ['name' => $user->name]))
@@ -54,7 +54,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="language" class="form-label">{{ __('app.profile.language') }}</label>
+                        <label for="language" class="form-label">{{ __('app.profile_settings.language') }}</label>
                         <select class="form-select @error('language') is-invalid @enderror" id="language" name="language">
                             <option value="en" {{ old('language', $user->language) === 'en' ? 'selected' : '' }}>{{ __('app.users.language_english') }}</option>
                             <option value="fr" {{ old('language', $user->language) === 'fr' ? 'selected' : '' }}>{{ __('app.users.language_french') }}</option>
@@ -66,10 +66,10 @@
                     </div>
 
                     <hr>
-                    <h6>{{ __('app.profile.change_password') }} <small class="text-muted">({{ __('app.users.password_leave_blank') }})</small></h6>
+                    <h6>{{ __('app.profile_settings.change_password') }} <small class="text-muted">({{ __('app.users.password_leave_blank') }})</small></h6>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">{{ __('app.profile.new_password') }}</label>
+                        <label for="password" class="form-label">{{ __('app.profile_settings.new_password') }}</label>
                         <input type="password" class="form-control @error('password') is-invalid @enderror"
                                id="password" name="password">
                         @error('password')

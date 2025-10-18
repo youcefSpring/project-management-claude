@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('app.tasks.create'))
 @section('page-title', __('app.tasks.create_new_task'))

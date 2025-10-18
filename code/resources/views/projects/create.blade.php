@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('Create Project'))
 @section('page-title', __('Create New Project'))

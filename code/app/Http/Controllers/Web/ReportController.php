@@ -37,7 +37,10 @@ class ReportController extends Controller
             })->get();
         }
 
-        return view('reports.index', compact('projects', 'users'));
+        // Get overview data for dashboard cards
+        $overview = $this->reportService->generateOverview($user);
+
+        return view('reports.index', compact('projects', 'users', 'overview'));
     }
 
     public function projects(Request $request)
@@ -90,5 +93,20 @@ class ReportController extends Controller
         }
 
         return view('reports.time-tracking', compact('data', 'filters'));
+    }
+
+    public function export(Request $request)
+    {
+        $this->authorize('viewReports', auth()->user());
+
+        $user = $request->user();
+
+        // Generate overview data for export
+        $overview = $this->reportService->generateOverview($user);
+
+        // You can implement actual export logic here (CSV, PDF, Excel)
+        // For now, redirect back with success message
+        return redirect()->route('reports.index')
+            ->with('success', __('app.reports.export_prepared'));
     }
 }

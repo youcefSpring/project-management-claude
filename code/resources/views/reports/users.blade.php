@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('app.reports.user_activity'))
 @section('page-title', __('app.reports.user_activity'))

@@ -1,12 +1,30 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('app.timesheet.title'))
 @section('page-title', __('app.timesheet.management'))
 
 @section('content')
-<!-- Statistics Section -->
-<div class="row mb-4">
-    <div class="col-12">
+<div class="row">
+    <!-- Header Actions -->
+    <div class="col-12 mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <h2 class="mb-1">{{ __('app.timesheet.title') }}</h2>
+                <p class="text-muted mb-0">{{ __('app.timesheet.manage_and_track') }}</p>
+            </div>
+            <div class="d-flex flex-column flex-sm-row gap-2">
+                <a href="{{ route('timesheet.index', ['show_all' => 1]) }}" class="btn btn-outline-info">
+                    <i class="bi bi-eye me-2"></i>{{ __('app.timesheet.show_all') }}
+                </a>
+                <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>{{ __('app.timesheet.add_entry') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="col-12 mb-4">
         <div class="card shadow-sm">
             <div class="card-header bg-light d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 text-muted">
@@ -111,60 +129,71 @@
             </div>
         </div>
     </div>
-</div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-clock-history me-2"></i>
-                    {{ __('app.timesheet.entries') }}
-                    <span class="badge bg-secondary ms-2">{{ $timeEntries->count() }} {{ __('app.timesheet.entries_count') }}</span>
-                </h5>
-                <div>
-                    <a href="{{ route('timesheet.index', ['show_all' => 1]) }}" class="btn btn-outline-info btn-sm me-2">
-                        <i class="bi bi-eye me-1"></i>{{ __('app.timesheet.show_all') }}
-                    </a>
-                    <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>{{ __('app.timesheet.add_entry') }}
-                    </a>
-                </div>
+    <!-- Filters -->
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-muted">
+                    <i class="bi bi-funnel me-2"></i>{{ __('app.timesheet.filters') }}
+                </h6>
+                <button type="button" id="toggleTimesheetFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('app.toggle_filters') }}">
+                    <i class="bi bi-chevron-up" id="toggleTimesheetFiltersIcon"></i>
+                </button>
             </div>
-            <div class="card-body">
-                <!-- Search and Filter Section -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <input type="text" class="form-control" id="search-input" placeholder="{{ __('app.search') }}...">
+            <div class="card-body p-3" id="timesheetFiltersContent">
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label small text-muted">{{ __('app.search') }}</label>
+                        <input type="text" class="form-control form-control-sm" id="search-input" placeholder="{{ __('app.search') }}...">
                     </div>
-                    <div class="col-md-2">
-                        <select class="form-select" id="project-filter">
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label small text-muted">{{ __('app.projects.title') }}</label>
+                        <select class="form-select form-select-sm" id="project-filter">
                             <option value="">{{ __('app.reports.all_projects') }}</option>
                             @foreach($projects ?? [] as $project)
                                 <option value="{{ $project->id }}">{{ $project->title }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <select class="form-select" id="user-filter">
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label small text-muted">{{ __('app.users.title') }}</label>
+                        <select class="form-select form-select-sm" id="user-filter">
                             <option value="">{{ __('app.reports.all_users') }}</option>
                             @foreach($users ?? [] as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-from" placeholder="{{ __('app.reports.from') }}">
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label small text-muted">{{ __('app.reports.from') }}</label>
+                        <input type="date" class="form-control form-control-sm" id="date-from" placeholder="{{ __('app.reports.from') }}">
                     </div>
-                    <div class="col-md-2">
-                        <input type="date" class="form-control" id="date-to" placeholder="{{ __('app.reports.to') }}">
+                    <div class="col-sm-6 col-md-2">
+                        <label class="form-label small text-muted">{{ __('app.reports.to') }}</label>
+                        <input type="date" class="form-control form-control-sm" id="date-to" placeholder="{{ __('app.reports.to') }}">
                     </div>
-                    <div class="col-md-1">
-                        <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                    <div class="col-sm-6 col-md-1">
+                        <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
                             <i class="bi bi-x-circle"></i>
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timesheet Entries List -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock-history me-2"></i>
+                    {{ __('app.timesheet.entries') }}
+                    <span class="badge bg-secondary ms-2">{{ $timeEntries->count() }}</span>
+                </h5>
+            </div>
+            <div class="card-body">
 
                 <!-- Timesheet Table -->
                 <div class="table-responsive">
@@ -172,11 +201,11 @@
                         <thead class="table-dark">
                             <tr>
                                 <th>{{ __('app.date') }}</th>
-                                <th>{{ __('app.user_label') }}</th>
+                                <th class="d-none d-md-table-cell">{{ __('app.user_label') }}</th>
                                 <th>{{ __('app.tasks.title') }}</th>
-                                <th>{{ __('app.time.hours') }}</th>
-                                <th>{{ __('app.status') }}</th>
-                                <th>{{ __('app.actions') }}</th>
+                                <th class="d-none d-sm-table-cell">{{ __('app.time.hours') }}</th>
+                                <th class="d-none d-lg-table-cell">{{ __('app.status') }}</th>
+                                <th width="120">{{ __('app.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody id="timesheet-tbody">
@@ -204,7 +233,7 @@
                                             <span class="text-muted">{{ __('Invalid date') }}</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="d-none d-md-table-cell">
                                         <div class="d-flex align-items-center">
                                             <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
                                                  style="width: 32px; height: 32px;">
@@ -240,10 +269,10 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-sm-table-cell">
                                         <span class="badge bg-primary fs-6">{{ number_format($timeEntry->duration_hours ?? 0, 2) }}h</span>
                                     </td>
-                                    <td>
+                                    <td class="d-none d-lg-table-cell">
                                         <span class="badge bg-success">{{ __('Logged') }}</span>
                                     </td>
                                     <td>
@@ -653,6 +682,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Setup timesheet filters toggle
+    setupTimesheetFiltersToggle();
 });
+
+function setupTimesheetFiltersToggle() {
+    const toggleBtn = document.getElementById('toggleTimesheetFilters');
+    const filtersContent = document.getElementById('timesheetFiltersContent');
+    const toggleIcon = document.getElementById('toggleTimesheetFiltersIcon');
+
+    // Check localStorage for saved state (default: visible)
+    const isHidden = localStorage.getItem('timesheetFiltersHidden') === 'true';
+
+    if (isHidden) {
+        filtersContent.style.display = 'none';
+        toggleIcon.className = 'bi bi-chevron-down';
+    } else {
+        filtersContent.style.display = 'block';
+        toggleIcon.className = 'bi bi-chevron-up';
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        const isCurrentlyVisible = filtersContent.style.display !== 'none';
+
+        if (isCurrentlyVisible) {
+            // Hide filters
+            filtersContent.style.display = 'none';
+            toggleIcon.className = 'bi bi-chevron-down';
+            localStorage.setItem('timesheetFiltersHidden', 'true');
+        } else {
+            // Show filters
+            filtersContent.style.display = 'block';
+            toggleIcon.className = 'bi bi-chevron-up';
+            localStorage.setItem('timesheetFiltersHidden', 'false');
+        }
+    });
+}
 </script>
 @endpush

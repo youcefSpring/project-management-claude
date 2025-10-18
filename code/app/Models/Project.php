@@ -23,6 +23,7 @@ class Project extends Model
         'start_date',
         'end_date',
         'manager_id',
+        'organization_id',
     ];
 
     /**
@@ -119,6 +120,14 @@ class Project extends Model
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    /**
+     * Get the organization that owns this project
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
     }
 
     /**
@@ -346,6 +355,11 @@ class Project extends Model
      */
     public function canBeViewedBy(User $user): bool
     {
+        // Check if user belongs to the same organization
+        if ($user->organization_id !== $this->organization_id) {
+            return false;
+        }
+
         if ($user->isAdmin()) {
             return true;
         }
@@ -413,6 +427,9 @@ class Project extends Model
      */
     public function scopeAccessibleBy($query, User $user)
     {
+        // Filter by organization first
+        $query->where('organization_id', $user->organization_id);
+
         if ($user->isAdmin()) {
             return $query;
         }

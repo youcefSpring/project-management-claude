@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\TaskNote;
+use App\Services\TaskNoteService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TaskNoteController extends Controller
 {
+    protected TaskNoteService $taskNoteService;
+
+    public function __construct(TaskNoteService $taskNoteService)
+    {
+        $this->taskNoteService = $taskNoteService;
+    }
+
     /**
-     * Store a new task note
+     * Store a new task note with attachments
      */
     public function store(Request $request, Task $task)
     {
@@ -23,17 +31,44 @@ class TaskNoteController extends Controller
         }
 
         $request->validate([
-            'content' => 'required|string|max:1000',
+            'content' => 'nullable|string|max:1000',
+            'type' => 'nullable|string|in:comment,intervention,attachment',
+            'is_internal' => 'boolean',
+            'attachments.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max per image
         ]);
 
-        $note = TaskNote::create([
-            'task_id' => $task->id,
-            'user_id' => $user->id,
+        // Validate that either content or attachments are provided
+        if (empty($request->content) && !$request->hasFile('attachments')) {
+            return redirect()->back()
+                ->withErrors(['content' => __('app.notes.content_or_attachments_required')])
+                ->withInput();
+        }
+
+        $data = [
             'content' => $request->content,
-        ]);
+            'type' => $request->type ?? 'comment',
+            'is_internal' => $request->boolean('is_internal', false),
+        ];
 
-        return redirect()->route('tasks.show', $task)
-            ->with('success', __('app.comments.comment_added_successfully'));
+        $files = $request->file('attachments', []);
+
+        try {
+            $note = $this->taskNoteService->createNote($task->id, $data, $files);
+
+            $message = match($note->type) {
+                'intervention' => __('app.notes.intervention_added_successfully'),
+                'attachment' => __('app.notes.attachment_added_successfully'),
+                default => __('app.comments.comment_added_successfully')
+            };
+
+            return redirect()->route('tasks.show', $task)
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withErrors(['error' => $e->getMessage()])
+                ->withInput();
+        }
     }
 
     /**

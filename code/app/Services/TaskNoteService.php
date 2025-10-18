@@ -4,11 +4,21 @@ namespace App\Services;
 
 use App\Models\Task;
 use App\Models\TaskNote;
+use App\Models\User;
+use App\Models\Notification;
+use App\Services\ImageService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 
 class TaskNoteService
 {
+    protected ImageService $imageService;
+
+    public function __construct(ImageService $imageService)
+    {
+        $this->imageService = $imageService;
+    }
     /**
      * Get all notes for a specific task
      */
@@ -26,23 +36,41 @@ class TaskNoteService
     }
 
     /**
-     * Create a new task note
+     * Create a new task note with optional attachments
      */
-    public function createNote($taskId, array $data)
+    public function createNote($taskId, array $data, array $files = [])
     {
         $task = Task::findOrFail($taskId);
 
         // Check if user has access to this task
         $this->authorizeTaskAccess($task);
 
+        // Process attachments if any
+        $attachments = [];
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                if ($file instanceof UploadedFile) {
+                    $attachments[] = $this->imageService->uploadAndResize($file);
+                }
+            }
+        }
+
         $noteData = [
             'task_id' => $taskId,
             'user_id' => Auth::id(),
-            'content' => $data['content'],
+            'content' => $data['content'] ?? '',
             'is_internal' => $data['is_internal'] ?? false,
+            'type' => $data['type'] ?? (!empty($attachments) ? 'attachment' : 'comment'),
+            'attachments' => !empty($attachments) ? $attachments : null,
+            'metadata' => $data['metadata'] ?? null,
         ];
 
-        return TaskNote::create($noteData);
+        $note = TaskNote::create($noteData);
+
+        // Send notifications to stakeholders
+        $this->notifyTaskStakeholders($note);
+
+        return $note;
     }
 
     /**
@@ -203,13 +231,17 @@ class TaskNoteService
     }
 
     /**
-     * Check if user has access to the task
+     * Check if user has access to the task with organization filtering
      */
     private function authorizeTaskAccess(Task $task)
     {
         $user = Auth::user();
 
-        if ($user->role === 'admin') {
+        if ($user->isAdmin()) {
+            // Admin can access any task in their organization
+            if ($task->project->organization_id !== $user->organization_id) {
+                throw new ModelNotFoundException('Task not found or access denied.');
+            }
             return true;
         }
 
@@ -219,8 +251,13 @@ class TaskNoteService
         }
 
         // Check if user is the project manager
-        if ($task->project->manager_id === $user->id) {
+        if ($task->project && $task->project->manager_id === $user->id) {
             return true;
+        }
+
+        // Check organization access
+        if ($task->project->organization_id !== $user->organization_id) {
+            throw new ModelNotFoundException('Task not found or access denied.');
         }
 
         throw new ModelNotFoundException('Task not found or access denied.');
@@ -283,4 +320,130 @@ class TaskNoteService
 
         return $exportData->toArray();
     }
+
+    /**
+     * Create a status change note
+     */
+    public function createStatusChangeNote($taskId, string $oldStatus, string $newStatus, ?string $comment = null)
+    {
+        $task = Task::findOrFail($taskId);
+        $this->authorizeTaskAccess($task);
+
+        $noteData = [
+            'task_id' => $taskId,
+            'user_id' => Auth::id(),
+            'content' => $comment ?: "Status changed from {$oldStatus} to {$newStatus}",
+            'type' => 'status_change',
+            'is_internal' => false,
+            'metadata' => [
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+            ],
+        ];
+
+        $note = TaskNote::create($noteData);
+        $this->notifyTaskStakeholders($note);
+
+        return $note;
+    }
+
+    /**
+     * Get task stakeholders for notifications
+     */
+    protected function getTaskStakeholders(Task $task): array
+    {
+        $stakeholders = [];
+
+        // Add task assignee
+        if ($task->assigned_to) {
+            $stakeholders[] = $task->assigned_to;
+        }
+
+        // Add project manager
+        if ($task->project && $task->project->manager_id) {
+            $stakeholders[] = $task->project->manager_id;
+        }
+
+        // Add organization admins
+        $admins = User::where('role', 'admin')
+            ->where('organization_id', $task->project->organization_id)
+            ->pluck('id')
+            ->toArray();
+
+        $stakeholders = array_merge($stakeholders, $admins);
+
+        // Remove current user and duplicates
+        $stakeholders = array_unique($stakeholders);
+        $stakeholders = array_filter($stakeholders, function($id) {
+            return $id !== Auth::id();
+        });
+
+        return $stakeholders;
+    }
+
+    /**
+     * Send notifications to task stakeholders
+     */
+    protected function notifyTaskStakeholders(TaskNote $note): void
+    {
+        $stakeholders = $this->getTaskStakeholders($note->task);
+
+        foreach ($stakeholders as $userId) {
+            // Skip internal notes for non-managers/admins
+            if ($note->is_internal) {
+                $user = User::find($userId);
+                if (!$user || (!$user->isAdmin() && !$user->isManager())) {
+                    continue;
+                }
+            }
+
+            // Create notification
+            $user = User::find($userId);
+            if ($user) {
+                Notification::createTaskNoteNotification($user, $note);
+            }
+        }
+    }
+
+    /**
+     * Create intervention note (manager/admin commenting on task progress)
+     */
+    public function createInterventionNote($taskId, string $content, bool $isInternal = false, array $files = [])
+    {
+        $user = Auth::user();
+
+        // Only managers and admins can create intervention notes
+        if (!$user->isAdmin() && !$user->isManager()) {
+            throw new \UnauthorizedHttpException('Unauthorized to create intervention notes');
+        }
+
+        return $this->createNote($taskId, [
+            'content' => $content,
+            'type' => 'intervention',
+            'is_internal' => $isInternal,
+            'metadata' => [
+                'intervention_type' => 'manual',
+                'user_role' => $user->role,
+            ],
+        ], $files);
+    }
+
+    /**
+     * Get notes with organization filtering
+     */
+    public function getTaskNotesWithOrgFilter($taskId, User $user)
+    {
+        $task = Task::findOrFail($taskId);
+        $this->authorizeTaskAccess($task);
+
+        $query = TaskNote::where('task_id', $taskId)->with(['user']);
+
+        // Filter based on user role and internal notes
+        if (!$user->isAdmin() && !$user->isManager()) {
+            $query->where('is_internal', false);
+        }
+
+        return $query->orderBy('created_at', 'asc')->get();
+    }
+
 }

@@ -52,7 +52,7 @@ class TaskService
             'project_id' => $data['project_id'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'status' => Task::STATUS_TODO,
+            'status' => Task::STATUS_PENDING,
             'due_date' => ! empty($data['due_date']) ? Carbon::parse($data['due_date']) : null,
             'assigned_to' => $data['assigned_to'] ?? null,
         ]);
@@ -248,19 +248,23 @@ class TaskService
             $query->where('assigned_to', $filters['assigned_to']);
         }
 
+        if (! empty($filters['priority'])) {
+            $query->where('priority', $filters['priority']);
+        }
+
+        if (! empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('title', 'like', '%' . $filters['search'] . '%')
+                  ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+            });
+        }
+
         if (! empty($filters['due_date'])) {
             $query->whereDate('due_date', $filters['due_date']);
         }
 
         if (! empty($filters['overdue'])) {
             $query->overdue();
-        }
-
-        if (! empty($filters['search'])) {
-            $query->where(function ($q) use ($filters) {
-                $q->where('title', 'LIKE', "%{$filters['search']}%")
-                    ->orWhere('description', 'LIKE', "%{$filters['search']}%");
-            });
         }
 
         return $query->with(['project', 'assignedUser'])
@@ -278,7 +282,7 @@ class TaskService
 
         return [
             'total_tasks' => $tasks->count(),
-            'todo_tasks' => $tasks->where('status', Task::STATUS_TODO)->count(),
+            'todo_tasks' => $tasks->where('status', Task::STATUS_PENDING)->count(),
             'in_progress_tasks' => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
             'completed_tasks' => $tasks->where('status', Task::STATUS_DONE)->count(),
             'overdue_tasks' => $tasks->filter(fn ($task) => $task->isOverdue())->count(),
@@ -301,7 +305,7 @@ class TaskService
             'total_tasks' => $tasks->count(),
             'completed_tasks' => $tasks->where('status', Task::STATUS_DONE)->count(),
             'in_progress_tasks' => $tasks->where('status', Task::STATUS_IN_PROGRESS)->count(),
-            'todo_tasks' => $tasks->where('status', Task::STATUS_TODO)->count(),
+            'todo_tasks' => $tasks->where('status', Task::STATUS_PENDING)->count(),
             'overdue_tasks' => $tasks->filter(fn ($task) => $task->isOverdue())->count(),
             'completion_percentage' => $project->completion_percentage,
             'average_completion_time' => $this->getAverageCompletionTime($tasks),
@@ -461,7 +465,7 @@ class TaskService
         // Find member with least assigned tasks
         $memberWithLeastTasks = $teamMembers->sortBy(function ($member) {
             return $member->assignedTasks()->whereIn('status', [
-                Task::STATUS_TODO,
+                Task::STATUS_PENDING,
                 Task::STATUS_IN_PROGRESS,
             ])->count();
         })->first();

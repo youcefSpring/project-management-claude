@@ -67,13 +67,19 @@ class TimeEntryController extends Controller
         // Get available tasks for time entry
         $availableTasks = [];
         if ($user->isAdmin()) {
-            $availableTasks = Task::with('project')->get();
+            $availableTasks = Task::whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })->with('project')->get();
         } elseif ($user->isManager()) {
             $availableTasks = Task::whereHas('project', function ($query) use ($user) {
-                $query->where('manager_id', $user->id);
+                $query->where('manager_id', $user->id)
+                      ->where('organization_id', $user->organization_id);
             })->with('project')->get();
         } else {
             $availableTasks = Task::where('assigned_to', $user->id)
+                ->whereHas('project', function ($query) use ($user) {
+                    $query->where('organization_id', $user->organization_id);
+                })
                 ->with('project')
                 ->get();
         }
@@ -83,8 +89,8 @@ class TimeEntryController extends Controller
         $users = collect();
 
         if ($user->isAdmin()) {
-            $projects = Project::all();
-            $users = User::all();
+            $projects = Project::where('organization_id', $user->organization_id)->get();
+            $users = User::where('organization_id', $user->organization_id)->get();
         } elseif ($user->isManager()) {
             // Projects the user manages or is a member of
             $projects = Project::accessibleBy($user)->get();
@@ -122,14 +128,20 @@ class TimeEntryController extends Controller
         // Get available tasks
         $availableTasks = [];
         if ($user->isAdmin()) {
-            $availableTasks = Task::with('project')->get();
+            $availableTasks = Task::whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })->with('project')->get();
         } elseif ($user->isManager()) {
             $availableTasks = Task::whereHas('project', function ($query) use ($user) {
-                $query->where('manager_id', $user->id);
+                $query->where('manager_id', $user->id)
+                      ->where('organization_id', $user->organization_id);
             })->with('project')->get();
         } else {
             $availableTasks = Task::where('assigned_to', $user->id)
                 ->where('status', '!=', 'completed')
+                ->whereHas('project', function ($query) use ($user) {
+                    $query->where('organization_id', $user->organization_id);
+                })
                 ->with('project')
                 ->get();
         }
@@ -184,13 +196,19 @@ class TimeEntryController extends Controller
         $availableTasks = [];
 
         if ($user->isAdmin()) {
-            $availableTasks = Task::with('project')->get();
+            $availableTasks = Task::whereHas('project', function ($query) use ($user) {
+                $query->where('organization_id', $user->organization_id);
+            })->with('project')->get();
         } elseif ($user->isManager()) {
             $availableTasks = Task::whereHas('project', function ($query) use ($user) {
-                $query->where('manager_id', $user->id);
+                $query->where('manager_id', $user->id)
+                      ->where('organization_id', $user->organization_id);
             })->with('project')->get();
         } else {
             $availableTasks = Task::where('assigned_to', $user->id)
+                ->whereHas('project', function ($query) use ($user) {
+                    $query->where('organization_id', $user->organization_id);
+                })
                 ->with('project')
                 ->get();
         }

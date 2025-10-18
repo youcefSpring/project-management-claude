@@ -28,7 +28,9 @@ class ProjectController extends Controller
         // Get managers for filter dropdown (admin/manager only)
         $managers = [];
         if ($user->isAdmin() || $user->isManager()) {
-            $managers = User::where('role', 'manager')->get();
+            $managers = User::where('role', 'manager')
+                          ->where('organization_id', $user->organization_id)
+                          ->get();
         }
 
         return view('projects.index', compact('projects', 'managers'));
@@ -74,7 +76,9 @@ class ProjectController extends Controller
         ];
 
         // Get available users for task assignment
-        $availableUsers = User::where('role', 'member')->get();
+        $availableUsers = User::where('role', 'member')
+                             ->where('organization_id', auth()->user()->organization_id)
+                             ->get();
 
         // Get all tasks for team members display (unfiltered)
         $allTasks = $project->tasks()->with(['assignedUser'])->get();
@@ -86,7 +90,9 @@ class ProjectController extends Controller
     {
         $this->authorize('create', Project::class);
 
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::where('role', 'manager')
+                       ->where('organization_id', auth()->user()->organization_id)
+                       ->get();
 
         return view('projects.create', compact('managers'));
     }
@@ -113,7 +119,9 @@ class ProjectController extends Controller
     {
         $this->authorize('update', $project);
 
-        $managers = User::where('role', 'manager')->get();
+        $managers = User::where('role', 'manager')
+                       ->where('organization_id', auth()->user()->organization_id)
+                       ->get();
 
         return view('projects.edit', compact('project', 'managers'));
     }

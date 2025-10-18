@@ -817,4 +817,53 @@ class ReportService
 
         return min($score, 100);
     }
+
+    /**
+     * Generate overview data for dashboard
+     */
+    public function generateOverview(User $user): array
+    {
+        $query = Project::query();
+
+        // Apply user role filters
+        if ($user->isMember()) {
+            $query->whereHas('tasks', function ($taskQuery) use ($user) {
+                $taskQuery->where('assigned_to', $user->id);
+            });
+        } elseif ($user->isManager()) {
+            $query->where('manager_id', $user->id);
+        } elseif (!$user->isAdmin()) {
+            // If not admin, manager, or member, return empty data
+            return [
+                'total_projects' => 0,
+                'total_tasks' => 0,
+                'total_hours' => 0,
+                'total_users' => 0,
+            ];
+        }
+
+        // Get projects accessible to user
+        $projects = $query->get();
+        $projectIds = $projects->pluck('id');
+
+        // Calculate totals
+        $totalProjects = $projects->count();
+
+        $totalTasks = Task::whereIn('project_id', $projectIds)->count();
+
+        $totalHours = TimeEntry::whereHas('task', function ($taskQuery) use ($projectIds) {
+            $taskQuery->whereIn('project_id', $projectIds);
+        })->sum('duration_hours') ?? 0;
+
+        $totalUsers = User::whereHas('assignedTasks', function ($taskQuery) use ($projectIds) {
+            $taskQuery->whereIn('project_id', $projectIds);
+        })->distinct()->count();
+
+        return [
+            'total_projects' => $totalProjects,
+            'total_tasks' => $totalTasks,
+            'total_hours' => round($totalHours, 1),
+            'total_users' => $totalUsers,
+        ];
+    }
 }

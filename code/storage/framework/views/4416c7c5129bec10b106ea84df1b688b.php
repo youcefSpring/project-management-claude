@@ -118,8 +118,7 @@
                                     <th><?php echo e(__('app.projects.name')); ?></th>
                                     <th><?php echo e(__('app.projects.manager')); ?></th>
                                     <th><?php echo e(__('app.status')); ?></th>
-                                    <th><?php echo e(__('app.projects.dates')); ?>
-
+                                    <th><?php echo e(__('app.projects.dates')); ?></th>
                                     <th><?php echo e(__('app.projects.progress')); ?></th>
                                     <th><?php echo e(__('app.tasks.title')); ?></th>
                                     <th><?php echo e(__('app.actions')); ?></th>
@@ -196,11 +195,11 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
+                                            <div class="dropdown dropstart">
+                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                                                     <i class="bi bi-three-dots"></i>
                                                 </button>
-                                                <ul class="dropdown-menu">
+                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 160px;">
                                                     <li>
                                                         <a class="dropdown-item" href="<?php echo e(route('projects.show', $project)); ?>">
                                                             <i class="bi bi-eye me-2"></i><?php echo e(__('app.projects.view')); ?>
@@ -298,5 +297,45 @@ function setupFiltersToggle() {
     });
 }
 </script>
+
+<style>
+/* Fix dropdown positioning and prevent overflow issues */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+    z-index: 1021;
+}
+
+/* Ensure dropdowns don't break table layout */
+.dropdown {
+    position: static;
+}
+
+@media (max-width: 768px) {
+    .dropdown.dropstart .dropdown-menu {
+        --bs-position: absolute;
+        inset: 0px auto auto 0px !important;
+        transform: translate(-100%, 0px) !important;
+    }
+}
+
+/* Fix for small screens */
+@media (max-width: 576px) {
+    .dropdown.dropstart {
+        position: static;
+    }
+
+    .dropdown.dropstart .dropdown-menu {
+        position: absolute !important;
+        right: 0 !important;
+        left: auto !important;
+        transform: none !important;
+    }
+}
+</style>
 <?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/projects/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/projects/index.blade.php ENDPATH**/ ?>

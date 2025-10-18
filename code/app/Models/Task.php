@@ -21,6 +21,7 @@ class Task extends Model
         'title',
         'description',
         'status',
+        'priority',
         'due_date',
         'assigned_to',
         'total_hours',
@@ -288,18 +289,26 @@ class Task extends Model
     public function scopeAccessibleBy($query, User $user)
     {
         if ($user->isAdmin()) {
-            return $query;
+            // Admin sees all tasks from their organization
+            return $query->whereHas('project', function ($projectQuery) use ($user) {
+                $projectQuery->where('organization_id', $user->organization_id);
+            });
         }
 
         if ($user->isManager()) {
+            // Manager sees tasks from projects they manage within their organization
             return $query->whereHas('project', function ($projectQuery) use ($user) {
-                $projectQuery->where('manager_id', $user->id);
+                $projectQuery->where('manager_id', $user->id)
+                           ->where('organization_id', $user->organization_id);
             });
         }
 
         // For team members (developers, designers, testers, etc.), show only their assigned tasks
         if ($user->canWorkOnTasks()) {
-            return $query->where('assigned_to', $user->id);
+            return $query->where('assigned_to', $user->id)
+                        ->whereHas('project', function ($projectQuery) use ($user) {
+                            $projectQuery->where('organization_id', $user->organization_id);
+                        });
         }
 
         // For HR, accountants, and clients, show no tasks by default

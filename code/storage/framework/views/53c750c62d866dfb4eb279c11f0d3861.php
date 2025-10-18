@@ -45,4 +45,4 @@
     </ul>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
-<?php endif; ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/project-management-claude/code/resources/views/partials/alerts.blade.php ENDPATH**/ ?>
+<?php endif; ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/partials/alerts.blade.php ENDPATH**/ ?>

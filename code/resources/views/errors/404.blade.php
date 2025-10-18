@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.navbar')
 
 @section('title', __('app.messages.item_not_found'))
 @section('page-title', __('app.messages.item_not_found'))

@@ -585,7 +585,7 @@ class TimeTrackingService
     private function getActiveTasksForUser(User $user): Collection
     {
         return Task::where('assigned_to', $user->id)
-            ->whereIn('status', [Task::STATUS_TODO, Task::STATUS_IN_PROGRESS])
+            ->whereIn('status', [Task::STATUS_PENDING, Task::STATUS_IN_PROGRESS])
             ->with('project')
             ->get();
     }

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.navbar')
 
 @section('title', __('Search Results'))
 @section('page-title', __('Search Results'))

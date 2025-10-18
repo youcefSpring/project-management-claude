@@ -18,11 +18,13 @@ class ProjectService
         // Validate business rules
         $this->validateProjectData($data);
 
-        // Ensure manager exists and has appropriate role
-        $manager = User::find($data['manager_id']);
+        // Ensure manager exists and has appropriate role within the same organization
+        $manager = User::where('id', $data['manager_id'])
+                      ->where('organization_id', $creator->organization_id)
+                      ->first();
         if (! $manager || ! $manager->isManager() && ! $manager->isAdmin()) {
             throw ValidationException::withMessages([
-                'manager_id' => ['The selected manager is invalid.'],
+                'manager_id' => ['The selected manager is invalid or not from your organization.'],
             ]);
         }
 
@@ -37,6 +39,7 @@ class ProjectService
             'start_date' => Carbon::parse($data['start_date']),
             'end_date' => Carbon::parse($data['end_date']),
             'manager_id' => $data['manager_id'],
+            'organization_id' => $creator->organization_id,
         ]);
 
         // Log activity

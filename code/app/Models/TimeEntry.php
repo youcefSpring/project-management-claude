@@ -295,7 +295,10 @@ class TimeEntry extends Model
     public function scopeAccessibleBy($query, User $user)
     {
         if ($user->isAdmin()) {
-            return $query;
+            // Admin sees all time entries from their organization
+            return $query->whereHas('task.project', function ($projectQuery) use ($user) {
+                $projectQuery->where('organization_id', $user->organization_id);
+            });
         }
 
         // Use the same logic as Project::accessibleBy for consistency
@@ -304,12 +307,15 @@ class TimeEntry extends Model
             $q->where('user_id', $user->id)
             // OR time entries for projects they manage (legacy support)
             ->orWhereHas('task.project', function ($projectQuery) use ($user) {
-                $projectQuery->where('manager_id', $user->id);
+                $projectQuery->where('manager_id', $user->id)
+                           ->where('organization_id', $user->organization_id);
             })
             // OR time entries for projects they are members of
             ->orWhereHas('task.project.activeMemberships', function ($membershipQuery) use ($user) {
                 $membershipQuery->where('user_id', $user->id);
             });
+        })->whereHas('task.project', function ($projectQuery) use ($user) {
+            $projectQuery->where('organization_id', $user->organization_id);
         });
     }
 

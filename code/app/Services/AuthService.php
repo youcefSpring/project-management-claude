@@ -3,10 +3,12 @@
 namespace App\Services;
 
 use App\Models\User;
+use App\Models\Organization;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class AuthService
@@ -49,27 +51,43 @@ class AuthService
     /**
      * Register a new user
      */
-    public function register(array $userData): User
+    public function register(array $userData): array
     {
-        // Hash password
-        $userData['password'] = Hash::make($userData['password']);
+        return DB::transaction(function () use ($userData) {
+            // Create organization using the company name
+            $organization = Organization::create([
+                'name' => $userData['company_name'],
+                'description' => 'Organization for ' . $userData['company_name'] . ' - Created during registration',
+                'is_active' => true,
+            ]);
 
-        // Set default language if not provided
-        $userData['language'] = $userData['language'] ?? 'fr';
+            // Hash password
+            $userData['password'] = Hash::make($userData['password']);
 
-        // Set default role
-        $userData['role'] = $userData['role'] ?? User::ROLE_MEMBER;
+            // Set default language if not provided
+            $userData['language'] = $userData['language'] ?? 'fr';
 
-        // Create user
-        $user = User::create($userData);
+            // Set default role to admin since they're creating their own organization
+            $userData['role'] = User::ROLE_ADMIN;
 
-        // Automatically log in the new user
-        Auth::login($user);
+            // Assign the new organization
+            $userData['organization_id'] = $organization->id;
 
-        // Set language
-        $this->setUserLanguage($user->language);
+            // Create user
+            $user = User::create($userData);
 
-        return $user;
+            // Automatically log in the new user
+            Auth::login($user);
+
+            // Set language
+            $this->setUserLanguage($user->language);
+
+            return [
+                'success' => true,
+                'user' => $user,
+                'organization' => $organization,
+            ];
+        });
     }
 
     /**

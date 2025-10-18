@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.sidebar')
 
 @section('title', __('Edit Time Entry'))
 @section('page-title', __('Edit Time Entry'))

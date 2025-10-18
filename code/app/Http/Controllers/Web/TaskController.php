@@ -7,21 +7,24 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Services\TaskService;
+use App\Services\TaskNoteService;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
     protected TaskService $taskService;
+    protected TaskNoteService $taskNoteService;
 
-    public function __construct(TaskService $taskService)
+    public function __construct(TaskService $taskService, TaskNoteService $taskNoteService)
     {
         $this->taskService = $taskService;
+        $this->taskNoteService = $taskNoteService;
     }
 
     public function index(Request $request)
     {
         $user = $request->user();
-        $filters = $request->only(['project_id', 'status', 'assigned_to']);
+        $filters = $request->only(['project_id', 'status', 'assigned_to', 'priority', 'search']);
 
         // Get accessible tasks for the user
         $tasks = $this->taskService->getAccessibleTasks($user, $filters);
@@ -31,15 +34,24 @@ class TaskController extends Controller
         $users = [];
 
         if ($user->isAdmin()) {
-            $projects = Project::all();
-            $users = User::where('role', 'member')->get();
+            // Admin sees all projects and users from their organization
+            $projects = Project::where('organization_id', $user->organization_id)->get();
+            $users = User::where('organization_id', $user->organization_id)
+                        ->whereIn('role', ['member', 'manager'])
+                        ->get();
         } elseif ($user->isManager()) {
-            $projects = Project::where('manager_id', $user->id)->get();
-            $users = User::where('role', 'member')->get();
+            // Manager sees projects they manage and users from their organization
+            $projects = Project::where('manager_id', $user->id)
+                              ->where('organization_id', $user->organization_id)
+                              ->get();
+            $users = User::where('organization_id', $user->organization_id)
+                        ->where('role', 'member')
+                        ->get();
         } else {
+            // Members see only projects they're assigned to
             $projects = Project::whereHas('tasks', function ($query) use ($user) {
                 $query->where('assigned_to', $user->id);
-            })->get();
+            })->where('organization_id', $user->organization_id)->get();
         }
 
         return view('tasks.index', compact('tasks', 'projects', 'users'));
@@ -52,7 +64,16 @@ class TaskController extends Controller
         $task->load([
             'project.manager',
             'assignedUser',
-            'notes.user',
+            'notes' => function($query) {
+                $query->with('user')
+                      ->orderBy('created_at', 'asc');
+
+                // Filter internal notes for non-managers/admins
+                $user = auth()->user();
+                if (!$user->isAdmin() && !$user->isManager()) {
+                    $query->where('is_internal', false);
+                }
+            },
             'timeEntries.user',
         ]);
 
@@ -65,15 +86,21 @@ class TaskController extends Controller
 
         $projectId = $request->input('project_id');
         $projects = [];
-        $users = User::where('role', 'member')->get();
+        $users = User::where('role', 'member')
+                    ->where('organization_id', auth()->user()->organization_id)
+                    ->get();
 
         if (auth()->user()->isAdmin()) {
-            $projects = Project::all();
+            $projects = Project::where('organization_id', auth()->user()->organization_id)->get();
         } elseif (auth()->user()->isManager()) {
-            $projects = Project::where('manager_id', auth()->id())->get();
+            $projects = Project::where('manager_id', auth()->id())
+                              ->where('organization_id', auth()->user()->organization_id)
+                              ->get();
         }
 
-        $selectedProject = $projectId ? Project::find($projectId) : null;
+        $selectedProject = $projectId ? Project::where('id', $projectId)
+                                               ->where('organization_id', auth()->user()->organization_id)
+                                               ->first() : null;
 
         return view('tasks.create', compact('projects', 'users', 'selectedProject'));
     }
@@ -102,13 +129,17 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $projects = [];
-        $users = User::where('role', 'member')->get();
+        $users = User::where('role', 'member')
+                    ->where('organization_id', auth()->user()->organization_id)
+                    ->get();
 
         $user = auth()->user();
         if ($user->isAdmin()) {
-            $projects = Project::all();
+            $projects = Project::where('organization_id', $user->organization_id)->get();
         } elseif ($user->isManager()) {
-            $projects = Project::where('manager_id', $user->id)->get();
+            $projects = Project::where('manager_id', $user->id)
+                              ->where('organization_id', $user->organization_id)
+                              ->get();
         }
 
         return view('tasks.edit', compact('task', 'projects', 'users'));
@@ -152,17 +183,21 @@ class TaskController extends Controller
             'status' => 'required|in:pending,in_progress,completed,cancelled',
         ]);
 
+        $oldStatus = $task->status;
+        $newStatus = $request->status;
+
         $task->update([
-            'status' => $request->status,
+            'status' => $newStatus,
             'updated_at' => now(),
         ]);
 
-        // Log the status change
-        $task->notes()->create([
-            'content' => 'Status changed to ' . $request->status,
-            'user_id' => auth()->id(),
-            'is_internal' => true,
-        ]);
+        // Create status change note using the service
+        $this->taskNoteService->createStatusChangeNote(
+            $task->id,
+            $oldStatus,
+            $newStatus,
+            $request->input('comment')
+        );
 
         return response()->json([
             'success' => true,
