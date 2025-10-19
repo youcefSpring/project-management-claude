@@ -214,7 +214,7 @@
                                             @endif
 
                                             <!-- Attachments -->
-                                            @if($note->hasAttachments && $note->hasAttachments())
+                                            @if($note->hasAttachments())
                                                 <div class="note-attachments mt-2">
                                                     <div class="row g-2">
                                                         @foreach($note->image_attachments as $attachment)
