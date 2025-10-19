@@ -4,7 +4,8 @@ namespace App\Services;
 
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Str;
 
 class ImageService
@@ -74,17 +75,16 @@ class ImageService
      */
     protected function resizeImage(UploadedFile $file, int $width, int $height): string
     {
-        $image = Image::make($file->getRealPath());
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($file->getRealPath());
 
         // Resize maintaining aspect ratio and crop if necessary
-        $image->fit($width, $height, function ($constraint) {
-            $constraint->upsize();
-        });
+        $image->cover($width, $height);
 
         // Optimize for web
-        $image->encode('jpg', 85);
+        $encoded = $image->toJpeg(85);
 
-        return $image->stream()->__toString();
+        return $encoded;
     }
 
     /**
@@ -92,12 +92,13 @@ class ImageService
      */
     protected function compressImage(UploadedFile $file): string
     {
-        $image = Image::make($file->getRealPath());
+        $manager = new ImageManager(new Driver());
+        $image = $manager->read($file->getRealPath());
 
         // Compress while maintaining original dimensions
-        $image->encode('jpg', 85);
+        $encoded = $image->toJpeg(85);
 
-        return $image->stream()->__toString();
+        return $encoded;
     }
 
     /**
