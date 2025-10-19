@@ -430,9 +430,14 @@ class TaskNote extends Model
         // Clean up attachments when note is deleted
         static::deleting(function ($note) {
             if ($note->hasAttachments()) {
-                $imageService = app(\App\Services\ImageService::class);
-                foreach ($note->attachments as $attachment) {
-                    $imageService->deleteImage($attachment);
+                try {
+                    $imageService = app(\App\Services\ImageService::class);
+                    foreach ($note->attachments as $attachment) {
+                        $imageService->deleteImage($attachment);
+                    }
+                } catch (\Exception $e) {
+                    // Log the error but don't prevent deletion
+                    \Log::warning('Failed to clean up attachments for TaskNote: ' . $e->getMessage());
                 }
             }
         });

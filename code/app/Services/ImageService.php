@@ -10,6 +10,17 @@ use Illuminate\Support\Str;
 
 class ImageService
 {
+    protected $manager;
+
+    public function __construct()
+    {
+        try {
+            $this->manager = new ImageManager(new Driver());
+        } catch (\Exception $e) {
+            $this->manager = null;
+            \Log::warning('ImageService could not initialize ImageManager: ' . $e->getMessage());
+        }
+    }
     /**
      * Upload and resize image
      */
@@ -75,8 +86,11 @@ class ImageService
      */
     protected function resizeImage(UploadedFile $file, int $width, int $height): string
     {
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($file->getRealPath());
+        if (!$this->manager) {
+            throw new \Exception('ImageManager not available. Image processing is disabled.');
+        }
+
+        $image = $this->manager->read($file->getRealPath());
 
         // Resize maintaining aspect ratio and crop if necessary
         $image->cover($width, $height);
@@ -92,8 +106,11 @@ class ImageService
      */
     protected function compressImage(UploadedFile $file): string
     {
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($file->getRealPath());
+        if (!$this->manager) {
+            throw new \Exception('ImageManager not available. Image processing is disabled.');
+        }
+
+        $image = $this->manager->read($file->getRealPath());
 
         // Compress while maintaining original dimensions
         $encoded = $image->toJpeg(85);
