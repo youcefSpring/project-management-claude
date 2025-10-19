@@ -40,7 +40,7 @@ class TaskController extends Controller
                         ->whereIn('role', ['member', 'manager', 'developer', 'designer', 'tester'])
                         ->get();
         } elseif ($user->isManager()) {
-            // Manager sees projects they manage and users from their organization
+            // Manager sees projects they manage and users who can work on tasks in their organization
             $projects = Project::where('manager_id', $user->id)
                               ->where('organization_id', $user->organization_id)
                               ->get();
