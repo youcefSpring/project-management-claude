@@ -37,7 +37,13 @@ class TaskController extends Controller
             // Admin sees all projects and users from their organization
             $projects = Project::where('organization_id', $user->organization_id)->get();
             $users = User::where('organization_id', $user->organization_id)
-                        ->whereIn('role', ['member', 'manager', 'developer', 'designer', 'tester'])
+                        ->where(function ($query) {
+                            $query->whereIn('role', ['member', 'manager', 'developer', 'designer', 'tester'])
+                                  ->orWhereHas('userRoles', function ($q) {
+                                      $q->whereIn('role', ['member', 'manager', 'developer', 'designer', 'tester'])
+                                        ->where('is_active', true);
+                                  });
+                        })
                         ->get();
         } elseif ($user->isManager()) {
             // Manager sees projects they manage and users who can work on tasks in their organization
@@ -45,7 +51,13 @@ class TaskController extends Controller
                               ->where('organization_id', $user->organization_id)
                               ->get();
             $users = User::where('organization_id', $user->organization_id)
-                        ->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                        ->where(function ($query) {
+                            $query->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                                  ->orWhereHas('userRoles', function ($q) {
+                                      $q->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                                        ->where('is_active', true);
+                                  });
+                        })
                         ->get();
         } else {
             // Members see only projects they're assigned to
@@ -87,7 +99,13 @@ class TaskController extends Controller
         $projectId = $request->input('project_id');
         $projects = [];
         $users = User::where('organization_id', auth()->user()->organization_id)
-                    ->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                    ->where(function ($query) {
+                        $query->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                              ->orWhereHas('userRoles', function ($q) {
+                                  $q->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                                    ->where('is_active', true);
+                              });
+                    })
                     ->get();
 
         if (auth()->user()->isAdmin()) {
@@ -130,7 +148,13 @@ class TaskController extends Controller
 
         $projects = [];
         $users = User::where('organization_id', auth()->user()->organization_id)
-                    ->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                    ->where(function ($query) {
+                        $query->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                              ->orWhereHas('userRoles', function ($q) {
+                                  $q->whereIn('role', ['member', 'developer', 'designer', 'tester'])
+                                    ->where('is_active', true);
+                              });
+                    })
                     ->get();
 
         $user = auth()->user();

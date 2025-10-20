@@ -13,12 +13,12 @@
                 <p class="text-muted mb-0">{{ __('app.projects.manage_and_track') }}</p>
             </div>
             <div>
-                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                @can('create', App\Models\Project::class)
                 <a href="{{ route('projects.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
                     {{ __('app.projects.new_project') }}
                 </a>
-                @endif
+                @endcan
             </div>
         </div>
     </div>

@@ -13,12 +13,12 @@
                 <p class="text-muted mb-0">{{ __('app.tasks.manage_and_track') }}</p>
             </div>
             <div class="d-flex gap-2">
-                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                @can('create', App\Models\Task::class)
                 <a href="{{ route('tasks.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
                     {{ __('app.tasks.new_task') }}
                 </a>
-                @endif
+                @endcan
             </div>
         </div>
     </div>

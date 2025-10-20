@@ -105,11 +105,83 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has specific role
+     * Check if user has specific role (checks both primary role and additional roles)
      */
     public function hasRole(string $role): bool
     {
-        return $this->role === $role;
+        // Check primary role for backward compatibility
+        if ($this->role === $role) {
+            return true;
+        }
+
+        // Check additional roles
+        return $this->activeUserRoles()->where('role', $role)->exists();
+    }
+
+    /**
+     * Get all user's roles (primary + additional)
+     */
+    public function getAllRoles(): array
+    {
+        $roles = [$this->role];
+        $additionalRoles = $this->activeUserRoles()->pluck('role')->toArray();
+
+        return array_unique(array_merge($roles, $additionalRoles));
+    }
+
+    /**
+     * Check if user has any of the specified roles
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        $userRoles = $this->getAllRoles();
+        return !empty(array_intersect($roles, $userRoles));
+    }
+
+    /**
+     * Add a role to the user
+     */
+    public function addRole(string $role): bool
+    {
+        if ($this->hasRole($role)) {
+            return false; // Role already exists
+        }
+
+        return $this->userRoles()->create([
+            'role' => $role,
+            'is_active' => true,
+        ]) !== null;
+    }
+
+    /**
+     * Remove a role from the user (cannot remove primary role)
+     */
+    public function removeRole(string $role): bool
+    {
+        if ($this->role === $role) {
+            return false; // Cannot remove primary role
+        }
+
+        return $this->activeUserRoles()->where('role', $role)->delete() > 0;
+    }
+
+    /**
+     * Set additional roles for the user (keeps primary role intact)
+     */
+    public function setAdditionalRoles(array $roles): void
+    {
+        // Remove existing additional roles
+        $this->userRoles()->delete();
+
+        // Add new roles (excluding the primary role)
+        $additionalRoles = array_filter($roles, fn($role) => $role !== $this->role);
+
+        foreach (array_unique($additionalRoles) as $role) {
+            $this->userRoles()->create([
+                'role' => $role,
+                'is_active' => true,
+            ]);
+        }
     }
 
     /**
@@ -248,6 +320,22 @@ class User extends Authenticatable
     public function organization()
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Get user roles (many-to-many relationship)
+     */
+    public function userRoles()
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    /**
+     * Get active user roles
+     */
+    public function activeUserRoles()
+    {
+        return $this->userRoles()->active();
     }
 
     /**
@@ -529,13 +617,6 @@ class User extends Authenticatable
         return $task->assigned_to === $this->id && $this->canWorkOnTasksInProject($task->project);
     }
 
-    /**
-     * Check if user has any of the specified roles
-     */
-    public function hasAnyRole(array $roles): bool
-    {
-        return in_array($this->role, $roles);
-    }
 
     /**
      * Check if user can access admin dashboard

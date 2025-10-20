@@ -30,9 +30,9 @@
                             <div class="card-body">
                                 <h6 class="card-title">{{ __('Create a Project') }}</h6>
                                 <p class="card-text">{{ __('Start by creating a new project to organize your work.') }}</p>
-                                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                                @can('create', App\Models\Project::class)
                                     <a href="{{ route('projects.create') }}" class="btn btn-primary btn-sm">{{ __('Create Project') }}</a>
-                                @endif
+                                @endcan
                             </div>
                         </div>
                     </div>

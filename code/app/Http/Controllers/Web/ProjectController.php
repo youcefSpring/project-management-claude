@@ -28,8 +28,13 @@ class ProjectController extends Controller
         // Get managers for filter dropdown (admin/manager only)
         $managers = [];
         if ($user->isAdmin() || $user->isManager()) {
-            $managers = User::where('role', 'manager')
-                          ->where('organization_id', $user->organization_id)
+            $managers = User::where('organization_id', $user->organization_id)
+                          ->where(function ($query) {
+                              $query->where('role', 'manager')
+                                    ->orWhereHas('userRoles', function ($q) {
+                                        $q->where('role', 'manager')->where('is_active', true);
+                                    });
+                          })
                           ->get();
         }
 
@@ -75,9 +80,19 @@ class ProjectController extends Controller
                 : 0,
         ];
 
-        // Get available users for task assignment
-        $availableUsers = User::where('role', 'member')
-                             ->where('organization_id', auth()->user()->organization_id)
+        // Get available users for task assignment (users who can work on tasks)
+        $availableUsers = User::where('organization_id', auth()->user()->organization_id)
+                             ->where(function ($query) {
+                                 $query->where('role', 'member')
+                                       ->orWhere('role', 'developer')
+                                       ->orWhere('role', 'designer')
+                                       ->orWhere('role', 'tester')
+                                       ->orWhere('role', 'manager')
+                                       ->orWhereHas('userRoles', function ($q) {
+                                           $q->whereIn('role', ['member', 'developer', 'designer', 'tester', 'manager'])
+                                             ->where('is_active', true);
+                                       });
+                             })
                              ->get();
 
         // Get all tasks for team members display (unfiltered)
@@ -90,8 +105,13 @@ class ProjectController extends Controller
     {
         $this->authorize('create', Project::class);
 
-        $managers = User::where('role', 'manager')
-                       ->where('organization_id', auth()->user()->organization_id)
+        $managers = User::where('organization_id', auth()->user()->organization_id)
+                       ->where(function ($query) {
+                           $query->where('role', 'manager')
+                                 ->orWhereHas('userRoles', function ($q) {
+                                     $q->where('role', 'manager')->where('is_active', true);
+                                 });
+                       })
                        ->get();
 
         return view('projects.create', compact('managers'));
@@ -119,8 +139,13 @@ class ProjectController extends Controller
     {
         $this->authorize('update', $project);
 
-        $managers = User::where('role', 'manager')
-                       ->where('organization_id', auth()->user()->organization_id)
+        $managers = User::where('organization_id', auth()->user()->organization_id)
+                       ->where(function ($query) {
+                           $query->where('role', 'manager')
+                                 ->orWhereHas('userRoles', function ($q) {
+                                     $q->where('role', 'manager')->where('is_active', true);
+                                 });
+                       })
                        ->get();
 
         return view('projects.edit', compact('project', 'managers'));

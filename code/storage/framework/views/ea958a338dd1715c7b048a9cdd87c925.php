@@ -87,37 +87,6 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
                 </ul>
             </div>
 
-            <!-- Language Switcher -->
-            <div class="dropdown me-2">
-                <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
-                        type="button" data-bs-toggle="dropdown"
-                        title="<?php echo e(__('app.preferred_language')); ?>">
-                    <i class="bi bi-globe me-1"></i>
-                    <span class="d-none d-sm-inline"><?php echo e(LaravelLocalization::getCurrentLocaleName()); ?></span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end language-dropdown">
-                    <li><h6 class="dropdown-header d-flex align-items-center">
-                        <i class="bi bi-translate me-2"></i><?php echo e(__('app.preferred_language')); ?>
-
-                    </h6></li>
-                    <?php $__currentLoopData = LaravelLocalization::getSupportedLocales(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $localeCode => $properties): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <li>
-                            <a class="dropdown-item <?php echo e(app()->getLocale() == $localeCode ? 'active' : ''); ?>"
-                               rel="alternate"
-                               hreflang="<?php echo e($localeCode); ?>"
-                               href="<?php echo e(LaravelLocalization::getLocalizedURL($localeCode, null, [], true)); ?>">
-                                <div class="d-flex align-items-center">
-                                    <i class="bi bi-flag me-2"></i>
-                                    <span class="flex-grow-1"><?php echo e($properties['native']); ?></span>
-                                    <?php if(app()->getLocale() == $localeCode): ?>
-                                        <i class="bi bi-check-circle-fill text-success"></i>
-                                    <?php endif; ?>
-                                </div>
-                            </a>
-                        </li>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                </ul>
-            </div>
 
             <!-- User Menu -->
             <div class="dropdown">

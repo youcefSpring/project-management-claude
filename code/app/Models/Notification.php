@@ -25,15 +25,12 @@ class Notification extends Model
     /**
      * Get the attributes that should be cast.
      */
-    protected function casts(): array
-    {
-        return [
-            'data' => 'array',
-            'read_at' => 'datetime',
-            'created_at' => 'datetime',
-            'updated_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'data' => 'array',
+        'read_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     /**
      * Get the user this notification belongs to
@@ -188,19 +185,21 @@ class Notification extends Model
             $message = substr($message, 0, 97) . '...';
         }
 
+        $data = [
+            'task_id' => $task->id,
+            'note_id' => $note->id,
+            'task_title' => $task->title,
+            'author_name' => $author->name,
+            'note_type' => $note->type,
+            'project_id' => $task->project_id,
+        ];
+
         return self::create([
             'user_id' => $user->id,
             'type' => 'task_note',
             'title' => $title,
             'message' => "{$author->name}: {$message}",
-            'data' => [
-                'task_id' => $task->id,
-                'note_id' => $note->id,
-                'task_title' => $task->title,
-                'author_name' => $author->name,
-                'note_type' => $note->type,
-                'project_id' => $task->project_id,
-            ],
+            'data' => $data,
         ]);
     }
 
@@ -209,17 +208,19 @@ class Notification extends Model
      */
     public static function createTaskAssignmentNotification(User $user, Task $task, User $assignedBy): self
     {
+        $data = [
+            'task_id' => $task->id,
+            'task_title' => $task->title,
+            'assigned_by' => $assignedBy->name,
+            'project_id' => $task->project_id,
+        ];
+
         return self::create([
             'user_id' => $user->id,
             'type' => 'task_assignment',
             'title' => "You've been assigned to a task",
             'message' => "You've been assigned to task: {$task->title} by {$assignedBy->name}",
-            'data' => [
-                'task_id' => $task->id,
-                'task_title' => $task->title,
-                'assigned_by' => $assignedBy->name,
-                'project_id' => $task->project_id,
-            ],
+            'data' => $data,
         ]);
     }
 
@@ -230,18 +231,20 @@ class Notification extends Model
     {
         $task = $note->task;
 
+        $data = [
+            'task_id' => $task->id,
+            'note_id' => $note->id,
+            'task_title' => $task->title,
+            'mentioned_by' => $mentionedBy->name,
+            'project_id' => $task->project_id,
+        ];
+
         return self::create([
             'user_id' => $user->id,
             'type' => 'mention',
             'title' => "You were mentioned in a comment",
             'message' => "{$mentionedBy->name} mentioned you in task: {$task->title}",
-            'data' => [
-                'task_id' => $task->id,
-                'note_id' => $note->id,
-                'task_title' => $task->title,
-                'mentioned_by' => $mentionedBy->name,
-                'project_id' => $task->project_id,
-            ],
+            'data' => $data,
         ]);
     }
 

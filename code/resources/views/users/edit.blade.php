@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="role" class="form-label">{{ __('app.users.role') }} <span class="text-danger">*</span></label>
+                        <label for="role" class="form-label">{{ __('Primary Role') }} <span class="text-danger">*</span></label>
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ old('role', $user->role) === $role ? 'selected' : '' }}>
@@ -51,6 +51,38 @@
                                 {{ __('app.users.last_admin_warning') }}
                             </div>
                         @endif
+                        <div class="form-text">{{ __('This will be the user\'s primary role for permissions and display.') }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Additional Roles') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                        <div class="row">
+                            @foreach($roles as $role)
+                                @if($role !== 'admin')
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input additional-role" type="checkbox"
+                                                   name="additional_roles[]" value="{{ $role }}"
+                                                   id="additional_role_{{ $role }}"
+                                                   {{ in_array($role, old('additional_roles', $userAdditionalRoles)) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="additional_role_{{ $role }}">
+                                                {{ $roleLabels[$role] }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                        @error('additional_roles')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">{{ __('Current additional roles: ') }}
+                            @if(count($userAdditionalRoles) > 0)
+                                {{ implode(', ', array_map(fn($role) => $roleLabels[$role], $userAdditionalRoles)) }}
+                            @else
+                                {{ __('None') }}
+                            @endif
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -331,9 +363,32 @@ function updateRoleInfo() {
     }
 }
 
-document.getElementById('role').addEventListener('change', updateRoleInfo);
+// Prevent selecting primary role as additional role
+function updateAdditionalRoles() {
+    const primaryRole = document.getElementById('role').value;
+    const additionalCheckboxes = document.querySelectorAll('.additional-role');
+
+    additionalCheckboxes.forEach(checkbox => {
+        if (checkbox.value === primaryRole) {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            checkbox.parentElement.classList.add('text-muted');
+        } else {
+            checkbox.disabled = false;
+            checkbox.parentElement.classList.remove('text-muted');
+        }
+    });
+}
+
+document.getElementById('role').addEventListener('change', function() {
+    updateRoleInfo();
+    updateAdditionalRoles();
+});
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', updateRoleInfo);
+document.addEventListener('DOMContentLoaded', function() {
+    updateRoleInfo();
+    updateAdditionalRoles();
+});
 </script>
 @endsection

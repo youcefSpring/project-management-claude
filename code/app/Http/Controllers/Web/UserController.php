@@ -64,6 +64,8 @@ class UserController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'role' => ['required', Rule::in(User::getRoles())],
+            'additional_roles' => 'nullable|array',
+            'additional_roles.*' => [Rule::in(User::getRoles())],
             'language' => 'nullable|string|in:en,fr,ar',
         ]);
 
@@ -75,6 +77,18 @@ class UserController extends Controller
             'language' => $request->language ?? 'en',
             'organization_id' => auth()->user()->organization_id,
         ]);
+
+        // Add additional roles if provided
+        if ($request->filled('additional_roles')) {
+            $additionalRoles = array_filter($request->additional_roles, function($role) use ($request) {
+                // Don't add the primary role as an additional role and don't allow admin as additional role
+                return $role !== $request->role && $role !== 'admin';
+            });
+
+            foreach ($additionalRoles as $role) {
+                $user->addRole($role);
+            }
+        }
 
         return redirect()->route('users.index')
             ->with('success', __('User created successfully.'));
@@ -117,7 +131,10 @@ class UserController extends Controller
         $roles = User::getRoles();
         $roleLabels = User::getRoleLabels();
 
-        return view('users.edit', compact('user', 'roles', 'roleLabels'));
+        // Get user's additional roles (excluding primary role)
+        $userAdditionalRoles = $user->activeUserRoles()->pluck('role')->toArray();
+
+        return view('users.edit', compact('user', 'roles', 'roleLabels', 'userAdditionalRoles'));
     }
 
     /**
@@ -131,6 +148,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'role' => ['required', Rule::in(User::getRoles())],
+            'additional_roles' => 'nullable|array',
+            'additional_roles.*' => [Rule::in(User::getRoles())],
             'language' => 'nullable|string|in:en,fr,ar',
         ];
 
@@ -154,6 +173,21 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
+
+        // Update additional roles
+        if ($request->has('additional_roles')) {
+            $additionalRoles = $request->additional_roles ?: [];
+
+            // Filter out the primary role and admin role from additional roles
+            $additionalRoles = array_filter($additionalRoles, function($role) use ($request) {
+                return $role !== $request->role && $role !== 'admin';
+            });
+
+            $user->setAdditionalRoles($additionalRoles);
+        } else {
+            // If no additional roles are submitted, clear all additional roles
+            $user->setAdditionalRoles([]);
+        }
 
         return redirect()->route('users.show', $user)
             ->with('success', __('User updated successfully.'));

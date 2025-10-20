@@ -33,9 +33,9 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="role" class="form-label">{{ __('Role') }} <span class="text-danger">*</span></label>
+                        <label for="role" class="form-label">{{ __('Primary Role') }} <span class="text-danger">*</span></label>
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
-                            <option value="">{{ __('Select a role') }}</option>
+                            <option value="">{{ __('Select a primary role') }}</option>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ old('role') === $role ? 'selected' : '' }}>
                                     {{ $roleLabels[$role] }}
@@ -45,6 +45,32 @@
                         @error('role')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <div class="form-text">{{ __('This will be the user\'s primary role for permissions and display.') }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('Additional Roles') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                        <div class="row">
+                            @foreach($roles as $role)
+                                @if($role !== 'admin')
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input additional-role" type="checkbox"
+                                                   name="additional_roles[]" value="{{ $role }}"
+                                                   id="additional_role_{{ $role }}"
+                                                   {{ in_array($role, old('additional_roles', [])) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="additional_role_{{ $role }}">
+                                                {{ $roleLabels[$role] }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endif
+                            @endforeach
+                        </div>
+                        @error('additional_roles')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <div class="form-text">{{ __('User can have multiple roles. For example, a developer can also be a manager.') }}</div>
                     </div>
 
                     <div class="mb-3">
@@ -175,8 +201,9 @@ const roleDescriptions = {
     }
 };
 
-document.getElementById('role').addEventListener('change', function() {
-    const selectedRole = this.value;
+// Update role information display
+function updateRoleInfo() {
+    const selectedRole = document.getElementById('role').value;
     const infoDiv = document.getElementById('role-info');
 
     if (selectedRole && roleDescriptions[selectedRole]) {
@@ -184,16 +211,44 @@ document.getElementById('role').addEventListener('change', function() {
         const permissionsList = role.permissions.map(p => `<li>${p}</li>`).join('');
 
         infoDiv.innerHTML = `
-            <h6 class="text-primary">${role.title}</h6>
+            <h6 class="text-primary">${role.title} (Primary)</h6>
             <p class="small">${role.description}</p>
-            <h6 class="mt-3">{{ __('Permissions') }}</h6>
+            <h6 class="mt-3">{{ __('Primary Role Permissions') }}</h6>
             <ul class="small text-muted">
                 ${permissionsList}
             </ul>
         `;
     } else {
-        infoDiv.innerHTML = '<p class="text-muted">{{ __("Select a role to see permissions and description.") }}</p>';
+        infoDiv.innerHTML = '<p class="text-muted">{{ __("Select a primary role to see permissions and description.") }}</p>';
     }
+}
+
+// Prevent selecting primary role as additional role
+function updateAdditionalRoles() {
+    const primaryRole = document.getElementById('role').value;
+    const additionalCheckboxes = document.querySelectorAll('.additional-role');
+
+    additionalCheckboxes.forEach(checkbox => {
+        if (checkbox.value === primaryRole) {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+            checkbox.parentElement.classList.add('text-muted');
+        } else {
+            checkbox.disabled = false;
+            checkbox.parentElement.classList.remove('text-muted');
+        }
+    });
+}
+
+document.getElementById('role').addEventListener('change', function() {
+    updateRoleInfo();
+    updateAdditionalRoles();
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateRoleInfo();
+    updateAdditionalRoles();
 });
 </script>
 @endsection

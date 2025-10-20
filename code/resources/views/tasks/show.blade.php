@@ -305,7 +305,7 @@
                                 @csrf
 
                                 <!-- Comment Type Selection -->
-                                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                                @can('createIntervention', $task)
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">{{ __('app.notes.type') }}</label>

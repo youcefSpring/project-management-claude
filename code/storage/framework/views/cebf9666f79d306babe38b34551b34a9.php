@@ -1,0 +1,1 @@
+<?php echo e($slot); ?><?php /**PATH /home/charikatec/Desktop/my docs/Laravel Apps/Terminé/project-management-claude/code/resources/views/components/permission-check.blade.php ENDPATH**/ ?>

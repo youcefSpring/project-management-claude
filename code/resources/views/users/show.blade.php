@@ -484,11 +484,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const defaultData = {
         dailyHours: {
             labels: @json(array_map(function($i) { return now()->subDays(6-$i)->format('M d'); }, range(0, 6))),
-            data: @json($user->timeEntries->where('created_at', '>=', now()->subDays(7))->groupBy(function($entry) {
-                return $entry->created_at->format('Y-m-d');
-            })->map(function($entries) {
-                return $entries->sum('duration_hours');
-            })->values()->toArray() ?: [2, 4, 6, 3, 5, 7, 4])
+            data: [2, 4, 6, 3, 5, 7, 4]
         },
         taskCompletion: {
             labels: ['{{ __("app.tasks.completed") }}', '{{ __("app.tasks.in_progress") }}', '{{ __("app.tasks.pending") }}'],
