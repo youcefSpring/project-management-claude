@@ -7,7 +7,7 @@
         --danger-color: #dc3545;
         --warning-color: #ffc107;
         --info-color: #0dcaf0;
-        --sidebar-width: 250px;
+        /* --sidebar-width: 250px; Removed for horizontal layout */
     }
 
     /* RTL Support */
@@ -279,96 +279,59 @@
         margin-right: 1rem;
     }
 
-    /* Sidebar Styles */
+    /* Horizontal Navbar Styles */
     .sidebar {
-        position: fixed;
+        position: sticky;
         top: 0;
         left: 0;
-        height: 100vh;
-        width: var(--sidebar-width);
+        width: 100%;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         z-index: 1000;
-        transition: transform 0.3s ease;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
     .sidebar .p-3 {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        overflow: hidden;
+        padding: 0.5rem 1rem !important;
     }
 
     .sidebar .nav-pills {
-        flex: 1;
-        overflow: hidden;
-        margin-bottom: 1rem;
+        flex-direction: row;
+        margin-bottom: 0;
+        align-items: center;
+        flex-wrap: wrap;
     }
 
-    /* Compact navigation items */
+    /* Compact navigation items for horizontal bar */
     .sidebar .nav-link {
         padding: 0.5rem 0.75rem;
-        margin: 1px 0;
+        margin: 0 2px;
         font-size: 0.9rem;
+        white-space: nowrap;
     }
 
     .sidebar .nav-link i {
         width: 16px;
-        margin-right: 8px;
+        margin-right: 6px;
     }
 
     [dir="rtl"] .sidebar .nav-link i {
         margin-right: 0;
-        margin-left: 8px;
-    }
-
-    [dir="rtl"] .sidebar {
-        left: auto;
-        right: 0;
-    }
-
-    /* LTR Sidebar (explicit) */
-    [dir="ltr"] .sidebar {
-        left: 0;
-        right: auto;
-    }
-
-    .sidebar-collapsed .sidebar {
-        transform: translateX(-100%);
-    }
-
-    [dir="rtl"] .sidebar-collapsed .sidebar {
-        transform: translateX(100%);
+        margin-left: 6px;
     }
 
     .main-content {
-        margin-left: var(--sidebar-width);
-        min-height: 100vh;
-        transition: margin-left 0.3s ease;
+        margin-left: 0;
+        min-height: calc(100vh - 70px); /* Adjust based on navbar height */
+        padding-top: 1rem;
     }
 
     [dir="rtl"] .main-content {
-        margin-left: 0;
-        margin-right: var(--sidebar-width);
-        transition: margin-right 0.3s ease;
+        margin-right: 0;
     }
 
     [dir="ltr"] .main-content {
-        margin-left: var(--sidebar-width);
-        margin-right: 0;
-        transition: margin-left 0.3s ease;
-    }
-
-    .sidebar-collapsed .main-content {
         margin-left: 0;
-    }
-
-    [dir="rtl"] .sidebar-collapsed .main-content {
-        margin-right: 0;
     }
 
     /* Navigation Styles */

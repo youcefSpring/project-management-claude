@@ -5,142 +5,188 @@
 
 @section('content')
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">{{ __('app.tasks.title') }}</h5>
                 <div>
-                    @can('update', $task)
-                        <a href="{{ route('tasks.edit', $task) }}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil me-1"></i>
-                            {{ __('app.edit') }}
-                        </a>
-                    @endcan
+                    <div class="dropdown">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="taskActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-gear me-1"></i>
+                            {{ __('app.actions') }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="taskActionsDropdown">
+                            @can('update', $task)
+                                <li>
+                                    <a href="{{ route('tasks.edit', $task) }}" class="dropdown-item">
+                                        <i class="bi bi-pencil me-2 text-primary"></i>
+                                        {{ __('app.edit') }}
+                                    </a>
+                                </li>
+                                @if($task->status === 'pending')
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#startTaskModal">
+                                            <i class="bi bi-play me-2 text-warning"></i>
+                                            {{ __('app.tasks.start_task') }}
+                                        </button>
+                                    </li>
+                                @endif
+
+                                @if($task->status === 'in_progress')
+                                    <li>
+                                        <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#completeTaskModal">
+                                            <i class="bi bi-check-circle me-2 text-success"></i>
+                                            {{ __('app.tasks.mark_complete') }}
+                                        </button>
+                                    </li>
+                                @endif
+
+                                <li>
+                                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changePriorityModal">
+                                        <i class="bi bi-exclamation-circle me-2 text-info"></i>
+                                        {{ __('app.tasks.change_priority') }}
+                                    </button>
+                                </li>
+
+                                <li>
+                                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
+                                        <i class="bi bi-arrow-repeat me-2 text-secondary"></i>
+                                        {{ __('app.tasks.change_status') }}
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                            @endcan
+
+                            <li>
+                                <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addCommentModal">
+                                    <i class="bi bi-chat-plus me-2 text-primary"></i>
+                                    {{ __('app.tasks.add_comment') }}
+                                </button>
+                            </li>
+
+                            <li>
+                                <a href="{{ route('timesheet.create', ['task_id' => $task->id]) }}" class="dropdown-item">
+                                    <i class="bi bi-clock me-2 text-success"></i>
+                                    {{ __('app.time.log_time') }}
+                                </a>
+                            </li>
+
+                            @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                                <li>
+                                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#addInterventionModal">
+                                        <i class="bi bi-megaphone me-2 text-warning"></i>
+                                        {{ __('app.tasks.add_intervention') }}
+                                    </button>
+                                </li>
+                            @endif
+
+                            @can('delete', $task)
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                        <i class="bi bi-trash me-2"></i>
+                                        {{ __('app.delete') }}
+                                    </button>
+                                </li>
+                            @endcan
+                        </ul>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h6>{{ __('app.status') }}</h6>
-                        <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
-                            @switch($task->status)
-                                @case('pending') {{ __('app.tasks.pending') }} @break
-                                @case('in_progress') {{ __('app.tasks.in_progress') }} @break
-                                @case('completed') {{ __('app.tasks.completed') }} @break
-                                @case('cancelled') {{ __('app.tasks.cancelled') }} @break
-                                @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                            @endswitch
+                <!-- Task Details Table -->
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>{{ __('app.status') }}</th>
+                <th>{{ __('app.tasks.priority') }}</th>
+                <th>{{ __('app.tasks.assigned_to') }}</th>
+                <th>{{ __('app.tasks.due_date') }}</th>
+                <th>{{ __('app.description') }}</th>
+                <th>{{ __('app.tasks.project') }}</th>
+                <th>{{ __('app.time.total_time') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
+                        @switch($task->status)
+                            @case('pending') {{ __('app.tasks.pending') }} @break
+                            @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                            @case('completed') {{ __('app.tasks.completed') }} @break
+                            @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                            @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                        @endswitch
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
+                        @switch($task->priority)
+                            @case('low') {{ __('app.tasks.low') }} @break
+                            @case('medium') {{ __('app.tasks.medium') }} @break
+                            @case('high') {{ __('app.tasks.high') }} @break
+                            @case('urgent') {{ __('app.tasks.urgent') }} @break
+                            @default {{ ucfirst($task->priority) }}
+                        @endswitch
+                    </span>
+                </td>
+                <td>
+                    @if($task->assignedUser)
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2" style="width: 24px; height: 24px; font-size: 0.8rem; display:inline-block;">
+                            {{ substr($task->assignedUser->name, 0, 1) }}
+                        </div>
+                        <span class="fw-bold">{{ $task->assignedUser->name }}</span>
+                    @else
+                        <span class="text-muted">{{ __('app.unassigned') }}</span>
+                    @endif
+                </td>
+                <td>
+                    @php
+                        $dueDate = $task->due_date ? (is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date) : null;
+                        $isOverdue = $dueDate && $dueDate->isPast() && $task->status !== 'completed';
+                        $isDueToday = $dueDate && $dueDate->isToday();
+                    @endphp
+                    @if($dueDate)
+                        <span class="fw-bold {{ $isOverdue ? 'text-danger' : ($isDueToday ? 'text-warning' : '') }}">
+                            {{ $dueDate->format('M d, Y') }}
                         </span>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>{{ __('app.tasks.priority') }}</h6>
-                        <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
-                            @switch($task->priority)
-                                @case('low') {{ __('app.tasks.low') }} @break
-                                @case('medium') {{ __('app.tasks.medium') }} @break
-                                @case('high') {{ __('app.tasks.high') }} @break
-                                @case('urgent') {{ __('app.tasks.urgent') }} @break
-                                @default {{ ucfirst($task->priority) }}
-                            @endswitch
-                        </span>
-                    </div>
-                </div>
-
-                @if($task->description)
-                <div class="mb-4">
-                    <h6>{{ __('app.description') }}</h6>
-                    <p class="text-muted">{{ $task->description }}</p>
-                </div>
-                @endif
-
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h6>{{ __('app.projects.title') }}</h6>
-                        <p>
-                            <a href="{{ route('projects.show', $task->project) }}" class="text-decoration-none">
-                                {{ $task->project->title }}
-                            </a>
-                        </p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>{{ __('app.tasks.assigned_to') }}</h6>
-                        <p>
-                            @if($task->assignedUser)
-                                <i class="bi bi-person-circle me-1"></i>
-                                {{ $task->assignedUser->name }}
-                            @else
-                                <span class="text-muted">{{ __('app.unassigned') }}</span>
-                            @endif
-                        </p>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h6>{{ __('app.tasks.created') }}</h6>
-                        <p class="text-muted">{{ $task->created_at->format('M d, Y \a\t H:i') }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>{{ __('app.tasks.due_date') }}</h6>
-                        <p class="text-muted">
-                            @if($task->due_date)
-                                @php
-                                    $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
-                                @endphp
-                                {{ $dueDate->format('M d, Y') }}
-                                @if($dueDate->isPast() && $task->status !== 'completed')
-                                    <span class="badge bg-danger ms-2">{{ __('app.tasks.overdue') }}</span>
-                                @endif
-                            @else
-                                {{ __('app.tasks.no_due_date') }}
-                            @endif
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="mt-4">
-                    <h6>{{ __('app.tasks.quick_actions') }}</h6>
-                    <div class="d-flex flex-wrap gap-2">
-                        @can('update', $task)
-                            @if($task->status === 'pending')
-                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#startTaskModal">
-                                    <i class="bi bi-play me-1"></i>
-                                    {{ __('app.tasks.start_task') }}
-                                </button>
-                            @endif
-
-                            @if($task->status === 'in_progress')
-                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#completeTaskModal">
-                                    <i class="bi bi-check-circle me-1"></i>
-                                    {{ __('app.tasks.mark_complete') }}
-                                </button>
-                            @endif
-
-                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#changePriorityModal">
-                                <i class="bi bi-exclamation-circle me-1"></i>
-                                {{ __('app.tasks.change_priority') }}
-                            </button>
-
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#changeStatusModal">
-                                <i class="bi bi-arrow-repeat me-1"></i>
-                                {{ __('app.tasks.change_status') }}
-                            </button>
-                        @endcan
-
-                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addCommentModal">
-                            <i class="bi bi-chat-plus me-1"></i>
-                            {{ __('app.tasks.add_comment') }}
-                        </button>
-
-                        @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                            <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#addInterventionModal">
-                                <i class="bi bi-megaphone me-1"></i>
-                                {{ __('app.tasks.add_intervention') }}
-                            </button>
+                        @if($isOverdue)
+                            <span class="badge bg-danger ms-1">{{ __('app.tasks.overdue') }}</span>
+                        @elseif($isDueToday)
+                            <span class="badge bg-warning ms-1">{{ __('app.tasks.due_today') }}</span>
                         @endif
-                    </div>
-                </div>
+                    @else
+                        <span class="text-muted">{{ __('app.tasks.no_due_date') }}</span>
+                    @endif
+                </td>
+                <td>
+                    @if($task->description)
+                        <p class="text-muted mb-0">{{ $task->description }}</p>
+                    @else
+                        <span class="text-muted">{{ __('app.tasks.no_description') }}</span>
+                    @endif
+                </td>
+                <td>
+                    <a href="{{ route('projects.show', $task->project) }}" class="d-flex align-items-center text-decoration-none text-dark">
+                        <div class="bg-success rounded p-2 me-2 text-white">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ $task->project->title }}</div>
+                            <small class="text-muted">{{ __('app.projects.view_details') }}</small>
+                        </div>
+                    </a>
+                </td>
+                <td class="d-flex align-items-center">
+                    <i class="bi bi-clock me-2 text-primary"></i>
+                    <span class="fw-bold fs-5">{{ number_format($task->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
             </div>
         </div>
 
@@ -423,146 +469,6 @@
                         </a>
                     </div>
                 @endif
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">{{ __('app.actions') }}</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    @can('update', $task)
-                        <a href="{{ route('tasks.edit', $task) }}" class="btn btn-outline-primary">
-                            <i class="bi bi-pencil me-2"></i>
-                            {{ __('app.tasks.edit') }}
-                        </a>
-                    @endcan
-
-                    <a href="{{ route('timesheet.create', ['task_id' => $task->id]) }}" class="btn btn-outline-success">
-                        <i class="bi bi-clock me-2"></i>
-                        {{ __('app.time.log_time') }}
-                    </a>
-
-                    <a href="{{ route('projects.show', $task->project) }}" class="btn btn-outline-info">
-                        <i class="bi bi-folder me-2"></i>
-                        {{ __('app.projects.title') }}
-                    </a>
-
-                    @can('delete', $task)
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                            <i class="bi bi-trash me-2"></i>
-                            {{ __('app.delete') }}
-                        </button>
-                    @endcan
-                </div>
-            </div>
-        </div>
-
-        <!-- Task Details Card -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-info-circle me-2"></i>{{ __('app.tasks.task_details') }}
-                </h5>
-            </div>
-            <div class="card-body">
-                <!-- Status -->
-                <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded" style="background-color: rgba(0,123,255,0.1);">
-                    <span class="fw-bold">{{ __('app.status') }}</span>
-                    <span class="badge bg-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} fs-6">
-                        @switch($task->status)
-                            @case('pending') {{ __('app.tasks.pending') }} @break
-                            @case('in_progress') {{ __('app.tasks.in_progress') }} @break
-                            @case('completed') {{ __('app.tasks.completed') }} @break
-                            @case('cancelled') {{ __('app.tasks.cancelled') }} @break
-                            @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                        @endswitch
-                    </span>
-                </div>
-
-                <!-- Priority -->
-                <div class="d-flex justify-content-between align-items-center mb-3 p-2 rounded" style="background-color: rgba(255,193,7,0.1);">
-                    <span class="fw-bold">{{ __('app.tasks.priority') }}</span>
-                    <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} fs-6">
-                        @switch($task->priority)
-                            @case('low') {{ __('app.tasks.low') }} @break
-                            @case('medium') {{ __('app.tasks.medium') }} @break
-                            @case('high') {{ __('app.tasks.high') }} @break
-                            @case('urgent') {{ __('app.tasks.urgent') }} @break
-                            @default {{ ucfirst($task->priority) }}
-                        @endswitch
-                    </span>
-                </div>
-
-                <!-- Assigned To -->
-                <div class="mb-3 p-2 rounded" style="background-color: rgba(40,167,69,0.1);">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">{{ __('app.tasks.assigned_to') }}</span>
-                        <div class="text-end">
-                            @if($task->assignedUser)
-                                <div class="d-flex align-items-center">
-                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                                         style="width: 24px; height: 24px; font-size: 0.8rem;">
-                                        {{ substr($task->assignedUser->name, 0, 1) }}
-                                    </div>
-                                    <span class="fw-bold">{{ $task->assignedUser->name }}</span>
-                                </div>
-                            @else
-                                <span class="text-muted">{{ __('app.unassigned') }}</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Due Date -->
-                @if($task->due_date)
-                    @php
-                        $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
-                        $isOverdue = $dueDate->isPast() && $task->status !== 'completed';
-                        $isDueToday = $dueDate->isToday();
-                    @endphp
-                    <div class="mb-3 p-2 rounded" style="background-color: rgba({{ $isOverdue ? '220,53,69' : ($isDueToday ? '255,193,7' : '108,117,125') }},0.1);">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">{{ __('app.tasks.due_date') }}</span>
-                            <div class="text-end">
-                                <div class="fw-bold {{ $isOverdue ? 'text-danger' : ($isDueToday ? 'text-warning' : '') }}">
-                                    {{ $dueDate->format('M d, Y') }}
-                                </div>
-                                <small class="text-muted">{{ $dueDate->diffForHumans() }}</small>
-                                @if($isOverdue)
-                                    <br><span class="badge bg-danger">{{ __('app.tasks.overdue') }}</span>
-                                @elseif($isDueToday)
-                                    <br><span class="badge bg-warning">{{ __('app.tasks.due_today') }}</span>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Time Statistics -->
-                <div class="mb-3 p-2 rounded" style="background-color: rgba(102,16,242,0.1);">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold">{{ __('app.time.total_time') }}</span>
-                        <span class="badge bg-info fs-6">{{ number_format($task->timeEntries->sum('duration_hours') ?? 0, 1) }}h</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">{{ __('app.tasks.created') }}</span>
-                        <small class="text-muted">{{ $task->created_at->diffForHumans() }}</small>
-                    </div>
-                </div>
-
-                <!-- Project Info -->
-                <div class="p-2 rounded" style="background-color: rgba(25,135,84,0.1);">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold">{{ __('app.tasks.project') }}</span>
-                        <a href="{{ route('projects.show', $task->project) }}" class="btn btn-sm btn-outline-success text-decoration-none">
-                            <i class="bi bi-folder me-1"></i>{{ Str::limit($task->project->title, 15) }}
-                        </a>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

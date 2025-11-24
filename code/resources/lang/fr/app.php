@@ -507,7 +507,7 @@ return array (
     'new_this_month' => 'Nouveaux ce mois',
     'manage' => 'Gérer les utilisateurs',
     'export' => 'Exporter les utilisateurs',
-  ),
+
   'comments' => 
   array (
     'comment_added_successfully' => 'Commentaire ajouté avec succès.',

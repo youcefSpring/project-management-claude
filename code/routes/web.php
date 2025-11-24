@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ProjectController;
+use App\Http\Controllers\Web\ProjectNoteController; // Added this use statement
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskNoteController;
@@ -113,6 +114,12 @@ Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['lo
         Route::delete('/{project}', [ProjectController::class, 'destroy'])
             ->middleware('permission:delete.projects')
             ->name('destroy');
+
+        // Project Notes
+        Route::post('/{project}/notes', [ProjectNoteController::class, 'store'])
+            ->name('notes.store');
+        Route::delete('/notes/{note}', [ProjectNoteController::class, 'destroy'])
+            ->name('notes.destroy');
     });
 
     // Tasks

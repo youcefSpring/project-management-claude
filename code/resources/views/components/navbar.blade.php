@@ -5,10 +5,10 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 <!-- Top Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
     <div class="container-fluid">
-        <!-- Mobile Toggle -->
-        <button class="btn btn-outline-secondary d-lg-none" type="button" onclick="toggleSidebar()">
+        <!-- Mobile Toggle - Removed for horizontal layout -->
+        {{-- <button class="btn btn-outline-secondary d-lg-none" type="button" onclick="toggleSidebar()">
             <i class="bi bi-list"></i>
-        </button>
+        </button> --}}
 
         <!-- Page Title -->
         <div class="navbar-brand mb-0 h1 ms-2">

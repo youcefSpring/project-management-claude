@@ -43,7 +43,7 @@
                     </div>
                     <div class="col-md-6">
                         <strong>{{ __('app.profile_settings.member_since') }}:</strong>
-                        <p>{{ auth()->user()->created_at->format('M d, Y') }}</p>
+                        <p>{{ \Carbon\Carbon::parse(auth()->user()->created_at)->format('M d, Y') }}</p>
                     </div>
                 </div>
                 <div class="mt-3">
@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ->where('start_time', '>=', now()->subDays(7))
             ->get()
             ->groupBy(function($entry) {
-                return $entry->start_time->format('Y-m-d');
+                return \Carbon\Carbon::parse($entry->start_time)->format('Y-m-d');
             });
 
         $weeklyHours = [];

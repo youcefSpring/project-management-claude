@@ -412,7 +412,25 @@ class TaskNote extends Model
             }
 
             // Send notifications to task stakeholders
-            // NotifyTaskStakeholders::dispatch($note);
+            $task = $note->task;
+            $project = $task->project;
+            
+            // Get all project members
+            $members = $project->members()->where('users.id', '!=', $note->user_id)->get();
+            
+            // Add manager if not in members list and not the note creator
+            if ($project->manager_id && $project->manager_id !== $note->user_id && !$members->contains('id', $project->manager_id)) {
+                $members->push($project->manager);
+            }
+
+            // Also notify the task assignee if they are not the note creator and not already in the list
+            if ($task->assigned_to && $task->assigned_to !== $note->user_id && !$members->contains('id', $task->assigned_to)) {
+                $members->push($task->assignedUser);
+            }
+
+            foreach ($members as $member) {
+                $member->notify(new \App\Notifications\NewTaskComment($note));
+            }
         });
 
         // Validate content length (allow empty content if there are attachments)

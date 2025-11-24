@@ -13,6 +13,16 @@
                 <p class="text-muted mb-0">{{ __('app.tasks.manage_and_track') }}</p>
             </div>
             <div class="d-flex gap-2">
+                <!-- View Switcher -->
+                <div class="btn-group" role="group" aria-label="View Mode">
+                    <button type="button" class="btn btn-outline-secondary active" id="tableViewBtn" title="{{ __('app.list_view') }}">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="boardViewBtn" title="{{ __('app.board_view') }}">
+                        <i class="bi bi-kanban"></i>
+                    </button>
+                </div>
+
                 @can('create', App\Models\Task::class)
                 <a href="{{ route('tasks.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>
@@ -124,8 +134,8 @@
         </div>
     </div>
 
-    <!-- Tasks List -->
-    <div class="col-12">
+    <!-- Tasks List (Table View) -->
+    <div class="col-12" id="tableView">
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
@@ -317,6 +327,95 @@
             </div>
         </div>
     </div>
+
+    <!-- Kanban Board View -->
+    <div class="col-12" id="boardView" style="display: none;">
+        <div class="kanban-board">
+            @foreach(['pending', 'in_progress', 'completed', 'cancelled'] as $status)
+                <div class="kanban-column">
+                    <div class="kanban-header status-{{ $status }}">
+                        <h6 class="mb-0 text-uppercase">
+                            @switch($status)
+                                @case('pending') {{ __('app.tasks.pending') }} @break
+                                @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                                @case('completed') {{ __('app.tasks.completed') }} @break
+                                @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                            @endswitch
+                            <span class="badge bg-white text-dark ms-2">{{ $tasks->where('status', $status)->count() }}</span>
+                        </h6>
+                    </div>
+                    <div class="kanban-body">
+                        @foreach($tasks->where('status', $status) as $task)
+                            <div class="kanban-card card mb-3 shadow-sm">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} mb-2">
+                                            {{ ucfirst($task->priority) }}
+                                        </span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">{{ __('app.tasks.view') }}</a></li>
+                                                @can('update', $task)
+                                                    <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">{{ __('app.edit') }}</a></li>
+                                                @endcan
+                                                @if($task->status !== 'completed')
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    @if($task->status === 'pending')
+                                                        <li><a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'in_progress')">{{ __('app.tasks.start_task') }}</a></li>
+                                                    @endif
+                                                    @if($task->status === 'in_progress')
+                                                        <li><a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'completed')">{{ __('app.tasks.mark_complete') }}</a></li>
+                                                    @endif
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <h6 class="card-title mb-2">
+                                        <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none text-dark">{{ $task->title }}</a>
+                                    </h6>
+                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                        <i class="bi bi-folder me-1"></i>
+                                        <span class="text-truncate" style="max-width: 150px;">{{ $task->project->title }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <div class="d-flex align-items-center">
+                                            @if($task->assignedUser)
+                                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white"
+                                                     style="width: 24px; height: 24px; font-size: 0.7rem;" title="{{ $task->assignedUser->name }}">
+                                                    {{ substr($task->assignedUser->name, 0, 1) }}
+                                                </div>
+                                            @else
+                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white"
+                                                     style="width: 24px; height: 24px; font-size: 0.7rem;">
+                                                    <i class="bi bi-person"></i>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        @if($task->due_date)
+                                            @php
+                                                $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                                            @endphp
+                                            <span class="small {{ $dueDate->isPast() && $task->status !== 'completed' ? 'text-danger fw-bold' : 'text-muted' }}">
+                                                <i class="bi bi-calendar me-1"></i>{{ $dueDate->format('M d') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($tasks->where('status', $status)->count() === 0)
+                            <div class="text-center text-muted py-3 small">
+                                {{ __('app.tasks.no_tasks') }}
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -324,7 +423,48 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     setupFiltersToggle();
+    setupViewSwitcher();
 });
+
+function setupViewSwitcher() {
+    const tableViewBtn = document.getElementById('tableViewBtn');
+    const boardViewBtn = document.getElementById('boardViewBtn');
+    const tableView = document.getElementById('tableView');
+    const boardView = document.getElementById('boardView');
+
+    // Check localStorage
+    const currentView = localStorage.getItem('tasksViewMode') || 'table';
+
+    if (currentView === 'board') {
+        switchToBoard();
+    } else {
+        switchToTable();
+    }
+
+    tableViewBtn.addEventListener('click', function() {
+        switchToTable();
+        localStorage.setItem('tasksViewMode', 'table');
+    });
+
+    boardViewBtn.addEventListener('click', function() {
+        switchToBoard();
+        localStorage.setItem('tasksViewMode', 'board');
+    });
+
+    function switchToTable() {
+        tableView.style.display = 'block';
+        boardView.style.display = 'none';
+        tableViewBtn.classList.add('active');
+        boardViewBtn.classList.remove('active');
+    }
+
+    function switchToBoard() {
+        tableView.style.display = 'none';
+        boardView.style.display = 'block';
+        tableViewBtn.classList.remove('active');
+        boardViewBtn.classList.add('active');
+    }
+}
 
 function setupFiltersToggle() {
     const toggleBtn = document.getElementById('toggleFilters');
@@ -491,7 +631,87 @@ document.getElementById('confirmStatusBtn').addEventListener('click', function()
         right: 0 !important;
         left: auto !important;
         transform: none !important;
+        top: 100% !important;
     }
+}
+
+/* Kanban Board Styles */
+.kanban-board {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.5rem;
+    padding-bottom: 1rem;
+    min-height: calc(100vh - 250px);
+}
+
+.kanban-column {
+    flex: 0 0 300px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 250px);
+}
+
+.kanban-header {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+}
+
+.kanban-header.status-pending { border-top: 3px solid #ffc107; }
+.kanban-header.status-in_progress { border-top: 3px solid #0d6efd; }
+.kanban-header.status-completed { border-top: 3px solid #198754; }
+.kanban-header.status-cancelled { border-top: 3px solid #6c757d; }
+
+.kanban-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.kanban-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+.kanban-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+}
+
+/* Custom Scrollbar for Kanban */
+.kanban-board::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+.kanban-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.kanban-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.kanban-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
 }
 </style>
 @endpush

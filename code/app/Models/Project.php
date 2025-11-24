@@ -462,4 +462,11 @@ class Project extends Model
             });
         });
     }
+    /**
+     * Get notes for this project
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(ProjectNote::class);
+    }
 }

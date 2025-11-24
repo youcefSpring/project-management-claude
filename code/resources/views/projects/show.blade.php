@@ -245,6 +245,114 @@
         </div>
     </div>
 </div>
+
+<!-- Project Discussion Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-text me-2"></i>
+                    {{ __('app.projects.discussion') }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Add New Comment Form -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <form method="POST" action="{{ route('projects.notes.store', $project) }}" enctype="multipart/form-data">
+                            @csrf
+                            <div class="mb-3">
+                                <label for="content" class="form-label">{{ __('app.comments.add_comment') }}</label>
+                                <textarea class="form-control" id="content" name="content" rows="3"
+                                          placeholder="{{ __('app.notes.write_comment_placeholder') }}"></textarea>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="attachments" class="form-label">
+                                    <i class="bi bi-camera me-1"></i>
+                                    {{ __('app.notes.attach_photos') }}
+                                </label>
+                                <input type="file" class="form-control" id="attachments" name="attachments[]"
+                                       multiple accept="image/*">
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send me-1"></i>
+                                    {{ __('app.comments.add_comment') }}
+                                </button>
+                                <small class="text-muted">
+                                    {{ __('app.notes.stakeholders_notified') }}
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Discussion List -->
+                @if($project->notes && $project->notes->count() > 0)
+                    <div class="discussion-list">
+                        @foreach($project->notes->sortByDesc('created_at') as $note)
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
+                                                 style="width: 32px; height: 32px;">
+                                                {{ substr($note->user->name, 0, 1) }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ $note->user->name }}</strong>
+                                                <small class="text-muted ms-2">{{ $note->created_at->diffForHumans() }}</small>
+                                            </div>
+                                        </div>
+                                        @if($note->canBeDeletedBy(auth()->user()))
+                                            <form method="POST" action="{{ route('projects.notes.destroy', $note) }}" 
+                                                  onsubmit="return confirm('{{ __('app.messages.confirm_delete') }}')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-link text-danger p-0">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="note-content">
+                                        {!! nl2br(e($note->content)) !!}
+                                    </div>
+
+                                    @if($note->hasAttachments())
+                                        <div class="note-attachments mt-3">
+                                            <div class="row g-2">
+                                                @foreach($note->image_attachments as $attachment)
+                                                    <div class="col-md-2 col-4">
+                                                        <a href="{{ $attachment['versions']['original']['url'] ?? '#' }}" target="_blank">
+                                                            <img src="{{ $attachment['versions']['thumbnail']['url'] ?? '#' }}"
+                                                                 class="img-thumbnail w-100"
+                                                                 style="height: 80px; object-fit: cover;"
+                                                                 alt="Attachment">
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-chat-text fs-1 mb-3"></i>
+                        <p>{{ __('app.notes.no_comments_yet') }}</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')

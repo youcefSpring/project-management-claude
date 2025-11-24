@@ -9,10 +9,10 @@
     window.userRole = document.querySelector('meta[name="user-role"]').getAttribute('content');
     window.appLocale = document.querySelector('meta[name="app-locale"]').getAttribute('content');
 
-    // Sidebar Toggle
-    function toggleSidebar() {
-        document.querySelector('.sidebar').classList.toggle('show');
-    }
+    // Sidebar Toggle - Removed for horizontal layout
+    // function toggleSidebar() {
+    //     document.querySelector('.sidebar').classList.toggle('show');
+    // }
 
     // Language switching is now handled by direct links with MCamara
 
