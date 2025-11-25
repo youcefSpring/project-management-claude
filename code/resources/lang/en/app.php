@@ -56,6 +56,7 @@ return array (
   'Notifications' => 'Notifications',
   'No notifications' => 'No notifications',
   'View all' => 'View all',
+  'view_all' => 'View All',
   'Settings' => 'Settings',
   'Logout' => 'Logout',
   'nav' => 
@@ -231,6 +232,7 @@ return array (
     'task_filters' => 'Task Filters',
     'statistics' => 'Task Statistics',
     'manage' => 'Manage Tasks',
+    'activity' => 'Activity',
   ),
   'time' =>
   array (
