@@ -19,109 +19,103 @@
                 <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
                     <i class="bi bi-plus-circle me-2"></i>{{ __('app.timesheet.add_entry') }}
                 </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#timesheetFilterModal">
+                    <i class="bi bi-funnel me-2"></i>{{ __('app.timesheet.filters') }}
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Statistics Section -->
+    <!-- Statistics Section -->
     <div class="col-12 mb-4">
         <div class="card shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
                 <h6 class="mb-0 text-muted">
                     <i class="bi bi-graph-up me-2"></i>{{ __('app.timesheet.statistics') }}
                 </h6>
-                <button type="button" id="toggleStats" class="btn btn-sm btn-outline-secondary" title="{{ __('app.timesheet.toggle_statistics') }}">
+                <button type="button" id="toggleStats" class="btn btn-sm btn-link text-muted p-0" title="{{ __('app.timesheet.toggle_statistics') }}">
                     <i class="bi bi-chevron-up" id="toggleIcon"></i>
                 </button>
             </div>
             <div class="card-body p-3" id="statsContent">
                 <div class="row g-3">
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card border-primary h-100">
-                            <div class="card-body text-center py-3">
-                                <div class="d-flex align-items-center justify-content-center mb-2">
-                                    <div class="bg-primary rounded-circle p-2 me-2">
-                                        <i class="bi bi-clock text-white"></i>
+                    <!-- Main Hours Stats -->
+                    <div class="col-12 col-lg-8">
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded p-2 d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-2 text-primary">
+                                        <i class="bi bi-clock"></i>
                                     </div>
-                                    <h4 class="card-title text-primary mb-0">{{ $summary['total_hours'] ?? 0 }}h</h4>
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-primary">{{ $summary['total_hours'] ?? 0 }}h</h5>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ __('app.timesheet.total_hours') }}</small>
+                                    </div>
                                 </div>
-                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.total_hours') }}</p>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded p-2 d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 rounded p-2 me-2 text-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-success">{{ $summary['approved_hours'] ?? 0 }}h</h5>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ __('app.timesheet.approved_hours') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded p-2 d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-10 rounded p-2 me-2 text-warning">
+                                        <i class="bi bi-clock-history"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-warning">{{ $summary['pending_hours'] ?? 0 }}h</h5>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ __('app.timesheet.pending_hours') }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="border rounded p-2 d-flex align-items-center">
+                                    <div class="bg-danger bg-opacity-10 rounded p-2 me-2 text-danger">
+                                        <i class="bi bi-x-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-0 fw-bold text-danger">{{ $summary['rejected_hours'] ?? 0 }}h</h5>
+                                        <small class="text-muted" style="font-size: 0.75rem;">{{ __('app.timesheet.rejected_hours') }}</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card border-success h-100">
-                            <div class="card-body text-center py-3">
-                                <div class="d-flex align-items-center justify-content-center mb-2">
-                                    <div class="bg-success rounded-circle p-2 me-2">
-                                        <i class="bi bi-check-circle text-white"></i>
-                                    </div>
-                                    <h4 class="card-title text-success mb-0">{{ $summary['approved_hours'] ?? 0 }}h</h4>
-                                </div>
-                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.approved_hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card border-warning h-100">
-                            <div class="card-body text-center py-3">
-                                <div class="d-flex align-items-center justify-content-center mb-2">
-                                    <div class="bg-warning rounded-circle p-2 me-2">
-                                        <i class="bi bi-clock-history text-white"></i>
-                                    </div>
-                                    <h4 class="card-title text-warning mb-0">{{ $summary['pending_hours'] ?? 0 }}h</h4>
-                                </div>
-                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.pending_hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6">
-                        <div class="card border-danger h-100">
-                            <div class="card-body text-center py-3">
-                                <div class="d-flex align-items-center justify-content-center mb-2">
-                                    <div class="bg-danger rounded-circle p-2 me-2">
-                                        <i class="bi bi-x-circle text-white"></i>
-                                    </div>
-                                    <h4 class="card-title text-danger mb-0">{{ $summary['rejected_hours'] ?? 0 }}h</h4>
-                                </div>
-                                <p class="card-text text-muted small mb-0">{{ __('app.timesheet.rejected_hours') }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Additional Statistics Row -->
-                <div class="row g-3 mt-2">
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center p-2 bg-light rounded">
-                            <i class="bi bi-calendar-week text-primary me-2"></i>
-                            <div>
-                                <div class="fw-bold">{{ $timeEntries->count() }}</div>
-                                <small class="text-muted">{{ __('app.timesheet.total_entries') }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center p-2 bg-light rounded">
-                            <i class="bi bi-people text-info me-2"></i>
-                            <div>
-                                <div class="fw-bold">{{ $timeEntries->pluck('user_id')->unique()->count() }}</div>
-                                <small class="text-muted">{{ __('app.timesheet.active_users') }}</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="d-flex align-items-center p-2 bg-light rounded">
-                            <i class="bi bi-clock text-success me-2"></i>
-                            <div>
-                                <div class="fw-bold">
-                                    @if($timeEntries->count() > 0)
-                                        {{ number_format(($summary['total_hours'] ?? 0) / $timeEntries->count(), 1) }}h
-                                    @else
-                                        0h
-                                    @endif
+                    <!-- Secondary Stats -->
+                    <div class="col-12 col-lg-4">
+                        <div class="row g-3">
+                            <div class="col-4">
+                                <div class="text-center border-start">
+                                    <div class="fw-bold fs-5">{{ $timeEntries->count() }}</div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ __('app.timesheet.entries') }}</small>
                                 </div>
-                                <small class="text-muted">{{ __('app.timesheet.avg_per_entry') }}</small>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center border-start">
+                                    <div class="fw-bold fs-5">{{ $timeEntries->pluck('user_id')->unique()->count() }}</div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ __('app.timesheet.active_users') }}</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center border-start">
+                                    <div class="fw-bold fs-5">
+                                        @if($timeEntries->count() > 0)
+                                            {{ number_format(($summary['total_hours'] ?? 0) / $timeEntries->count(), 1) }}h
+                                        @else
+                                            0h
+                                        @endif
+                                    </div>
+                                    <small class="text-muted" style="font-size: 0.7rem;">{{ __('app.timesheet.avg_per_entry') }}</small>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -131,57 +125,62 @@
     </div>
 
     <!-- Filters -->
-    <div class="col-12 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 text-muted">
-                    <i class="bi bi-funnel me-2"></i>{{ __('app.timesheet.filters') }}
-                </h6>
-                <button type="button" id="toggleTimesheetFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('app.toggle_filters') }}">
-                    <i class="bi bi-chevron-up" id="toggleTimesheetFiltersIcon"></i>
-                </button>
+    <!-- Filter Modal -->
+<div class="modal fade" id="timesheetFilterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title"><i class="bi bi-funnel me-2"></i>{{ __('app.timesheet.filters') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="card-body p-3" id="timesheetFiltersContent">
-                <div class="row g-3 align-items-end">
-                    <div class="col-sm-6 col-md-3">
-                        <label class="form-label small text-muted">{{ __('app.search') }}</label>
-                        <input type="text" class="form-control form-control-sm" id="search-input" placeholder="{{ __('app.search') }}...">
+            <div class="modal-body">
+                <form id="timesheetFilterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label small text-muted">{{ __('app.search') }}</label>
+                            <input type="text" class="form-control form-control-sm" id="search-input" placeholder="{{ __('app.search') }}...">
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="form-label small text-muted">{{ __('app.projects.title') }}</label>
+                            <select class="form-select form-select-sm" id="project-filter">
+                                <option value="">{{ __('app.reports.all_projects') }}</option>
+                                @foreach($projects ?? [] as $project)
+                                    <option value="{{ $project->id }}">{{ $project->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="form-label small text-muted">{{ __('app.users.title') }}</label>
+                            <select class="form-select form-select-sm" id="user-filter">
+                                <option value="">{{ __('app.reports.all_users') }}</option>
+                                @foreach($users ?? [] as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="form-label small text-muted">{{ __('app.reports.from') }}</label>
+                            <input type="date" class="form-control form-control-sm" id="date-from" placeholder="{{ __('app.reports.from') }}">
+                        </div>
+                        <div class="col-sm-6 col-md-2">
+                            <label class="form-label small text-muted">{{ __('app.reports.to') }}</label>
+                            <input type="date" class="form-control form-control-sm" id="date-to" placeholder="{{ __('app.reports.to') }}">
+                        </div>
+                        <div class="col-sm-6 col-md-1">
+                            <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-sm-6 col-md-2">
-                        <label class="form-label small text-muted">{{ __('app.projects.title') }}</label>
-                        <select class="form-select form-select-sm" id="project-filter">
-                            <option value="">{{ __('app.reports.all_projects') }}</option>
-                            @foreach($projects ?? [] as $project)
-                                <option value="{{ $project->id }}">{{ $project->title }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-sm-6 col-md-2">
-                        <label class="form-label small text-muted">{{ __('app.users.title') }}</label>
-                        <select class="form-select form-select-sm" id="user-filter">
-                            <option value="">{{ __('app.reports.all_users') }}</option>
-                            @foreach($users ?? [] as $user)
-                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-sm-6 col-md-2">
-                        <label class="form-label small text-muted">{{ __('app.reports.from') }}</label>
-                        <input type="date" class="form-control form-control-sm" id="date-from" placeholder="{{ __('app.reports.from') }}">
-                    </div>
-                    <div class="col-sm-6 col-md-2">
-                        <label class="form-label small text-muted">{{ __('app.reports.to') }}</label>
-                        <input type="date" class="form-control form-control-sm" id="date-to" placeholder="{{ __('app.reports.to') }}">
-                    </div>
-                    <div class="col-sm-6 col-md-1">
-                        <button class="btn btn-outline-secondary btn-sm w-100" onclick="clearFilters()">
-                            <i class="bi bi-x-circle"></i>
-                        </button>
-                    </div>
-                </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                <button type="button" class="btn btn-primary" onclick="applyFilters();" data-bs-dismiss="modal">{{ __('app.apply') }}</button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Timesheet Entries List -->
     <div class="col-12">
