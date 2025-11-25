@@ -29,7 +29,7 @@ use Illuminate\Support\Facades\Route;
 // Root redirect to default language
 Route::get('/', function () {
     $locale = session('locale', config('app.locale', 'en'));
-    return redirect("/{$locale}");
+    return redirect("/{$locale}/login");
 })->name('home');
 
 // Language switching route (outside prefix)
