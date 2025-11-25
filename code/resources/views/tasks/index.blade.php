@@ -13,6 +13,11 @@
                 <p class="text-muted mb-0">{{ __('app.tasks.manage_and_track') }}</p>
             </div>
             <div class="d-flex gap-2">
+                <!-- Filter Button -->
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="bi bi-funnel me-2"></i>{{ __('app.filter') }}
+                </button>
+
                 <!-- View Switcher -->
                 <div class="btn-group" role="group" aria-label="View Mode">
                     <button type="button" class="btn btn-outline-secondary active" id="tableViewBtn" title="{{ __('app.list_view') }}">
@@ -33,166 +38,83 @@
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="col-12 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 text-muted">
-                    <i class="bi bi-funnel me-2"></i>{{ __('app.tasks.task_filters') }}
-                </h6>
-                <button type="button" id="toggleFilters" class="btn btn-sm btn-outline-secondary" title="{{ __('app.toggle_filters') }}">
-                    <i class="bi bi-chevron-up" id="toggleFiltersIcon"></i>
-                </button>
-            </div>
-            <div class="card-body p-3" id="filtersContent">
-                <form method="GET" action="{{ route('tasks.index') }}" class="row g-3 align-items-end">
-                    <div class="col-sm-6 col-md-3">
-                        <label for="status" class="form-label small text-muted">{{ __('app.status') }}</label>
-                        <select class="form-select form-select-sm" id="status" name="status">
-                            <option value="">{{ __('app.tasks.all_statuses') }}</option>
-                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>
-                                {{ __('app.tasks.pending') }}
-                            </option>
-                            <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>
-                                {{ __('app.tasks.in_progress') }}
-                            </option>
-                            <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>
-                                {{ __('app.tasks.completed') }}
-                            </option>
-                            <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>
-                                {{ __('app.tasks.cancelled') }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="col-sm-6 col-md-3">
-                        <label for="project_id" class="form-label small text-muted">{{ __('app.tasks.project') }}</label>
-                        <select class="form-select form-select-sm" id="project_id" name="project_id">
-                            <option value="">{{ __('app.reports.all_projects') }}</option>
-                            @foreach($projects as $project)
-                                <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>
-                                    {{ $project->title }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                    <div class="col-sm-6 col-md-3">
-                        <label for="assigned_to" class="form-label small text-muted">{{ __('app.tasks.assigned_to') }}</label>
-                        <select class="form-select form-select-sm" id="assigned_to" name="assigned_to">
-                            <option value="">{{ __('app.reports.all_users') }}</option>
-                            <option value="unassigned" {{ request('assigned_to') === 'unassigned' ? 'selected' : '' }}>
-                                {{ __('app.unassigned') }}
-                            </option>
-                            @foreach($users as $user)
-                                <option value="{{ $user->id }}" {{ request('assigned_to') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @endif
-
-                    <div class="col-sm-6 col-md-3">
-                        <label for="priority" class="form-label small text-muted">{{ __('app.tasks.priority') }}</label>
-                        <select class="form-select form-select-sm" id="priority" name="priority">
-                            <option value="">{{ __('app.all_priorities') }}</option>
-                            <option value="low" {{ request('priority') === 'low' ? 'selected' : '' }}>
-                                {{ __('app.tasks.low') }}
-                            </option>
-                            <option value="medium" {{ request('priority') === 'medium' ? 'selected' : '' }}>
-                                {{ __('app.tasks.medium') }}
-                            </option>
-                            <option value="high" {{ request('priority') === 'high' ? 'selected' : '' }}>
-                                {{ __('app.tasks.high') }}
-                            </option>
-                            <option value="urgent" {{ request('priority') === 'urgent' ? 'selected' : '' }}>
-                                {{ __('app.tasks.urgent') }}
-                            </option>
-                        </select>
-                    </div>
-
-                    <div class="col-sm-6 col-md-3">
-                        <label for="search" class="form-label small text-muted">{{ __('app.search') }}</label>
-                        <input type="text" class="form-control form-control-sm" id="search" name="search"
-                               value="{{ request('search') }}" placeholder="{{ __('app.tasks.search_placeholder') }}">
-                    </div>
-
-                    <div class="col-sm-6 col-md-2">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-outline-primary btn-sm flex-fill">
-                                <i class="bi bi-search"></i>
-                            </button>
-                            <a href="{{ route('tasks.index') }}" class="btn btn-outline-secondary btn-sm flex-fill">
-                                <i class="bi bi-x-circle"></i>
-                            </a>
-                        </div>
-                    </div>
-                </form>
+    <!-- Active Filters Summary (Optional, good for UX) -->
+    @if(request()->hasAny(['status', 'project_id', 'assigned_to', 'priority', 'search']))
+        <div class="col-12 mb-3">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="text-muted small">{{ __('app.tasks.task_filters') }}:</span>
+                @if(request('status'))
+                    <span class="badge bg-light text-dark border">{{ __('app.status') }}: {{ ucfirst(str_replace('_', ' ', request('status'))) }}</span>
+                @endif
+                @if(request('priority'))
+                    <span class="badge bg-light text-dark border">{{ __('app.tasks.priority') }}: {{ ucfirst(request('priority')) }}</span>
+                @endif
+                @if(request('search'))
+                    <span class="badge bg-light text-dark border">{{ __('app.search') }}: {{ request('search') }}</span>
+                @endif
+                <a href="{{ route('tasks.index') }}" class="text-decoration-none small ms-2">{{ __('app.clear_filters') }}</a>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Tasks List (Table View) -->
     <div class="col-12" id="tableView">
-        <div class="card">
-            <div class="card-header">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom py-3">
                 <h5 class="mb-0">
                     {{ __('app.tasks.title') }}
                     <span class="badge bg-secondary ms-2">{{ $tasks->count() }}</span>
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 @if($tasks->count() > 0)
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="table-dark">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light">
                                 <tr>
-                                    <th>{{ __('app.tasks.task_name') }}</th>
+                                    <th class="ps-4">{{ __('app.tasks.task_name') }}</th>
                                     <th class="d-none d-md-table-cell">{{ __('app.tasks.project') }}</th>
                                     <th class="d-none d-lg-table-cell">{{ __('app.tasks.assigned_to') }}</th>
                                     <th>{{ __('app.status') }}</th>
                                     <th class="d-none d-md-table-cell">{{ __('app.tasks.priority') }}</th>
                                     <th class="d-none d-lg-table-cell">{{ __('app.tasks.due_date') }}</th>
-                                    <th class="d-none d-xl-table-cell">{{ __('app.tasks.created') }}</th>
-                                    <th width="120">{{ __('app.actions') }}</th>
+                                    <th class="text-end pe-4" width="100">{{ __('app.actions') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($tasks as $task)
                                     <tr>
-                                        <td>
+                                        <td class="ps-4">
                                             <div>
-                                                <a href="{{ route('tasks.show', $task) }}" class="fw-bold text-decoration-none">
+                                                <a href="{{ route('tasks.show', $task) }}" class="fw-bold text-dark text-decoration-none">
                                                     {{ $task->title }}
                                                 </a>
                                                 @if($task->description)
-                                                    <br>
-                                                    <small class="text-muted">{{ Str::limit($task->description, 60) }}</small>
+                                                    <div class="small text-muted text-truncate" style="max-width: 250px;">
+                                                        {{ $task->description }}
+                                                    </div>
                                                 @endif
                                             </div>
                                         </td>
                                         <td class="d-none d-md-table-cell">
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                                                     style="width: 24px; height: 24px;">
-                                                    <i class="bi bi-folder-fill" style="font-size: 0.8rem;"></i>
+                                                <div class="bg-light rounded p-1 me-2 text-primary">
+                                                    <i class="bi bi-folder"></i>
                                                 </div>
-                                                <span>{{ $task->project->title }}</span>
+                                                <span class="text-truncate" style="max-width: 150px;">{{ $task->project->title }}</span>
                                             </div>
                                         </td>
                                         <td class="d-none d-lg-table-cell">
                                             @if($task->assignedUser)
                                                 <div class="d-flex align-items-center">
                                                     <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                                                         style="width: 24px; height: 24px;">
-                                                        <i class="bi bi-person-fill" style="font-size: 0.8rem;"></i>
+                                                         style="width: 24px; height: 24px; font-size: 0.75rem;">
+                                                        {{ substr($task->assignedUser->name, 0, 1) }}
                                                     </div>
-                                                    <span>{{ $task->assignedUser->name }}</span>
+                                                    <span class="text-truncate" style="max-width: 120px;">{{ $task->assignedUser->name }}</span>
                                                 </div>
                                             @else
-                                                <span class="text-muted">{{ __('app.unassigned') }}</span>
+                                                <span class="text-muted fst-italic">{{ __('app.unassigned') }}</span>
                                             @endif
                                         </td>
                                         <td>
@@ -205,7 +127,7 @@
                                                 ];
                                                 $color = $statusColors[$task->status] ?? 'secondary';
                                             @endphp
-                                            <span class="badge bg-{{ $color }}">
+                                            <span class="badge bg-{{ $color }} bg-opacity-10 text-{{ $color }} px-2 py-1">
                                                 @switch($task->status)
                                                     @case('pending') {{ __('app.tasks.pending') }} @break
                                                     @case('in_progress') {{ __('app.tasks.in_progress') }} @break
@@ -224,78 +146,51 @@
                                                     'low' => 'secondary'
                                                 ];
                                                 $priorityColor = $priorityColors[$task->priority] ?? 'secondary';
+                                                $priorityIcon = match($task->priority) {
+                                                    'urgent' => 'bi-exclamation-octagon-fill',
+                                                    'high' => 'bi-arrow-up-circle-fill',
+                                                    'medium' => 'bi-dash-circle-fill',
+                                                    'low' => 'bi-arrow-down-circle-fill',
+                                                    default => 'bi-circle-fill'
+                                                };
                                             @endphp
-                                            <span class="badge bg-{{ $priorityColor }}">
-                                                @switch($task->priority)
-                                                    @case('low') {{ __('app.tasks.low') }} @break
-                                                    @case('medium') {{ __('app.tasks.medium') }} @break
-                                                    @case('high') {{ __('app.tasks.high') }} @break
-                                                    @case('urgent') {{ __('app.tasks.urgent') }} @break
-                                                    @default {{ ucfirst($task->priority) }}
-                                                @endswitch
-                                            </span>
+                                            <div class="text-{{ $priorityColor }} d-flex align-items-center" title="{{ ucfirst($task->priority) }}">
+                                                <i class="bi {{ $priorityIcon }} me-1"></i>
+                                                <span class="d-none d-xl-inline">{{ ucfirst($task->priority) }}</span>
+                                            </div>
                                         </td>
                                         <td class="d-none d-lg-table-cell">
                                             @if($task->due_date)
                                                 @php
                                                     $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
+                                                    $isOverdue = $dueDate->isPast() && $task->status !== 'completed';
+                                                    $isDueToday = $dueDate->isToday();
                                                 @endphp
-                                                <div>
-                                                    <span class="fw-bold">{{ $dueDate->format('M d, Y') }}</span>
-                                                    @if($dueDate->isPast() && $task->status !== 'completed')
-                                                        <br><span class="badge bg-danger">{{ __('app.tasks.overdue') }}</span>
-                                                    @elseif($dueDate->isToday())
-                                                        <br><span class="badge bg-warning">{{ __('app.tasks.due_today') }}</span>
-                                                    @elseif($dueDate->isTomorrow())
-                                                        <br><span class="badge bg-info">{{ __('app.tasks.due_tomorrow') }}</span>
-                                                    @endif
-                                                </div>
+                                                <span class="{{ $isOverdue ? 'text-danger fw-bold' : ($isDueToday ? 'text-warning fw-bold' : 'text-muted') }}">
+                                                    {{ $dueDate->format('M d') }}
+                                                </span>
                                             @else
-                                                <span class="text-muted">{{ __('app.tasks.no_due_date') }}</span>
+                                                <span class="text-muted">-</span>
                                             @endif
                                         </td>
-                                        <td class="d-none d-xl-table-cell">
-                                            <small class="text-muted">
-                                                {{ $task->created_at->format('M d, Y') }}
-                                                <br>
-                                                {{ $task->created_at->diffForHumans() }}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <div class="dropdown dropstart">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots"></i>
+                                        <td class="text-end pe-4">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 180px;">
+                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                                     <li>
                                                         <a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
-                                                            <i class="bi bi-eye me-2"></i>{{ __('app.tasks.view') }}
+                                                            <i class="bi bi-eye me-2 text-muted"></i>{{ __('app.tasks.view') }}
                                                         </a>
                                                     </li>
                                                     @can('update', $task)
                                                         <li>
                                                             <a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
-                                                                <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
+                                                                <i class="bi bi-pencil me-2 text-muted"></i>{{ __('app.edit') }}
                                                             </a>
                                                         </li>
                                                     @endcan
-                                                    @if($task->status !== 'completed')
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        @if($task->status === 'pending')
-                                                            <li>
-                                                                <a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'in_progress')">
-                                                                    <i class="bi bi-play-circle me-2 text-primary"></i>{{ __('app.tasks.start_task') }}
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                        @if($task->status === 'in_progress')
-                                                            <li>
-                                                                <a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'completed')">
-                                                                    <i class="bi bi-check-circle me-2 text-success"></i>{{ __('app.tasks.mark_complete') }}
-                                                                </a>
-                                                            </li>
-                                                        @endif
-                                                    @endif
                                                 </ul>
                                             </div>
                                         </td>
@@ -306,20 +201,13 @@
                     </div>
                 @else
                     <div class="text-center py-5">
-                        <i class="bi bi-check2-square fs-1 text-muted mb-3"></i>
+                        <div class="mb-3">
+                            <i class="bi bi-clipboard-check display-4 text-muted opacity-25"></i>
+                        </div>
                         <h5 class="text-muted">{{ __('app.tasks.no_tasks') }}</h5>
-                        <p class="text-muted">
-                            @if(request()->hasAny(['status', 'project_id', 'assigned_to', 'search']))
-                                {{ __('app.try_adjusting_filters') }}
-                                <a href="{{ route('tasks.index') }}">{{ __('app.clear_filters') }}</a>
-                            @else
-                                {{ __('app.tasks.get_started_create_task') }}
-                            @endif
-                        </p>
                         @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                            <a href="{{ route('tasks.create') }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle me-2"></i>
-                                {{ __('app.tasks.create') }}
+                            <a href="{{ route('tasks.create') }}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle me-2"></i>{{ __('app.tasks.create') }}
                             </a>
                         @endif
                     </div>
@@ -333,54 +221,53 @@
         <div class="kanban-board">
             @foreach(['pending', 'in_progress', 'completed', 'cancelled'] as $status)
                 <div class="kanban-column">
-                    <div class="kanban-header status-{{ $status }}">
-                        <h6 class="mb-0 text-uppercase">
+                    <div class="kanban-header status-{{ $status }} d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 text-uppercase fw-bold text-muted" style="font-size: 0.8rem;">
                             @switch($status)
                                 @case('pending') {{ __('app.tasks.pending') }} @break
                                 @case('in_progress') {{ __('app.tasks.in_progress') }} @break
                                 @case('completed') {{ __('app.tasks.completed') }} @break
                                 @case('cancelled') {{ __('app.tasks.cancelled') }} @break
                             @endswitch
-                            <span class="badge bg-white text-dark ms-2">{{ $tasks->where('status', $status)->count() }}</span>
                         </h6>
+                        <span class="badge bg-white text-dark shadow-sm border">{{ $tasks->where('status', $status)->count() }}</span>
                     </div>
-                    <div class="kanban-body">
+                    <div class="kanban-body" data-status="{{ $status }}">
                         @foreach($tasks->where('status', $status) as $task)
-                            <div class="kanban-card card mb-3 shadow-sm">
+                            <div class="kanban-card card mb-3 border-0 shadow-sm" data-task-id="{{ $task->id }}">
                                 <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge bg-{{ $task->priority === 'urgent' ? 'danger' : ($task->priority === 'high' ? 'warning' : ($task->priority === 'medium' ? 'info' : 'secondary')) }} mb-2">
+                                        @php
+                                            $priorityColor = match($task->priority) {
+                                                'urgent' => 'danger',
+                                                'high' => 'warning',
+                                                'medium' => 'info',
+                                                default => 'secondary'
+                                            };
+                                        @endphp
+                                        <span class="badge bg-{{ $priorityColor }} bg-opacity-10 text-{{ $priorityColor }}">
                                             {{ ucfirst($task->priority) }}
                                         </span>
                                         <div class="dropdown">
                                             <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots-vertical"></i>
+                                                <i class="bi bi-three-dots"></i>
                                             </button>
-                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">{{ __('app.tasks.view') }}</a></li>
+                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm">
+                                                <li><a class="dropdown-item small" href="{{ route('tasks.show', $task) }}">{{ __('app.tasks.view') }}</a></li>
                                                 @can('update', $task)
-                                                    <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">{{ __('app.edit') }}</a></li>
+                                                    <li><a class="dropdown-item small" href="{{ route('tasks.edit', $task) }}">{{ __('app.edit') }}</a></li>
                                                 @endcan
-                                                @if($task->status !== 'completed')
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    @if($task->status === 'pending')
-                                                        <li><a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'in_progress')">{{ __('app.tasks.start_task') }}</a></li>
-                                                    @endif
-                                                    @if($task->status === 'in_progress')
-                                                        <li><a class="dropdown-item" href="#" onclick="changeTaskStatus({{ $task->id }}, 'completed')">{{ __('app.tasks.mark_complete') }}</a></li>
-                                                    @endif
-                                                @endif
                                             </ul>
                                         </div>
                                     </div>
                                     <h6 class="card-title mb-2">
-                                        <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none text-dark">{{ $task->title }}</a>
+                                        <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none text-dark fw-bold">{{ $task->title }}</a>
                                     </h6>
-                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                    <div class="d-flex align-items-center text-muted small mb-3">
                                         <i class="bi bi-folder me-1"></i>
                                         <span class="text-truncate" style="max-width: 150px;">{{ $task->project->title }}</span>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                         <div class="d-flex align-items-center">
                                             @if($task->assignedUser)
                                                 <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white"
@@ -388,7 +275,7 @@
                                                     {{ substr($task->assignedUser->name, 0, 1) }}
                                                 </div>
                                             @else
-                                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white"
+                                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center text-muted border"
                                                      style="width: 24px; height: 24px; font-size: 0.7rem;">
                                                     <i class="bi bi-person"></i>
                                                 </div>
@@ -406,24 +293,112 @@
                                 </div>
                             </div>
                         @endforeach
-                        @if($tasks->where('status', $status)->count() === 0)
-                            <div class="text-center text-muted py-3 small">
-                                {{ __('app.tasks.no_tasks') }}
-                            </div>
-                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
     </div>
 </div>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-funnel me-2 text-primary"></i>{{ __('app.tasks.task_filters') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="GET" action="{{ route('tasks.index') }}" id="filterForm">
+                    <div class="mb-3">
+                        <label for="search" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.search') }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0 ps-0" id="search" name="search"
+                                   value="{{ request('search') }}" placeholder="{{ __('app.tasks.search_placeholder') }}">
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label for="status" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.status') }}</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">{{ __('app.tasks.all_statuses') }}</option>
+                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>{{ __('app.tasks.pending') }}</option>
+                                <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>{{ __('app.tasks.in_progress') }}</option>
+                                <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>{{ __('app.tasks.completed') }}</option>
+                                <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>{{ __('app.tasks.cancelled') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label for="priority" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.tasks.priority') }}</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="">{{ __('app.all_priorities') }}</option>
+                                <option value="low" {{ request('priority') === 'low' ? 'selected' : '' }}>{{ __('app.tasks.low') }}</option>
+                                <option value="medium" {{ request('priority') === 'medium' ? 'selected' : '' }}>{{ __('app.tasks.medium') }}</option>
+                                <option value="high" {{ request('priority') === 'high' ? 'selected' : '' }}>{{ __('app.tasks.high') }}</option>
+                                <option value="urgent" {{ request('priority') === 'urgent' ? 'selected' : '' }}>{{ __('app.tasks.urgent') }}</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="project_id" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.tasks.project') }}</label>
+                            <select class="form-select" id="project_id" name="project_id">
+                                <option value="">{{ __('app.reports.all_projects') }}</option>
+                                @foreach($projects as $project)
+                                    <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>
+                                        {{ $project->title }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                        <div class="col-12">
+                            <label for="assigned_to" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.tasks.assigned_to') }}</label>
+                            <select class="form-select" id="assigned_to" name="assigned_to">
+                                <option value="">{{ __('app.reports.all_users') }}</option>
+                                <option value="unassigned" {{ request('assigned_to') === 'unassigned' ? 'selected' : '' }}>{{ __('app.unassigned') }}</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}" {{ request('assigned_to') == $user->id ? 'selected' : '' }}>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0">
+                <a href="{{ route('tasks.index') }}" class="btn btn-light">{{ __('app.clear_filters') }}</a>
+                <button type="submit" form="filterForm" class="btn btn-primary px-4">{{ __('app.filter') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast for Notifications -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div id="liveToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle me-2"></i><span id="toastMessage"></span>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
+<!-- SortableJS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    setupFiltersToggle();
     setupViewSwitcher();
+    setupKanbanSortable();
 });
 
 function setupViewSwitcher() {
@@ -466,204 +441,87 @@ function setupViewSwitcher() {
     }
 }
 
-function setupFiltersToggle() {
-    const toggleBtn = document.getElementById('toggleFilters');
-    const filtersContent = document.getElementById('filtersContent');
-    const toggleIcon = document.getElementById('toggleFiltersIcon');
+function setupKanbanSortable() {
+    const columns = document.querySelectorAll('.kanban-body');
+    const toastEl = document.getElementById('liveToast');
+    const toast = new bootstrap.Toast(toastEl);
+    const toastMessage = document.getElementById('toastMessage');
 
-    // Check localStorage for saved state (default: visible)
-    const isHidden = localStorage.getItem('taskFiltersHidden') === 'true';
+    columns.forEach(column => {
+        new Sortable(column, {
+            group: 'kanban', // Allow dragging between columns
+            animation: 150,
+            ghostClass: 'bg-light',
+            onEnd: function (evt) {
+                const itemEl = evt.item;
+                const newStatus = evt.to.getAttribute('data-status');
+                const oldStatus = evt.from.getAttribute('data-status');
+                const taskId = itemEl.getAttribute('data-task-id');
 
-    if (isHidden) {
-        filtersContent.style.display = 'none';
-        toggleIcon.className = 'bi bi-chevron-down';
-    } else {
-        filtersContent.style.display = 'block';
-        toggleIcon.className = 'bi bi-chevron-up';
+                // Only update if status changed
+                if (newStatus !== oldStatus) {
+                    updateTaskStatus(taskId, newStatus, itemEl, evt.from);
+                }
+            }
+        });
+    });
+
+    function updateTaskStatus(taskId, status, itemEl, originalContainer) {
+        axios.put(`/tasks/${taskId}`, {
+            status: status,
+            _token: '{{ csrf_token() }}'
+        })
+        .then(response => {
+            // Success
+            toastEl.classList.remove('bg-danger');
+            toastEl.classList.add('bg-success');
+            toastMessage.textContent = '{{ __('app.tasks.status_updated_successfully') }}';
+            toast.show();
+        })
+        .catch(error => {
+            // Revert change on error
+            originalContainer.appendChild(itemEl);
+            
+            toastEl.classList.remove('bg-success');
+            toastEl.classList.add('bg-danger');
+            toastMessage.textContent = '{{ __('app.tasks.error_updating_status') }}';
+            toast.show();
+            console.error('Error updating status:', error);
+        });
     }
-
-    toggleBtn.addEventListener('click', function() {
-        const isCurrentlyVisible = filtersContent.style.display !== 'none';
-
-        if (isCurrentlyVisible) {
-            // Hide filters
-            filtersContent.style.display = 'none';
-            toggleIcon.className = 'bi bi-chevron-down';
-            localStorage.setItem('taskFiltersHidden', 'true');
-        } else {
-            // Show filters
-            filtersContent.style.display = 'block';
-            toggleIcon.className = 'bi bi-chevron-up';
-            localStorage.setItem('taskFiltersHidden', 'false');
-        }
-    });
 }
-</script>
-@endpush
-
-<!-- Confirmation Modal -->
-<div class="modal fade" id="confirmStatusModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">{{ __('app.tasks.confirm_status_change') }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p id="confirmMessage">{{ __('app.tasks.confirm_status_change_message') }}</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
-                <button type="button" class="btn btn-primary" id="confirmStatusBtn">
-                    <span id="confirmBtnText">{{ __('app.confirm') }}</span>
-                    <span class="spinner-border spinner-border-sm ms-2 d-none" id="confirmSpinner"></span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-let currentTaskId = null;
-let currentStatus = null;
-
-function changeTaskStatus(taskId, status) {
-    currentTaskId = taskId;
-    currentStatus = status;
-
-    // Update modal content based on status
-    const statusMessages = {
-        'in_progress': '{{ __('app.tasks.confirm_start_task') }}',
-        'completed': '{{ __('app.tasks.confirm_complete_task') }}',
-        'cancelled': '{{ __('app.tasks.confirm_cancel_task') }}'
-    };
-
-    document.getElementById('confirmMessage').textContent = statusMessages[status] || '{{ __('app.tasks.confirm_status_change_message') }}';
-
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('confirmStatusModal'));
-    modal.show();
-}
-
-document.getElementById('confirmStatusBtn').addEventListener('click', function() {
-    if (!currentTaskId || !currentStatus) return;
-
-    const btn = this;
-    const btnText = document.getElementById('confirmBtnText');
-    const spinner = document.getElementById('confirmSpinner');
-
-    // Show loading state
-    btn.disabled = true;
-    btnText.textContent = '{{ __('app.processing') }}';
-    spinner.classList.remove('d-none');
-
-    axios.post(`/tasks/${currentTaskId}/status`, {
-        status: currentStatus,
-        _token: '{{ csrf_token() }}'
-    })
-    .then(response => {
-        if (response.data.success) {
-            // Hide modal
-            bootstrap.Modal.getInstance(document.getElementById('confirmStatusModal')).hide();
-
-            // Show success message and reload
-            setTimeout(() => {
-                location.reload();
-            }, 500);
-        } else {
-            throw new Error(response.data.message || '{{ __('app.tasks.error_updating_status') }}');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-
-        // Show error in modal
-        document.getElementById('confirmMessage').innerHTML = `
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                ${error.response?.data?.message || '{{ __('app.tasks.error_updating_status') }}'}
-            </div>
-        `;
-    })
-    .finally(() => {
-        // Reset button state
-        btn.disabled = false;
-        btnText.textContent = '{{ __('app.confirm') }}';
-        spinner.classList.add('d-none');
-    });
-});
 </script>
 
 <style>
-/* Fix dropdown positioning and prevent overflow issues */
-.table-responsive {
-    overflow-x: auto;
-}
-
-.dropdown-menu {
-    border: 1px solid rgba(0,0,0,.15);
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
-    z-index: 1021;
-}
-
-/* Ensure dropdowns don't break table layout */
-.dropdown {
-    position: static;
-}
-
-@media (max-width: 768px) {
-    .dropdown.dropstart .dropdown-menu {
-        --bs-position: absolute;
-        inset: 0px auto auto 0px !important;
-        transform: translate(-100%, 0px) !important;
-    }
-}
-
-/* Fix for small screens */
-@media (max-width: 576px) {
-    .dropdown.dropstart {
-        position: static;
-    }
-
-    .dropdown.dropstart .dropdown-menu {
-        position: absolute !important;
-        right: 0 !important;
-        left: auto !important;
-        transform: none !important;
-        top: 100% !important;
-    }
-}
-
 /* Kanban Board Styles */
 .kanban-board {
     display: flex;
     overflow-x: auto;
     gap: 1.5rem;
     padding-bottom: 1rem;
-    min-height: calc(100vh - 250px);
+    min-height: calc(100vh - 200px);
 }
 
 .kanban-column {
-    flex: 0 0 300px;
+    flex: 0 0 320px;
     background-color: #f8f9fa;
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
-    max-height: calc(100vh - 250px);
+    max-height: calc(100vh - 200px);
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 .kanban-header {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid rgba(0,0,0,0.05);
-    border-radius: 8px 8px 0 0;
-    font-weight: 600;
+    border-radius: 12px 12px 0 0;
 }
 
-.kanban-header.status-pending { border-top: 3px solid #ffc107; }
-.kanban-header.status-in_progress { border-top: 3px solid #0d6efd; }
-.kanban-header.status-completed { border-top: 3px solid #198754; }
-.kanban-header.status-cancelled { border-top: 3px solid #6c757d; }
+.kanban-header.status-pending { border-top: 4px solid #ffc107; }
+.kanban-header.status-in_progress { border-top: 4px solid #0d6efd; }
+.kanban-header.status-completed { border-top: 4px solid #198754; }
+.kanban-header.status-cancelled { border-top: 4px solid #6c757d; }
 
 .kanban-body {
     padding: 1rem;
@@ -672,46 +530,27 @@ document.getElementById('confirmStatusBtn').addEventListener('click', function()
 }
 
 .kanban-card {
+    cursor: grab;
     transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid rgba(0,0,0,0.05);
-    cursor: pointer;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
 }
 
 .kanban-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
 }
 
-/* Custom Scrollbar for Kanban */
-.kanban-board::-webkit-scrollbar {
-    height: 8px;
-}
+/* Custom Scrollbar */
+.kanban-board::-webkit-scrollbar { height: 8px; }
+.kanban-board::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+.kanban-board::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+.kanban-board::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
 
-.kanban-board::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 4px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
-}
-
-.kanban-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.kanban-body::-webkit-scrollbar-track {
-    background: #f1f1f1;
-}
-
-.kanban-body::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
-}
+.kanban-body::-webkit-scrollbar { width: 6px; }
+.kanban-body::-webkit-scrollbar-track { background: transparent; }
+.kanban-body::-webkit-scrollbar-thumb { background: #d1d1d1; border-radius: 3px; }
 </style>
 @endpush
