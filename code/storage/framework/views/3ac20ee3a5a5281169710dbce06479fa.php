@@ -482,7 +482,10 @@ function setupKanbanSortable() {
     });
 
     function updateTaskStatus(taskId, status, itemEl, originalContainer) {
-        axios.put(`/tasks/${taskId}`, {
+        // Use the named route pattern and replace the placeholder
+        const url = "<?php echo e(route('tasks.update-status', ':id')); ?>".replace(':id', taskId);
+        
+        axios.post(url, {
             status: status,
             _token: '<?php echo e(csrf_token()); ?>'
         })

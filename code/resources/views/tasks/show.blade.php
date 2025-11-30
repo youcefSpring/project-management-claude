@@ -453,6 +453,9 @@
                         <input type="hidden" name="title" value="{{ $task->title }}">
                         <input type="hidden" name="project_id" value="{{ $task->project_id }}">
                         <input type="hidden" name="priority" value="{{ $task->priority }}">
+                        <input type="hidden" name="description" value="{{ $task->description }}">
+                        <input type="hidden" name="assigned_to" value="{{ $task->assigned_to }}">
+                        <input type="hidden" name="due_date" value="{{ $task->due_date }}">
                         <button type="submit" class="btn btn-warning text-white">{{ __('app.tasks.start_task') }}</button>
                     </form>
                 </div>
@@ -480,6 +483,9 @@
                         <input type="hidden" name="title" value="{{ $task->title }}">
                         <input type="hidden" name="project_id" value="{{ $task->project_id }}">
                         <input type="hidden" name="priority" value="{{ $task->priority }}">
+                        <input type="hidden" name="description" value="{{ $task->description }}">
+                        <input type="hidden" name="assigned_to" value="{{ $task->assigned_to }}">
+                        <input type="hidden" name="due_date" value="{{ $task->due_date }}">
                         <button type="submit" class="btn btn-success">{{ __('app.tasks.mark_complete') }}</button>
                     </form>
                 </div>
@@ -502,7 +508,10 @@
                         <input type="hidden" name="title" value="{{ $task->title }}">
                         <input type="hidden" name="project_id" value="{{ $task->project_id }}">
                         <input type="hidden" name="status" value="{{ $task->status }}">
-                        
+                        <input type="hidden" name="description" value="{{ $task->description }}">
+                        <input type="hidden" name="assigned_to" value="{{ $task->assigned_to }}">
+                        <input type="hidden" name="due_date" value="{{ $task->due_date }}">
+
                         <div class="mb-3">
                             <label class="form-label">{{ __('app.tasks.priority') }}</label>
                             <select class="form-select" name="priority">
@@ -537,7 +546,10 @@
                         <input type="hidden" name="title" value="{{ $task->title }}">
                         <input type="hidden" name="project_id" value="{{ $task->project_id }}">
                         <input type="hidden" name="priority" value="{{ $task->priority }}">
-                        
+                        <input type="hidden" name="description" value="{{ $task->description }}">
+                        <input type="hidden" name="assigned_to" value="{{ $task->assigned_to }}">
+                        <input type="hidden" name="due_date" value="{{ $task->due_date }}">
+
                         <div class="mb-3">
                             <label class="form-label">{{ __('app.status') }}</label>
                             <select class="form-select" name="status">
