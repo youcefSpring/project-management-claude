@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Notification;
 use App\Models\Task;
 use App\Models\TaskNote;
 use App\Models\User;
-use App\Models\Notification;
-use App\Services\ImageService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +18,7 @@ class TaskNoteService
     {
         $this->imageService = $imageService;
     }
+
     /**
      * Get all notes for a specific task
      */
@@ -47,7 +47,7 @@ class TaskNoteService
 
         // Process attachments if any
         $attachments = [];
-        if (!empty($files)) {
+        if (! empty($files)) {
             foreach ($files as $file) {
                 if ($file instanceof UploadedFile) {
                     $attachments[] = $this->imageService->uploadAndResize($file);
@@ -60,8 +60,8 @@ class TaskNoteService
             'user_id' => Auth::id(),
             'content' => $data['content'] ?? '',
             'is_internal' => $data['is_internal'] ?? false,
-            'type' => $data['type'] ?? (!empty($attachments) ? 'attachment' : 'comment'),
-            'attachments' => !empty($attachments) ? $attachments : null,
+            'type' => $data['type'] ?? (! empty($attachments) ? 'attachment' : 'comment'),
+            'attachments' => ! empty($attachments) ? $attachments : null,
             'metadata' => $data['metadata'] ?? null,
         ];
 
@@ -242,6 +242,7 @@ class TaskNoteService
             if ($task->project->organization_id !== $user->organization_id) {
                 throw new ModelNotFoundException('Task not found or access denied.');
             }
+
             return true;
         }
 
@@ -335,10 +336,10 @@ class TaskNoteService
             'content' => $comment ?: "Status changed from {$oldStatus} to {$newStatus}",
             'type' => 'status_change',
             'is_internal' => false,
-            'metadata' => [
+            'metadata' => json_encode([
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
-            ],
+            ]),
         ];
 
         $note = TaskNote::create($noteData);
@@ -374,7 +375,7 @@ class TaskNoteService
 
         // Remove current user and duplicates
         $stakeholders = array_unique($stakeholders);
-        $stakeholders = array_filter($stakeholders, function($id) {
+        $stakeholders = array_filter($stakeholders, function ($id) {
             return $id !== Auth::id();
         });
 
@@ -392,7 +393,7 @@ class TaskNoteService
             // Skip internal notes for non-managers/admins
             if ($note->is_internal) {
                 $user = User::find($userId);
-                if (!$user || (!$user->isAdmin() && !$user->isManager())) {
+                if (! $user || (! $user->isAdmin() && ! $user->isManager())) {
                     continue;
                 }
             }
@@ -413,7 +414,7 @@ class TaskNoteService
         $user = Auth::user();
 
         // Only managers and admins can create intervention notes
-        if (!$user->isAdmin() && !$user->isManager()) {
+        if (! $user->isAdmin() && ! $user->isManager()) {
             throw new \UnauthorizedHttpException('Unauthorized to create intervention notes');
         }
 
@@ -421,10 +422,10 @@ class TaskNoteService
             'content' => $content,
             'type' => 'intervention',
             'is_internal' => $isInternal,
-            'metadata' => [
+            'metadata' => json_encode([
                 'intervention_type' => 'manual',
                 'user_role' => $user->role,
-            ],
+            ]),
         ], $files);
     }
 
@@ -439,11 +440,10 @@ class TaskNoteService
         $query = TaskNote::where('task_id', $taskId)->with(['user']);
 
         // Filter based on user role and internal notes
-        if (!$user->isAdmin() && !$user->isManager()) {
+        if (! $user->isAdmin() && ! $user->isManager()) {
             $query->where('is_internal', false);
         }
 
         return $query->orderBy('created_at', 'asc')->get();
     }
-
 }
