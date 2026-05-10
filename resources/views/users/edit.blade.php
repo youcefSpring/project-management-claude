@@ -34,7 +34,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="role" class="form-label">{{ __('Primary Role') }} <span class="text-danger">*</span></label>
+                        <label for="role" class="form-label">{{ __('app.users.primary_role') }} <span class="text-danger">*</span></label>
                         <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                             @foreach($roles as $role)
                                 <option value="{{ $role }}" {{ old('role', $user->role) === $role ? 'selected' : '' }}>
@@ -51,11 +51,11 @@
                                 {{ __('app.users.last_admin_warning') }}
                             </div>
                         @endif
-                        <div class="form-text">{{ __('This will be the user\'s primary role for permissions and display.') }}</div>
+                        <div class="form-text">{{ __('app.users.primary_role_desc') }}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">{{ __('Additional Roles') }} <span class="text-muted">({{ __('Optional') }})</span></label>
+                        <label class="form-label">{{ __('app.users.additional_roles') }} <span class="text-muted">({{ __('app.optional') }})</span></label>
                         <div class="row">
                             @foreach($roles as $role)
                                 @if($role !== 'admin')
@@ -76,11 +76,11 @@
                         @error('additional_roles')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
-                        <div class="form-text">{{ __('Current additional roles: ') }}
+                        <div class="form-text">{{ __('app.users.current_additional_roles') }}:
                             @if(count($userAdditionalRoles) > 0)
                                 {{ implode(', ', array_map(fn($role) => $roleLabels[$role], $userAdditionalRoles)) }}
                             @else
-                                {{ __('None') }}
+                                {{ __('app.none') }}
                             @endif
                         </div>
                     </div>

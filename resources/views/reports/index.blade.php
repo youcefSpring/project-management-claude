@@ -184,4 +184,51 @@
         </div>
     </div>
 </div>
+
+<!-- Generate Report Modal -->
+<div class="modal fade" id="generateReportModal" tabindex="-1" aria-labelledby="generateReportModalLabel" aria-hidden="true" dir="{{ LaravelLocalization::getCurrentLocaleDirection() }}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between align-items-center">
+                <h5 class="modal-title" id="generateReportModalLabel">{{ __('app.reports.generate') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('reports.export') }}" method="GET">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="reportType" class="form-label">{{ __('app.reports.report_type') }}</label>
+                        <select class="form-select" id="reportType" name="type">
+                            <option value="overview">{{ __('app.reports.overview') }}</option>
+                            <option value="projects">{{ __('app.projects.title') }}</option>
+                            <option value="tasks">{{ __('app.tasks.title') }}</option>
+                            <option value="time">{{ __('app.time.title') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="format" class="form-label">{{ __('app.reports.format') }}</label>
+                        <select class="form-select" id="format" name="format">
+                            <option value="csv">CSV</option>
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="dateFrom" class="form-label">{{ __('app.reports.from') }}</label>
+                            <input type="date" class="form-control" id="dateFrom" name="date_from" value="{{ now()->subMonth()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="dateTo" class="form-label">{{ __('app.reports.to') }}</label>
+                            <input type="date" class="form-control" id="dateTo" name="date_to" value="{{ now()->format('Y-m-d') }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('app.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('app.reports.generate') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection

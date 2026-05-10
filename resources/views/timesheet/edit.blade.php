@@ -1,15 +1,133 @@
 @extends('layouts.sidebar')
 
-@section('title', __('Edit Time Entry'))
-@section('page-title', __('Edit Time Entry'))
+@section('title', __('app.time.edit'))
+@section('page-title', __('app.time.edit'))
 
 @section('content')
 <div class="row">
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Edit Time Entry Information') }}</h5>
+                <h5 class="mb-0">{{ __('app.time.entry_information') }}</h5>
             </div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('timesheet.update', $timeEntry) }}">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="mb-3">
+                        <label for="task_id" class="form-label">{{ __('app.tasks.task') }} <span class="text-danger">*</span></label>
+                        <select class="form-select @error('task_id') is-invalid @enderror" id="task_id" name="task_id" required>
+                            <option value="">{{ __('app.time.select_task') }}</option>
+                            @foreach($availableTasks as $task)
+                                <option value="{{ $task->id }}"
+                                    {{ old('task_id', $timeEntry->task_id) == $task->id ? 'selected' : '' }}>
+                                    {{ $task->title }} ({{ optional($task->project)->title ?? __('app.no_project') }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('task_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">{{ __('app.time.start_time') }} <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control @error('start_time') is-invalid @enderror"
+                                       id="start_time" name="start_time"
+                                       value="{{ old('start_time', $timeEntry->start_time->format('Y-m-d\TH:i')) }}" required>
+                                @error('start_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="end_time" class="form-label">{{ __('app.time.end_time') }} <span class="text-danger">*</span></label>
+                                <input type="datetime-local" class="form-control @error('end_time') is-invalid @enderror"
+                                       id="end_time" name="end_time"
+                                       value="{{ old('end_time', $timeEntry->end_time->format('Y-m-d\TH:i')) }}" required>
+                                @error('end_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="hours" class="form-label">{{ __('app.time.duration') }}</label>
+                        <input type="number" class="form-control @error('hours') is-invalid @enderror"
+                               id="hours" name="hours" step="0.25" min="0.1" max="24"
+                               value="{{ old('hours', $timeEntry->duration) }}" placeholder="{{ __('app.time.enter_hours') }}">
+                        <small class="form-text text-muted">{{ __('app.time.enter_hours_desc') }}</small>
+                        @error('hours')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">{{ __('app.description') }}</label>
+                        <textarea class="form-control @error('description') is-invalid @enderror"
+                                  id="description" name="description" rows="4"
+                                  placeholder="{{ __('app.time.describe_work') }}">{{ old('description', $timeEntry->comment) }}</textarea>
+                        @error('description')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ route('timesheet.index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>
+                            {{ __('app.cancel') }}
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>
+                            {{ __('app.save') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{{ __('app.time.quick_actions') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickTime(1)">
+                        {{ __('app.time.1_hour') }}
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickTime(2)">
+                        {{ __('app.time.2_hours') }}
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickTime(4)">
+                        {{ __('app.time.4_hours') }}
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" onclick="setQuickTime(8)">
+                        {{ __('app.time.8_hours') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">{{ __('app.time.entry_info') }}</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>{{ __('app.tasks.task') }}:</strong> {{ optional($timeEntry->task)->title ?? __('app.no_task') }}</p>
+                <p><strong>{{ __('app.projects.title') }}:</strong> {{ optional(optional($timeEntry->task)->project)->title ?? __('app.no_project') }}</p>
+                <p><strong>{{ __('app.time.current_duration') }}:</strong> {{ $timeEntry->duration_formatted }}</p>
+                <p><strong>{{ __('app.created') }}:</strong> {{ $timeEntry->created_at->format('M d, Y H:i') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
             <div class="card-body">
                 <form method="POST" action="{{ route('timesheet.update', $timeEntry) }}">
                     @csrf

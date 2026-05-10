@@ -453,3 +453,24 @@ body {
         border: 1px solid #dee2e6 !important;
     }
 }
+
+/* RTL Modal Fixes */
+[dir="rtl"] .modal-header {
+    flex-direction: row-reverse;
+    padding: 1rem 1rem 0.5rem 1rem;
+}
+
+[dir="rtl"] .modal-header .btn-close {
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    padding: 0.5rem;
+}
+
+[dir="rtl"] .modal-header .modal-title {
+    margin-bottom: 0.5rem;
+}
+
+[dir="rtl"] .modal-footer {
+    flex-direction: row-reverse;
+    padding: 0.5rem 1rem 1rem 1rem;
+}
+}

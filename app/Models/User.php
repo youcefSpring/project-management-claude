@@ -129,6 +129,10 @@ class User extends Authenticatable
         return array_unique(array_merge($roles, $additionalRoles));
     }
 
+    public function tasks(){
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
     /**
      * Check if user has any of the specified roles
      */

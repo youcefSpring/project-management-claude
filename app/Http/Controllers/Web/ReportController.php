@@ -81,7 +81,7 @@ class ReportController extends Controller
         }
 
         // For time tracking report, use the user time report if user_id is specified
-        if (!empty($filters['user_id'])) {
+        if (! empty($filters['user_id'])) {
             $data = $this->reportService->generateUserTimeReport($filters['user_id'], $request->user(), $filters);
         } else {
             // Generate team report for admins/managers
@@ -100,13 +100,47 @@ class ReportController extends Controller
         $this->authorize('viewReports', auth()->user());
 
         $user = $request->user();
+        $format = $request->get('format', 'csv');
+        $type = $request->get('type', 'overview');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
 
-        // Generate overview data for export
         $overview = $this->reportService->generateOverview($user);
 
-        // You can implement actual export logic here (CSV, PDF, Excel)
-        // For now, redirect back with success message
-        return redirect()->route('reports.index')
-            ->with('success', __('app.reports.export_prepared'));
+        $data = [
+            'report_type' => $type,
+            'overview' => $overview,
+            'generated_at' => now()->format('Y-m-d H:i:s'),
+            'user' => $user->name,
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+
+        $filename = 'report_'.now()->format('Y-m-d_His').'.'.$format;
+
+        $content = 'Report Generated: '.now()->format('Y-m-d H:i:s')."\n";
+        $content .= 'Report Type: '.$type."\n";
+        $content .= 'User: '.$user->name."\n";
+        if ($dateFrom && $dateTo) {
+            $content .= 'Date Range: '.$dateFrom.' to '.$dateTo."\n";
+        }
+        $content .= "\nOverview\n";
+        $content .= "--------\n";
+        foreach ($overview as $key => $value) {
+            $content .= $key.': '.$value."\n";
+        }
+
+        $mimeType = match ($format) {
+            'pdf' => 'application/pdf',
+            'excel' => 'application/vnd.ms-excel',
+            default => 'text/csv',
+        };
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $filename, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ]);
     }
 }

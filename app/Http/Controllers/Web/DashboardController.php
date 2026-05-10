@@ -38,7 +38,7 @@ class DashboardController extends Controller
             ->sortByDesc('updated_at')
             ->take(10);
 
-        $notifications = $user->notifications()->limit(10)->get();
+        $notifications = \App\Models\Notification::where('user_id', $user->id)->limit(10)->get();
 
         return view('dashboard.index', compact('stats', 'recentActivity', 'notifications', 'myTasks'));
     }
