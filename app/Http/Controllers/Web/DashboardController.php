@@ -3,33 +3,42 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Services\DashboardService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    protected DashboardService $dashboardService;
-
-    public function __construct(DashboardService $dashboardService)
-    {
-        $this->dashboardService = $dashboardService;
-    }
-
     public function index(Request $request)
     {
         $user = $request->user();
 
-        // Get all dashboard data at once
-        $stats = $this->dashboardService->getStats($user);
-        $recentActivity = $this->dashboardService->getRecentActivity($user);
-        $notifications = $this->dashboardService->getNotifications($user);
+        $stats = [
+            'total_projects' => $user->accessibleProjects()->count(),
+            'active_projects' => $user->accessibleProjects()->where('status', 'active')->count(),
+            'total_tasks' => $user->accessibleTasks()->count(),
+            'completed_tasks' => $user->accessibleTasks()->where('status', 'completed')->count(),
+            'pending_tasks' => $user->accessibleTasks()->whereIn('status', ['pending', 'in_progress'])->count(),
+            'overdue_tasks' => $user->accessibleTasks()->where('due_date', '<', now())->count(),
+            'total_time_today' => $user->timeEntries()->whereDate('start_time', today())->sum('duration_hours'),
+            'total_time_this_week' => $user->timeEntries()->whereBetween('start_time', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('duration_hours'),
+            'total_time_this_month' => $user->timeEntries()->whereBetween('start_time', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('duration_hours'),
+        ];
 
-        // Get user's tasks for the "My Tasks" section
-        $myTasks = \App\Models\Task::where('assigned_to', $user->id)
+        $myTasks = $user->tasks()
             ->with(['project'])
             ->orderBy('due_date', 'asc')
             ->take(6)
             ->get();
+
+        $recentActivity = $user->tasks()
+            ->orderBy('updated_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->merge($user->timeEntries()->with('task.project')->orderBy('created_at', 'desc')->limit(5)->get())
+            ->sortByDesc('updated_at')
+            ->take(10);
+
+        $notifications = $user->notifications()->limit(10)->get();
 
         return view('dashboard.index', compact('stats', 'recentActivity', 'notifications', 'myTasks'));
     }

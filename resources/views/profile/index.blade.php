@@ -55,54 +55,78 @@
             </div>
         </div>
 
-        <!-- My Productivity Charts -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">{{ __('app.productivity.overview') }}</h5>
-            </div>
-            <div class="card-body">
-                <!-- Weekly Hours Chart -->
-                <div class="mb-4">
-                    <h6>{{ __('app.productivity.weekly_summary') }}</h6>
-                    <canvas id="weeklyHoursChart" height="100"></canvas>
-                </div>
+        @php
+    $user = auth()->user();
+    $hasTimeData = $user->timeEntries()->where('start_time', '>=', now()->subDays(7))->exists();
+    $hasTaskData = $user->assignedTasks()->exists();
+@endphp
 
-                <!-- Task Progress Chart -->
-                <div class="mb-3">
-                    <h6>{{ __('app.productivity.tasks_completed') }}</h6>
-                    <canvas id="taskProgressChart" height="80"></canvas>
-                </div>
+@if($hasTimeData || $hasTaskData)
+<!-- My Productivity Charts -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{ __('app.productivity.overview') }}</h5>
+    </div>
+    <div class="card-body">
+        @if($hasTimeData)
+        <!-- Weekly Hours Chart -->
+        <div class="mb-4">
+            <h6>{{ __('app.productivity.weekly_summary') }}</h6>
+            <div style="height: 200px; position: relative;">
+                <canvas id="weeklyHoursChart"></canvas>
             </div>
         </div>
+        @endif
+
+        @if($hasTaskData)
+        <!-- Task Progress Chart -->
+        <div class="mb-3">
+            <h6>{{ __('app.productivity.tasks_completed') }}</h6>
+            <div style="height: 200px; position: relative;">
+                <canvas id="taskProgressChart"></canvas>
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
+@endif
     </div>
 
     <div class="col-md-4">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">{{ __('Quick Stats') }}</h5>
+                <h5 class="mb-0">{{ __('app.profile_settings.quick_stats') }}</h5>
             </div>
             <div class="card-body">
                 @php
                     $user = auth()->user();
-                    $myTasks = \App\Models\Task::where('assigned_to', $user->id)->count();
-                    $completedTasks = \App\Models\Task::where('assigned_to', $user->id)->where('status', 'completed')->count();
-                    $totalTimeThisMonth = \App\Models\TimeEntry::where('user_id', $user->id)
+                    $myTasks = $user->assignedTasks()->count();
+                    $completedTasks = $user->assignedTasks()->where('status', 'completed')->count();
+                    $totalTimeThisMonth = $user->timeEntries()
                         ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()])
                         ->sum('duration_hours');
                 @endphp
 
+                @if($myTasks > 0 || $totalTimeThisMonth > 0)
                 <div class="mb-3">
-                    <strong>{{ __('My Tasks') }}:</strong>
+                    <strong>{{ __('app.tasks.my_tasks') }}:</strong>
                     <span class="float-end">{{ $myTasks }}</span>
                 </div>
+                @if($completedTasks > 0)
                 <div class="mb-3">
-                    <strong>{{ __('Completed Tasks') }}:</strong>
+                    <strong>{{ __('app.tasks.completed') }}:</strong>
                     <span class="float-end">{{ $completedTasks }}</span>
                 </div>
+                @endif
+                @if($totalTimeThisMonth > 0)
                 <div class="mb-3">
-                    <strong>{{ __('Time This Month') }}:</strong>
+                    <strong>{{ __('app.time.this_month') }}:</strong>
                     <span class="float-end">{{ number_format($totalTimeThisMonth, 1) }}h</span>
                 </div>
+                @endif
+                @else
+                <p class="text-muted text-center mb-0">{{ __('app.tasks.no_tasks') }}</p>
+                @endif
             </div>
         </div>
     </div>
@@ -159,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Common chart options
     const commonOptions = {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         plugins: {
             legend: {
                 display: false
@@ -168,94 +192,100 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Weekly Hours Chart
-    const weeklyCtx = document.getElementById('weeklyHoursChart').getContext('2d');
-    new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: last7Days,
-            datasets: [{
-                label: '{{ __("app.time.hours") }}',
-                data: weeklyHours,
-                backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                borderColor: '#007bff',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            ...commonOptions,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0,0,0,0.1)'
+    const weeklyCanvas = document.getElementById('weeklyHoursChart');
+    if (weeklyCanvas) {
+        const weeklyCtx = weeklyCanvas.getContext('2d');
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: last7Days,
+                datasets: [{
+                    label: '{{ __("app.time.hours") }}',
+                    data: weeklyHours,
+                    backgroundColor: 'rgba(0, 123, 255, 0.6)',
+                    borderColor: '#007bff',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                ...commonOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            },
-            plugins: {
-                ...commonOptions.plugins,
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.parsed.y + 'h {{ __("app.time.logged") }}';
+                plugins: {
+                    ...commonOptions.plugins,
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + 'h {{ __("app.tasks.logged") }}';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
     // Task Progress Chart
-    const taskCtx = document.getElementById('taskProgressChart').getContext('2d');
-    new Chart(taskCtx, {
-        type: 'doughnut',
-        data: {
-            labels: [
-                '{{ __("app.tasks.completed") }}',
-                '{{ __("app.tasks.in_progress") }}',
-                '{{ __("app.tasks.pending") }}'
-            ],
-            datasets: [{
-                data: taskData,
-                backgroundColor: [
-                    '#28a745',
-                    '#ffc107',
-                    '#6c757d'
+    const taskCanvas = document.getElementById('taskProgressChart');
+    if (taskCanvas) {
+        const taskCtx = taskCanvas.getContext('2d');
+        new Chart(taskCtx, {
+            type: 'doughnut',
+            data: {
+                labels: [
+                    '{{ __("app.tasks.completed") }}',
+                    '{{ __("app.tasks.in_progress") }}',
+                    '{{ __("app.tasks.pending") }}'
                 ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'bottom',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 10,
-                        font: {
-                            size: 11
+                datasets: [{
+                    data: taskData,
+                    backgroundColor: [
+                        '#28a745',
+                        '#ffc107',
+                        '#6c757d'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 10,
+                            font: {
+                                size: 11
+                            }
                         }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total > 0 ? Math.round((context.parsed * 100) / total) : 0;
-                            return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? Math.round((context.parsed * 100) / total) : 0;
+                                return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 });
 </script>
 @endpush

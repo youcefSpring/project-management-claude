@@ -135,7 +135,8 @@ class User extends Authenticatable
     public function hasAnyRole(array $roles): bool
     {
         $userRoles = $this->getAllRoles();
-        return !empty(array_intersect($roles, $userRoles));
+
+        return ! empty(array_intersect($roles, $userRoles));
     }
 
     /**
@@ -174,7 +175,7 @@ class User extends Authenticatable
         $this->userRoles()->delete();
 
         // Add new roles (excluding the primary role)
-        $additionalRoles = array_filter($roles, fn($role) => $role !== $this->role);
+        $additionalRoles = array_filter($roles, fn ($role) => $role !== $this->role);
 
         foreach (array_unique($additionalRoles) as $role) {
             $this->userRoles()->create([
@@ -372,12 +373,40 @@ class User extends Authenticatable
     public function accessibleProjects()
     {
         if ($this->isAdmin()) {
-            // Admin can see all projects in their organization
             return Project::where('organization_id', $this->organization_id);
         }
 
-        // Get projects where user is a member
         return $this->projects();
+    }
+
+    /**
+     * Get all tasks user has access to
+     */
+    public function accessibleTasks()
+    {
+        if ($this->isAdmin()) {
+            return Task::whereHas('project', fn ($q) => $q->where('organization_id', $this->organization_id));
+        }
+
+        return $this->tasks();
+    }
+
+    /**
+     * Get time entries this week
+     */
+    public function timeEntriesThisWeek()
+    {
+        return $this->timeEntries()
+            ->whereBetween('start_time', [now()->startOfWeek(), now()->endOfWeek()]);
+    }
+
+    /**
+     * Get time entries this month
+     */
+    public function timeEntriesThisMonth()
+    {
+        return $this->timeEntries()
+            ->whereBetween('start_time', [now()->startOfMonth(), now()->endOfMonth()]);
     }
 
     /**
@@ -616,7 +645,6 @@ class User extends Authenticatable
         // Task assignee can edit their own tasks if they can work on tasks in this project
         return $task->assigned_to === $this->id && $this->canWorkOnTasksInProject($task->project);
     }
-
 
     /**
      * Check if user can access admin dashboard
