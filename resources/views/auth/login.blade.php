@@ -3,120 +3,70 @@
 @section('title', __('app.login'))
 
 @section('content')
-<h2>{{ __('app.welcome') }}</h2>
-<p class="subtitle">{{ __('app.auth.login_title') }}</p>
+<div class="auth-header">
+    <h2 class="h3">{{ __('app.welcome') }}</h2>
+    <p class="subtitle">{{ __('app.auth.login_title') }}</p>
+</div>
 
 @include('partials.alerts')
 
 <form id="login-form" method="POST" action="{{ route('login.post') }}">
     @csrf
 
-    <!-- Email Field -->
     <div class="mb-3">
         <label for="email" class="form-label">{{ __('app.email') }}</label>
         <div class="input-group">
-            <span class="input-group-text">
-                <i class="bi bi-envelope"></i>
-            </span>
-            <input type="email"
-                   class="form-control @error('email') is-invalid @enderror"
-                   id="email"
-                   name="email"
-                   value="{{ old('email') }}"
-                   required
-                   autofocus
-                   placeholder="{{ __('app.validation.email') }}">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="name@company.com">
         </div>
-        @error('email')
-            <div class="invalid-feedback d-block">{{ $message }}</div>
-        @enderror
     </div>
 
-    <!-- Password Field -->
     <div class="mb-3">
-        <label for="password" class="form-label">{{ __('app.password') }}</label>
-        <div class="input-group">
-            <span class="input-group-text">
-                <i class="bi bi-lock"></i>
-            </span>
-            <input type="password"
-                   class="form-control @error('password') is-invalid @enderror"
-                   id="password"
-                   name="password"
-                   required
-                   placeholder="{{ __('app.validation.password_min') }}">
-            <button type="button" class="btn btn-outline-secondary" id="toggle-password">
+        <div class="d-flex justify-content-between align-items-center">
+            <label for="password" class="form-label mb-0">{{ __('app.password') }}</label>
+            <a href="{{ route('password.request') }}" class="small btn-link">{{ __('app.auth.forgot_password') }}</a>
+        </div>
+        <div class="input-group mt-2">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input type="password" class="form-control" id="password" name="password" required placeholder="••••••••">
+            <button type="button" class="btn btn-outline-light border-0 text-muted px-3" id="toggle-password">
                 <i class="bi bi-eye"></i>
             </button>
         </div>
-        @error('password')
-            <div class="invalid-feedback d-block">{{ $message }}</div>
-        @enderror
     </div>
 
-    <!-- Remember Me -->
-    <div class="mb-3">
+    <div class="mb-4">
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
-            <label class="form-check-label" for="remember">
-                {{ __('app.auth.remember_me') }}
-            </label>
+            <input class="form-check-input" type="checkbox" id="remember" name="remember">
+            <label class="form-check-label text-muted small" for="remember">{{ __('app.auth.remember_me') }}</label>
         </div>
     </div>
 
-    <!-- Submit Button -->
-    <div class="d-grid mb-3">
-        <button type="submit" class="btn btn-primary" id="login-btn">
+    <div class="d-grid mb-4">
+        <button type="submit" class="btn btn-primary py-2" id="login-btn">
             <span class="login-text">{{ __('app.login') }}</span>
-            <span class="login-spinner spinner-border spinner-border-sm d-none" role="status">
-                <span class="visually-hidden">{{ __('app.loading') }}</span>
-            </span>
+            <span class="login-spinner spinner-border spinner-border-sm d-none" role="status"></span>
         </button>
     </div>
 
-    <!-- Forgot Password -->
-    <div class="text-center mb-3">
-        <a href="{{ route('password.request') }}" class="btn-link">
-            {{ __('app.auth.forgot_password') }}
-        </a>
-    </div>
+    <div class="divider"><span>{{ __('app.auth.or_continue_with') ?? 'Or continue with' }}</span></div>
 
-    <!-- Divider -->
-    <div class="divider">
-        <span>{{ __('or') }}</span>
-    </div>
-
-    <!-- Register Link -->
     <div class="text-center">
-        <p class="mb-0">
-            {{ __("app.auth.dont_have_account") }}
-            <a href="{{ route('register') }}" class="btn-link">{{ __('app.register') }}</a>
+        <p class="mb-0 text-muted small">{{ __("app.auth.dont_have_account") }}
+            <a href="{{ route('register') }}" class="btn-link ms-1">{{ __('app.register') }}</a>
         </p>
     </div>
 </form>
 
-<!-- Demo Accounts (for development) -->
 @if(app()->environment('local'))
-<div class="mt-4">
-    <div class="card bg-light">
-        <div class="card-body">
-            <h6 class="card-title">{{ __('Demo Accounts') }}</h6>
-            <div class="row">
-                <div class="col-4">
-                    <button type="button" class="btn btn-sm btn-outline-primary w-100" onclick="fillLogin('admin@demo.com', 'password')">
-                        {{ __('app.users.admin') }}
-                    </button>
-                </div>
-                <div class="col-4">
-                    <button type="button" class="btn btn-sm btn-outline-secondary w-100" onclick="fillLogin('manager@demo.com', 'password')">
-                        {{ __('app.users.manager') }}
-                    </button>
-                </div>
-                <div class="col-4">
-                    <button type="button" class="btn btn-sm btn-outline-info w-100" onclick="fillLogin('member@demo.com', 'password')">
-                        {{ __('app.users.member') }}
-                    </button>
-                </div>
+<div class="mt-5 demo-accounts">
+    <div class="card bg-light border-0 rounded-4">
+        <div class="card-body p-3">
+            <h6 class="card-title text-muted small fw-bold text-uppercase mb-3">Demo Accounts</h6>
+            <div class="row g-2">
+                <div class="col-4"><button type="button" class="btn btn-sm btn-white border w-100 shadow-sm" onclick="fillLogin('admin@demo.com', 'password')">Admin</button></div>
+                <div class="col-4"><button type="button" class="btn btn-sm btn-white border w-100 shadow-sm" onclick="fillLogin('manager@demo.com', 'password')">Manager</button></div>
+                <div class="col-4"><button type="button" class="btn btn-sm btn-white border w-100 shadow-sm" onclick="fillLogin('member@demo.com', 'password')">Member</button></div>
             </div>
         </div>
     </div>
@@ -129,84 +79,50 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('login-form');
     const submitBtn = document.getElementById('login-btn');
-    const togglePassword = document.getElementById('toggle-password');
-    const passwordField = document.getElementById('password');
+    const loginText = document.querySelector('.login-text');
+    const loginSpinner = document.querySelector('.login-spinner');
 
-    // Password toggle
-    togglePassword.addEventListener('click', function() {
-        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordField.setAttribute('type', type);
-
-        const icon = this.querySelector('i');
-        icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
+    document.getElementById('toggle-password')?.addEventListener('click', function() {
+        const field = document.getElementById('password');
+        const type = field.getAttribute('type') === 'password' ? 'text' : 'password';
+        field.setAttribute('type', type);
+        this.querySelector('i').className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
     });
 
-    // Form submission with AJAX
-    form.addEventListener('submit', function(e) {
+    form?.addEventListener('submit', function(e) {
         e.preventDefault();
-
         clearErrors();
-
-        // Show loading state
         submitBtn.disabled = true;
-        submitBtn.classList.add('loading');
-        document.querySelector('.login-text').style.display = 'none';
-        document.querySelector('.login-spinner').classList.remove('d-none');
+        loginText?.classList.add('d-none');
+        loginSpinner?.classList.remove('d-none');
 
-        const formData = new FormData(form);
-
-        axios.post(form.action, formData)
-            .then(response => {
-                if (response.data.success) {
-                    showSuccess(response.data.message || '{{ __("app.auth.login_successful") }}');
-
-                    // Redirect after short delay
-                    setTimeout(() => {
-                        window.location.href = response.data.redirect || '{{ route("dashboard") }}';
-                    }, 1000);
+        axios.post(this.action, new FormData(this))
+            .then(res => {
+                if (res.data.success) {
+                    showSuccess(res.data.message);
+                    setTimeout(() => window.location.href = res.data.redirect || '{{ route("dashboard") }}', 500);
                 } else {
-                    showError(response.data.message || '{{ __("app.messages.operation_failed") }}');
+                    showError(res.data.message);
                     resetForm();
                 }
             })
-            .catch(error => {
-                if (error.response?.status === 422) {
-                    // Validation errors
-                    showFieldErrors(error.response.data.errors);
-                } else if (error.response?.status === 401) {
-                    showError('{{ __("app.auth.invalid_credentials") }}');
-                } else {
-                    showError('{{ __("app.messages.server_error") }}');
-                }
+            .catch(err => {
+                if (err.response?.status === 422) showFieldErrors(err.response.data.errors);
+                else showError('Error: ' + (err.response?.data?.message || 'Server error'));
                 resetForm();
             });
     });
 
     function resetForm() {
         submitBtn.disabled = false;
-        submitBtn.classList.remove('loading');
-        document.querySelector('.login-text').style.display = 'inline';
-        document.querySelector('.login-spinner').classList.add('d-none');
+        loginText?.classList.remove('d-none');
+        loginSpinner?.classList.add('d-none');
     }
 
-    // Demo account filler (development only)
-    @if(app()->environment('local'))
-    window.fillLogin = function(email, password) {
-        document.getElementById('email').value = email;
-        document.getElementById('password').value = password;
+    window.fillLogin = (e, p) => {
+        const ei = document.getElementById('email'), pi = document.getElementById('password');
+        if (ei) ei.value = e; if (pi) { pi.value = p; pi.focus(); }
     };
-    @endif
-
-    // Auto-focus on email field
-    document.getElementById('email').focus();
-
-    // Enter key handling
-    form.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            form.dispatchEvent(new Event('submit'));
-        }
-    });
 });
 </script>
 @endpush

@@ -61,15 +61,6 @@
             });
         });
 
-        // Language switcher enhancement
-        const languageItems = document.querySelectorAll('.language-dropdown .dropdown-item');
-        languageItems.forEach(item => {
-            item.addEventListener('click', function() {
-                showLoading();
-                // Allow the default navigation to proceed
-            });
-        });
-
         // Profile dropdown enhancements
         const profileDropdown = document.querySelector('.dropdown:last-child .dropdown-toggle');
         if (profileDropdown) {

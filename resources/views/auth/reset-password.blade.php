@@ -1,81 +1,85 @@
 @extends('layouts.auth')
 
-@section('title', 'Reset Password')
+@section('title', __('app.auth.reset_password') ?? 'Reset Password')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-        <div>
-            <div class="mx-auto h-12 w-auto flex justify-center">
-                <svg class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-            </div>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Reset your password
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Enter your new password below
-            </p>
-        </div>
-
-        <form class="mt-8 space-y-6" action="{{ route('password.update') }}" method="POST">
-            @csrf
-            <input type="hidden" name="token" value="{{ $token }}">
-
-            <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">
-                    Email address
-                </label>
-                <div class="mt-1">
-                    <input id="email" name="email" type="email" autocomplete="email" required
-                           class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('email') border-red-300 @enderror"
-                           placeholder="Enter your email address"
-                           value="{{ old('email', request()->email) }}">
-                    @error('email')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700">
-                    New Password
-                </label>
-                <div class="mt-1">
-                    <input id="password" name="password" type="password" autocomplete="new-password" required
-                           class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm @error('password') border-red-300 @enderror"
-                           placeholder="Enter new password">
-                    @error('password')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                </label>
-                <div class="mt-1">
-                    <input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required
-                           class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-                           placeholder="Confirm new password">
-                </div>
-            </div>
-
-            <div>
-                <button type="submit"
-                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Reset Password
-                </button>
-            </div>
-
-            <div class="text-center">
-                <a href="{{ route('login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
-                    Back to login
-                </a>
-            </div>
-        </form>
-    </div>
+<div class="auth-header">
+    <h2 class="h3">{{ __('app.auth.reset_password_title') ?? 'Reset Password' }}</h2>
+    <p class="subtitle">{{ __('app.auth.reset_password_subtitle') ?? 'Enter your new password below to reset your account access.' }}</p>
 </div>
+
+<form method="POST" action="{{ route('password.update') }}">
+    @csrf
+    <input type="hidden" name="token" value="{{ $token }}">
+
+    <!-- Email Field -->
+    <div class="mb-3">
+        <label for="email" class="form-label">{{ __('app.email') }}</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-envelope"></i>
+            </span>
+            <input type="email"
+                   class="form-control @error('email') is-invalid @enderror"
+                   id="email"
+                   name="email"
+                   value="{{ old('email', request()->email) }}"
+                   required
+                   placeholder="name@company.com">
+        </div>
+        @error('email')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <!-- Password Field -->
+    <div class="mb-3">
+        <label for="password" class="form-label">{{ __('app.auth.new_password') ?? 'New Password' }}</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-lock"></i>
+            </span>
+            <input type="password"
+                   class="form-control @error('password') is-invalid @enderror"
+                   id="password"
+                   name="password"
+                   required
+                   autofocus
+                   placeholder="••••••••">
+        </div>
+        @error('password')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <!-- Confirm Password Field -->
+    <div class="mb-4">
+        <label for="password_confirmation" class="form-label">{{ __('app.confirm_password') ?? 'Confirm Password' }}</label>
+        <div class="input-group">
+            <span class="input-group-text">
+                <i class="bi bi-lock-fill"></i>
+            </span>
+            <input type="password"
+                   class="form-control"
+                   id="password_confirmation"
+                   name="password_confirmation"
+                   required
+                   placeholder="••••••••">
+        </div>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-grid mb-4">
+        <button type="submit" class="btn btn-primary py-2">
+            {{ __('app.auth.reset_password_btn') ?? 'Reset Password' }}
+        </button>
+    </div>
+
+    <!-- Back to Login -->
+    <div class="text-center">
+        <a href="{{ route('login') }}" class="btn-link small">
+            {{ __('app.auth.back_to_login') ?? 'Back to login' }}
+        </a>
+    </div>
+</form>
 @endsection
