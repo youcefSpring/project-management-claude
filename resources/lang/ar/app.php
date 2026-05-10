@@ -507,7 +507,7 @@ return array (
     'member_perm2' => 'تسجيل إدخالات الوقت',
     'member_perm3' => 'وصول أساسي للمشاريع',
     'user_filters' => 'مرشحات المستخدمين',
-  ),
+  
   'comments' => 
   array (
     'comment_added_successfully' => 'تم إضافة التعليق بنجاح.',

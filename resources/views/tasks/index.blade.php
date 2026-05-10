@@ -467,6 +467,9 @@ function setupKanbanSortable() {
     });
 
     function updateTaskStatus(taskId, status, itemEl, originalContainer) {
+        const oldStatus = originalContainer.getAttribute('data-status');
+        const newStatus = status;
+        
         // Use the named route pattern and replace the placeholder
         const url = "{{ route('tasks.update-status', ':id') }}".replace(':id', taskId);
         
@@ -475,6 +478,9 @@ function setupKanbanSortable() {
             _token: '{{ csrf_token() }}'
         })
         .then(response => {
+            // Update counters
+            updateStatusCounter(oldStatus, newStatus);
+            
             // Success
             toastEl.classList.remove('bg-danger');
             toastEl.classList.add('bg-success');
@@ -491,6 +497,28 @@ function setupKanbanSortable() {
             toast.show();
             console.error('Error updating status:', error);
         });
+    }
+    
+    function updateStatusCounter(oldStatus, newStatus) {
+        // Update old column counter (decrease by 1)
+        const oldColumn = document.querySelector(`.kanban-body[data-status="${oldStatus}"]`).closest('.kanban-column');
+        const oldCounter = oldColumn.querySelector('.badge');
+        if (oldCounter) {
+            oldCounter.textContent = parseInt(oldCounter.textContent) - 1;
+        }
+        
+        // Update new column counter (increase by 1)
+        const newColumn = document.querySelector(`.kanban-body[data-status="${newStatus}"]`).closest('.kanban-column');
+        const newCounter = newColumn.querySelector('.badge');
+        if (newCounter) {
+            newCounter.textContent = parseInt(newCounter.textContent) + 1;
+        }
+        
+        // Update total task count in header
+        const totalBadge = document.querySelector('.card-header .badge');
+        if (totalBadge) {
+            totalBadge.textContent = parseInt(totalBadge.textContent);
+        }
     }
 }
 </script>

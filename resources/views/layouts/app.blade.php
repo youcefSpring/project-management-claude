@@ -51,17 +51,6 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-         style="background: rgba(255, 255, 255, 0.8); z-index: 9999; display: none !important;">
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">{{ __('app.loading') }}</span>
-            </div>
-            <p class="mt-2">{{ __('app.loading') }}</p>
-        </div>
-    </div>
-
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

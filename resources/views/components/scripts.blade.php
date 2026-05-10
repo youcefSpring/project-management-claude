@@ -16,41 +16,8 @@
 
     // Language switching is now handled by direct links with MCamara
 
-    // Loading Overlay
-    function showLoading() {
-        document.getElementById('loading-overlay').style.display = 'flex';
-    }
-
-    function hideLoading() {
-        document.getElementById('loading-overlay').style.display = 'none';
-    }
-
-    // Global AJAX Setup
-    axios.interceptors.request.use(config => {
-        showLoading();
-        return config;
-    });
-
-    axios.interceptors.response.use(
-        response => {
-            hideLoading();
-            return response;
-        },
-        error => {
-            hideLoading();
-            console.error('AJAX Error:', error);
-
-            if (error.response?.status === 401) {
-                window.location.href = '/login';
-            } else if (error.response?.status === 403) {
-                alert('{{ __("app.messages.access_denied") }}');
-            } else if (error.response?.status >= 500) {
-                alert('{{ __("app.messages.server_error") }}');
-            }
-
-            return Promise.reject(error);
-        }
-    );
+    // Global AJAX Setup - disabled to prevent loading overlay issues
+    // axios.interceptors can be enabled per-page when needed
 
     // Form helpers
     function showSuccess(message) {
