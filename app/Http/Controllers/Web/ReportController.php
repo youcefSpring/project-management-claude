@@ -359,8 +359,8 @@ class ReportController extends Controller
     {
         $dir = app()->getLocale() === 'ar' ? 'rtl' : 'ltr';
         $align = $dir === 'rtl' ? 'right' : 'left';
-        $html = '<html dir="'.$dir.'"><head><meta charset="utf-8"><style>'
-            .'body{font-family:DejaVu Sans, sans-serif;font-size:11px;color:#222;direction:'.$dir.';}'
+        $html = '<html><head><meta charset="utf-8"><style>'
+            .'body{font-size:11px;color:#222;}'
             .'h2{color:#4f46e5;margin:0 0 4px;} .meta{color:#666;font-size:10px;margin-bottom:12px;}'
             .'table{width:100%;border-collapse:collapse;} th{background:#4f46e5;color:#fff;text-align:'.$align.';padding:6px;}'
             .'td{padding:6px;border-bottom:1px solid #e5e7eb;text-align:'.$align.';} tr:nth-child(even) td{background:#f8f9fb;}'
@@ -381,12 +381,20 @@ class ReportController extends Controller
         }
         $html .= '</tbody></table></body></html>';
 
-        $dompdf = new \Dompdf\Dompdf(['isRemoteEnabled' => false]);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('A4', 'landscape');
-        $dompdf->render();
+        // mpdf: native UTF-8, Arabic letter-shaping and RTL support.
+        $mpdf = new \Mpdf\Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
+            'tempDir' => storage_path('app/mpdf'),
+        ]);
+        if ($dir === 'rtl') {
+            $mpdf->SetDirectionality('rtl');
+        }
+        $mpdf->WriteHTML($html);
 
-        return response($dompdf->output(), 200, [
+        return response($mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN), 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="'.$base.'.pdf"',
         ]);

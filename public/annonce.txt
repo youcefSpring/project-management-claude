@@ -1,0 +1,28 @@
+🚀 We're looking for beta testers — come break our SaaS (and tell us what you really think)!
+
+After months of building, we're opening up early access to ProManage — a project management platform made for teams who are tired of juggling five different tools.
+
+Here's what you can do with it today:
+
+📁 Projects & Tasks — organize work with list and Kanban board views, priorities, due dates and assignments
+⏱️ Timesheets — log time against tasks and see where the hours actually go
+📊 Reports & Exports — team, project and time-tracking reports, exportable to CSV, Excel and PDF
+💬 Built-in Chat — project channels, 1-to-1 direct messages and company-wide announcements, with file sharing and image previews
+🔔 Real-time notifications so nothing slips through
+♻️ Trash & Recovery — deleted something by mistake? Restore it in one click
+🌍 Multilingual — full English, French, Arabic (RTL) and Spanish support
+🎨 A clean, modern interface that works on desktop and mobile
+
+👉 What we need from YOU:
+Try it like it's your real workflow — create projects, assign tasks, log time, chat with your team, generate a report. Then tell us:
+• What felt great ?
+• What was confusing or missing ?
+• What would make you actually switch to it ?
+
+Honest, brutal feedback is exactly what we're after. Every comment shapes the roadmap.
+
+Want in ? test it from :  https://project-management.benabderrezak.com/en/login
+
+Help us build the project management tool teams actually enjoy using. 🙌
+
+#SaaS #ProjectManagement #BetaTesters #ProductFeedback #StartupLife #Productivity #BuildInPublic #TeamCollaboration #ProManage
