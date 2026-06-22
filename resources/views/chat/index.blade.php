@@ -30,65 +30,124 @@
     }
     [dir="rtl"] .unread-dot { margin-right: 0; margin-left: 6px; }
     [dir="rtl"] .conv-item.active { box-shadow: inset -3px 0 0 var(--primary-color); }
+
+    /* Layout */
+    .chat-wrap { height: calc(100vh - 140px); }
+    .chat-back { display: none; }
+
+    /* Smooth scrolling + message entrance animation (Instagram-like) */
+    #messageList { scroll-behavior: smooth; }
+    .conv-item { transition: background-color .15s ease, transform .12s ease; }
+    .conv-item:active { transform: scale(0.99); }
+    @keyframes chatMsgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .chat-msg { animation: chatMsgIn .22s cubic-bezier(.22,.61,.36,1); }
+    @media (prefers-reduced-motion: reduce) {
+        .chat-msg { animation: none; }
+        #messageList { scroll-behavior: auto; }
+        .chat-thread { transition: none !important; }
+    }
+
+    /* Mobile: single pane that SLIDES (list ↔ thread) */
+    @media (max-width: 767.98px) {
+        /* Cancel the surrounding main padding and fill the screen below the top bar,
+           so the page itself doesn't scroll and the composer stays at the bottom edge. */
+        .chat-wrap {
+            height: calc(100dvh - 56px);
+            margin: -1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .chat-wrap .row { --bs-gutter-x: 0; --bs-gutter-y: 0; }
+        .chat-wrap .card { border-radius: 0; border-left: 0; border-right: 0; }
+        .chat-pane { width: 100%; max-width: 100%; flex: 0 0 100%; }
+        .chat-back { display: inline-flex !important; align-items: center; }
+        #conversationList .conv-item { padding: 0.9rem 1rem; }
+        #messageList .p-2 { max-width: 85% !important; }
+
+        /* Thread overlays the list and slides in from the side */
+        .chat-thread {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            padding: 0;
+            transform: translateX(100%);
+            transition: transform .28s cubic-bezier(.22,.61,.36,1);
+            will-change: transform;
+        }
+        #chatApp.thread-open .chat-thread { transform: translateX(0); }
+        /* Subtle parallax on the list while the thread is open */
+        .chat-list { transition: transform .28s ease, opacity .28s ease; }
+        #chatApp.thread-open .chat-list { transform: translateX(-12%); opacity: .6; }
+
+        [dir="rtl"] .chat-thread { transform: translateX(-100%); }
+        [dir="rtl"] #chatApp.thread-open .chat-thread { transform: translateX(0); }
+        [dir="rtl"] #chatApp.thread-open .chat-list { transform: translateX(12%); }
+    }
+    [dir="rtl"] .chat-back .bi-arrow-left::before { content: "\f138"; } /* arrow-right glyph for RTL */
 </style>
 @endpush
 
 @section('content')
-<div class="row g-3" style="height: calc(100vh - 130px);">
-    <!-- Conversations -->
-    <div class="col-md-4 col-lg-3 h-100">
-        <div class="card h-100 d-flex flex-column">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>{{ __('app.chat.conversations') }}</h6>
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-plus-lg"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#newDirectModal">
-                            <i class="bi bi-person-plus me-2"></i>{{ __('app.chat.new_direct') }}
-                        </button></li>
-                        @if($canAnnounce)
-                        <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
-                            <i class="bi bi-megaphone me-2"></i>{{ __('app.chat.new_announcement') }}
-                        </button></li>
-                        @endif
-                    </ul>
+<div id="chatApp" class="chat-wrap">
+    <div class="row g-3 h-100">
+        <!-- Conversations -->
+        <div class="col-md-4 col-lg-3 chat-pane chat-list">
+            <div class="card h-100 d-flex flex-column">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>{{ __('app.chat.conversations') }}</h6>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#newDirectModal">
+                                <i class="bi bi-person-plus me-2"></i>{{ __('app.chat.new_direct') }}
+                            </button></li>
+                            @if($canAnnounce)
+                            <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#newAnnouncementModal">
+                                <i class="bi bi-megaphone me-2"></i>{{ __('app.chat.new_announcement') }}
+                            </button></li>
+                            @endif
+                        </ul>
+                    </div>
                 </div>
-            </div>
-            <div class="card-body p-0 overflow-auto" id="conversationList">
-                <div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm"></div></div>
+                <div class="card-body p-0 overflow-auto" id="conversationList">
+                    <div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm"></div></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Thread -->
-    <div class="col-md-8 col-lg-9 h-100">
-        <div class="card h-100 d-flex flex-column">
-            <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-chat-text"></i>
-                <h6 class="mb-0" id="threadTitle">{{ __('app.chat.select_conversation') }}</h6>
-            </div>
-            <div class="card-body overflow-auto flex-grow-1 bg-light" id="messageList">
-                <div class="text-center text-muted py-5">
-                    <i class="bi bi-chat-square-text fs-1 opacity-25"></i>
-                    <p class="mt-2">{{ __('app.chat.select_conversation') }}</p>
+        <!-- Thread -->
+        <div class="col-md-8 col-lg-9 chat-pane chat-thread">
+            <div class="card h-100 d-flex flex-column">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-light chat-back" id="chatBack" aria-label="Back">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                    <i class="bi bi-chat-text d-none d-md-inline"></i>
+                    <h6 class="mb-0 text-truncate" id="threadTitle">{{ __('app.chat.select_conversation') }}</h6>
                 </div>
-            </div>
-            <div class="card-footer" id="composer" style="display:none;">
-                <form id="messageForm" enctype="multipart/form-data">
-                    <div id="filePreview" class="d-flex flex-wrap gap-2 mb-2"></div>
-                    <div class="input-group">
-                        <label class="btn btn-outline-secondary mb-0" title="{{ __('app.chat.attach') }}">
-                            <i class="bi bi-paperclip"></i>
-                            <input type="file" name="attachments[]" id="fileInput" multiple class="d-none"
-                                   accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip">
-                        </label>
-                        <input type="text" class="form-control" id="messageBody" name="body"
-                               placeholder="{{ __('app.chat.type_message') }}" autocomplete="off">
-                        <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
+                <div class="card-body overflow-auto flex-grow-1 bg-light" id="messageList">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-chat-square-text fs-1 opacity-25"></i>
+                        <p class="mt-2">{{ __('app.chat.select_conversation') }}</p>
                     </div>
-                </form>
+                </div>
+                <div class="card-footer" id="composer" style="display:none;">
+                    <form id="messageForm" enctype="multipart/form-data">
+                        <div id="filePreview" class="d-flex flex-wrap gap-2 mb-2"></div>
+                        <div class="input-group">
+                            <label class="btn btn-outline-secondary mb-0" title="{{ __('app.chat.attach') }}">
+                                <i class="bi bi-paperclip"></i>
+                                <input type="file" name="attachments[]" id="fileInput" multiple class="d-none"
+                                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv,.zip">
+                            </label>
+                            <input type="text" class="form-control" id="messageBody" name="body"
+                                   placeholder="{{ __('app.chat.type_message') }}" autocomplete="off">
+                            <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i></button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -213,7 +272,7 @@
             + (m.body ? '<div style="white-space:pre-wrap;word-break:break-word;">' + esc(m.body) + '</div>' : '')
             + (atts ? '<div class="mt-2">' + atts + '</div>' : '')
             + '<div class="small ' + (mine ? 'text-white-50' : 'text-muted') + ' mt-1 text-end">' + esc(m.time) + '</div></div>';
-        return '<div class="d-flex mb-2 ' + (mine ? 'justify-content-end' : 'justify-content-start') + '" data-mid="' + m.id + '">' + bubble + '</div>';
+        return '<div class="d-flex mb-2 chat-msg ' + (mine ? 'justify-content-end' : 'justify-content-start') + '" data-mid="' + m.id + '">' + bubble + '</div>';
     }
 
     function appendMessages(messages) {
@@ -229,10 +288,13 @@
     }
     window.__onChatMessages = appendMessages;
 
+    const chatApp = document.getElementById('chatApp');
+
     async function openConversation(id, title) {
         window.__activeConversation = id;
         window.__lastMessageId = 0;
         rendered = new Set();
+        chatApp.classList.add('thread-open'); // mobile: switch to thread view
         titleEl.textContent = title || '';
         msgEl.innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm"></div></div>';
         listEl.querySelectorAll('.conv-item').forEach(b => b.classList.toggle('active', b.dataset.id == id));
@@ -242,6 +304,10 @@
             msgEl.innerHTML = '';
             if (!(data.data || []).length) { msgEl.innerHTML = '<div class="text-center text-muted py-5">' + esc(i18n.noMsg) + '</div>'; }
             appendMessages(data.data || []);
+            // Jump to the latest instantly on open (smooth scroll only for new incoming messages).
+            msgEl.style.scrollBehavior = 'auto';
+            msgEl.scrollTop = msgEl.scrollHeight;
+            requestAnimationFrame(function () { msgEl.style.scrollBehavior = ''; });
             composer.style.display = data.can_post ? 'block' : 'none';
             loadConversations(); // refresh unread badges
         } catch (e) {
@@ -309,6 +375,12 @@
         }
     });
     @endif
+
+    // Mobile: back to conversation list
+    document.getElementById('chatBack').addEventListener('click', function () {
+        chatApp.classList.remove('thread-open');
+        loadConversations();
+    });
 
     // Init
     loadConversations();

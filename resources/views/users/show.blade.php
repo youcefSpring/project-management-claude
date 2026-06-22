@@ -476,6 +476,16 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+@php
+    $dailyLabels = array_map(function ($i) { return now()->subDays(6 - $i)->format('M d'); }, range(0, 6));
+    $workPattern = $user->timeEntries
+        ->groupBy(function ($entry) { return $entry->created_at->format('H'); })
+        ->map(function ($entries) { return $entries->count(); })
+        ->values()->slice(6, 6)->toArray();
+    if (empty($workPattern)) {
+        $workPattern = [1, 8, 6, 4, 2, 1];
+    }
+@endphp
 document.addEventListener('DOMContentLoaded', function() {
     // Productivity data from backend
     const productivityData = @json($productivityData ?? []);
@@ -483,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Default data if no backend data available
     const defaultData = {
         dailyHours: {
-            labels: @json(array_map(function($i) { return now()->subDays(6-$i)->format('M d'); }, range(0, 6))),
+            labels: @json($dailyLabels),
             data: [2, 4, 6, 3, 5, 7, 4]
         },
         taskCompletion: {
@@ -496,11 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         workPattern: {
             labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
-            data: @json($user->timeEntries->groupBy(function($entry) {
-                return $entry->created_at->format('H');
-            })->map(function($entries, $hour) {
-                return $entries->count();
-            })->values()->slice(6, 6)->toArray() ?: [1, 8, 6, 4, 2, 1])
+            data: @json($workPattern)
         }
     };
 
