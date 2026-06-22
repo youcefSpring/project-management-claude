@@ -36,6 +36,11 @@ class UserSeeder extends Seeder
         // Create team members
         $teamMembers = [
             [
+                'name' => 'Demo Member',
+                'email' => 'member@demo.com',
+                'role' => 'member',
+            ],
+            [
                 'name' => 'John Developer',
                 'email' => 'john@demo.com',
                 'role' => 'member',

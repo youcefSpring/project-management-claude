@@ -37,6 +37,7 @@ class LoginController extends Controller
             if ($result['success']) {
                 return response()->json([
                     'success' => true,
+                    'message' => __('app.auth.login_successful'),
                     'user' => $result['user'],
                     'redirect' => route('dashboard'),
                 ]);
@@ -44,13 +45,13 @@ class LoginController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Identifiants invalides',
+                'message' => __('app.auth.invalid_credentials'),
             ], 401);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur lors de la connexion',
+                'message' => __('app.error'),
             ], 500);
         }
     }
