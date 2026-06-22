@@ -265,7 +265,7 @@
     }
 
     function messageHtml(m) {
-        const mine = m.user_id === me;
+        const mine = parseInt(m.user_id, 10) === me;
         const atts = (m.attachments || []).map(attachmentHtml).join('');
         const bubble = '<div class="p-2 px-3 rounded-3 ' + (mine ? 'bg-primary text-white' : 'bg-white border') + '" style="max-width:560px;">'
             + (mine ? '' : '<div class="small fw-bold mb-1">' + esc(m.user_name) + '</div>')

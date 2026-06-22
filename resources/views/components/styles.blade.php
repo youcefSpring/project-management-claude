@@ -311,8 +311,10 @@
     .sidebar {
         position: fixed;
         top: 0;
+        bottom: 0;
         left: 0;
         height: 100vh;
+        height: 100dvh;
         width: var(--sidebar-width);
         background: var(--brand-gradient);
         color: #fff;

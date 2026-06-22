@@ -172,7 +172,7 @@ class ChatService
     {
         return [
             'id' => $m->id,
-            'user_id' => $m->user_id,
+            'user_id' => (int) $m->user_id,
             'user_name' => $m->user->name ?? '—',
             'body' => $m->body,
             'attachments' => $m->attachmentsForApi(),
