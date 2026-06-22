@@ -1,34 +1,35 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use App\Models\Organization;
-use App\Models\User;
-use App\Models\Project;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * Uses the query builder (not Eloquent) so it is independent of model
+     * global scopes such as SoftDeletes, which add columns (deleted_at) that
+     * may not exist yet at this point in the migration order.
      */
     public function up(): void
     {
-        // Create a legacy organization for existing users
-        $legacyOrganization = Organization::create([
+        $legacyId = DB::table('organizations')->insertGetId([
             'name' => 'Legacy Organization',
             'description' => 'Organization for existing users before multi-organization feature',
             'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        // Assign all existing users to the legacy organization
-        User::whereNull('organization_id')->update([
-            'organization_id' => $legacyOrganization->id
+        DB::table('users')->whereNull('organization_id')->update([
+            'organization_id' => $legacyId,
+            'updated_at' => now(),
         ]);
 
-        // Assign all existing projects to the legacy organization
-        Project::whereNull('organization_id')->update([
-            'organization_id' => $legacyOrganization->id
+        DB::table('projects')->whereNull('organization_id')->update([
+            'organization_id' => $legacyId,
+            'updated_at' => now(),
         ]);
     }
 
@@ -37,22 +38,12 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Remove organization assignments
-        User::where('organization_id', function ($query) {
-            $query->select('id')
-                ->from('organizations')
-                ->where('name', 'Legacy Organization')
-                ->limit(1);
-        })->update(['organization_id' => null]);
+        $legacyId = DB::table('organizations')->where('name', 'Legacy Organization')->value('id');
 
-        Project::where('organization_id', function ($query) {
-            $query->select('id')
-                ->from('organizations')
-                ->where('name', 'Legacy Organization')
-                ->limit(1);
-        })->update(['organization_id' => null]);
-
-        // Delete the legacy organization
-        Organization::where('name', 'Legacy Organization')->delete();
+        if ($legacyId) {
+            DB::table('users')->where('organization_id', $legacyId)->update(['organization_id' => null]);
+            DB::table('projects')->where('organization_id', $legacyId)->update(['organization_id' => null]);
+            DB::table('organizations')->where('id', $legacyId)->delete();
+        }
     }
 };
