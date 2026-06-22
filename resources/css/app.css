@@ -473,4 +473,85 @@ body {
     flex-direction: row-reverse;
     padding: 0.5rem 1rem 1rem 1rem;
 }
+
+/* Alpine: hide elements until initialised */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Dashboard stat tiles */
+.stats-card.info {
+    background: linear-gradient(135deg, var(--info-color, #0dcaf0) 0%, #0a93b0 100%);
+}
+
+.stats-card {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+.stats-card .stats-icon {
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.18);
+    font-size: 1.5rem;
+}
+
+/* Skeleton loaders for async widgets */
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 0.4rem;
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    animation: skeleton-shimmer 1.3s infinite;
+}
+
+.skeleton-line {
+    height: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-number {
+    height: 2rem;
+    width: 3.5rem;
+}
+
+@keyframes skeleton-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+[dir="rtl"] .skeleton::after {
+    animation-name: skeleton-shimmer-rtl;
+}
+
+@keyframes skeleton-shimmer-rtl {
+    100% {
+        transform: translateX(-200%);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .skeleton {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
 }

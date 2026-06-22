@@ -4,110 +4,115 @@
 @section('page-title', $project->title)
 
 @section('content')
-<div class="row">
-    <!-- Project Header -->
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="d-flex align-items-center mb-3">
-                            <h1 class="mb-0 me-3">{{ $project->title }}</h1>
-                            <span class="badge status-{{ $project->status }} status-badge">
-                                @switch($project->status)
-                                    @case('planning') {{ __('app.projects.planning') }} @break
-                                    @case('active') {{ __('app.projects.active') }} @break
-                                    @case('on_hold') {{ __('app.projects.on_hold') }} @break
-                                    @case('completed') {{ __('app.projects.completed') }} @break
-                                    @case('cancelled') {{ __('app.projects.cancelled') }} @break
-                                    @default {{ ucfirst($project->status) }}
-                                @endswitch
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">{{ $project->description }}</p>
+@php
+    $statusLabels = [
+        'planning' => __('app.projects.planning'),
+        'active' => __('app.projects.active'),
+        'on_hold' => __('app.projects.on_hold'),
+        'completed' => __('app.projects.completed'),
+        'cancelled' => __('app.projects.cancelled'),
+    ];
+    $canManage = auth()->user()->isAdmin() || auth()->user()->isManager();
+@endphp
 
-                        <div class="row">
-                            <div class="col-md-6 mb-2">
-                                <i class="bi bi-person-fill me-2 text-primary"></i>
-                                <strong>{{ __('app.projects.manager') }}:</strong> {{ $project->manager->name }}
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <i class="bi bi-calendar me-2 text-primary"></i>
-                                <strong>{{ __('app.projects.start_date') }}:</strong> {{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : __('app.not_available') }}
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <i class="bi bi-calendar-check me-2 text-primary"></i>
-                                <strong>{{ __('app.projects.end_date') }}:</strong> {{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('M d, Y') : __('app.not_available') }}
-                            </div>
-                            <div class="col-md-6 mb-2">
-                                <i class="bi bi-clock me-2 text-primary"></i>
-                                <strong>{{ __('app.projects.total_hours') }}:</strong> {{ $stats['total_hours'] }}h
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-4 text-center">
-                        <!-- Progress Chart -->
-                        <div class="position-relative d-inline-block mb-3">
-                            <canvas id="progressChart" width="150" height="150"></canvas>
-                            <div class="position-absolute top-50 start-50 translate-middle text-center">
-                                <h3 class="mb-0">{{ $stats['progress_percentage'] }}%</h3>
-                                <small class="text-muted">{{ __('app.projects.complete') }}</small>
-                            </div>
-                        </div>
-
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="fw-bold text-primary fs-4">{{ $stats['total_tasks'] }}</div>
-                                <small class="text-muted">{{ __('app.projects.total_tasks') }}</small>
-                            </div>
-                            <div class="col-6">
-                                <div class="fw-bold text-success fs-4">{{ $stats['completed_tasks'] }}</div>
-                                <small class="text-muted">{{ __('app.projects.completed_tasks') }}</small>
-                            </div>
-                        </div>
-                    </div>
+<!-- Project Hero -->
+<div class="card project-hero mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <h1 class="h3 mb-0 me-2">{{ $project->title }}</h1>
+                    <span class="badge bg-light text-dark">{{ $statusLabels[$project->status] ?? ucfirst($project->status) }}</span>
                 </div>
-
-                @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                <div class="mt-3 pt-3 border-top">
-                    <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary me-2">
-                        <i class="bi bi-pencil me-2"></i>{{ __('app.projects.edit_project') }}
-                    </a>
-                    <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-outline-success me-2">
-                        <i class="bi bi-plus-circle me-2"></i>{{ __('app.projects.add_task') }}
-                    </a>
-                    <button class="btn btn-outline-warning" onclick="changeProjectStatus()">
-                        <i class="bi bi-arrow-repeat me-2"></i>{{ __('app.projects.change_status') }}
-                    </button>
-                </div>
+                @if($project->description)
+                    <p class="mb-3" style="color: rgba(255,255,255,.85);">{{ $project->description }}</p>
                 @endif
+
+                <div class="row g-3">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="hero-stat p-2 px-3">
+                            <small class="hero-label d-block"><i class="bi bi-person-fill me-1"></i>{{ __('app.projects.manager') }}</small>
+                            <span class="fw-semibold">{{ $project->manager->name ?? '—' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="hero-stat p-2 px-3">
+                            <small class="hero-label d-block"><i class="bi bi-calendar me-1"></i>{{ __('app.projects.start_date') }}</small>
+                            <span class="fw-semibold">{{ $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('M d, Y') : __('app.not_available') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="hero-stat p-2 px-3">
+                            <small class="hero-label d-block"><i class="bi bi-calendar-check me-1"></i>{{ __('app.projects.end_date') }}</small>
+                            <span class="fw-semibold">{{ $project->end_date ? \Carbon\Carbon::parse($project->end_date)->format('M d, Y') : __('app.not_available') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="hero-stat p-2 px-3">
+                            <small class="hero-label d-block"><i class="bi bi-clock me-1"></i>{{ __('app.projects.total_hours') }}</small>
+                            <span class="fw-semibold">{{ $stats['total_hours'] }}h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 text-center">
+                <div class="progress-ring mx-auto mb-3" style="--pct: {{ $stats['progress_percentage'] }};">
+                    <div class="progress-ring-label">
+                        <div class="h3 mb-0 fw-bold">{{ $stats['progress_percentage'] }}%</div>
+                        <small class="hero-label">{{ __('app.projects.complete') }}</small>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="fw-bold fs-4">{{ $stats['total_tasks'] }}</div>
+                        <small class="hero-label">{{ __('app.projects.total_tasks') }}</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="fw-bold fs-4">{{ $stats['completed_tasks'] }}</div>
+                        <small class="hero-label">{{ __('app.projects.completed_tasks') }}</small>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
+        @if($canManage)
+        <div class="mt-4 pt-3 border-top border-light border-opacity-25 d-flex flex-wrap gap-2">
+            <a href="{{ route('projects.edit', $project) }}" class="btn btn-light btn-sm">
+                <i class="bi bi-pencil me-1"></i>{{ __('app.projects.edit_project') }}
+            </a>
+            <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-outline-light btn-sm"
+               data-modal-url="{{ route('tasks.create') }}?project_id={{ $project->id }}" data-modal-title="{{ __('app.projects.add_task') }}">
+                <i class="bi bi-plus-circle me-1"></i>{{ __('app.projects.add_task') }}
+            </a>
+            <a href="{{ route('chat.project', $project) }}" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-chat-dots me-1"></i>{{ __('app.chat.open_chat') }}
+            </a>
+        </div>
+        @endif
+    </div>
+</div>
+
+<div class="row g-4">
     <!-- Tasks Section -->
     <div class="col-lg-8">
-        <div class="card">
+        <div class="card h-100">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">
                     <i class="bi bi-check2-square me-2"></i>
                     {{ __('app.projects.project_tasks') }}
+                    <span class="badge bg-secondary ms-1">{{ $project->tasks->count() }}</span>
                 </h5>
-                <div>
-                    <button class="btn btn-sm btn-outline-secondary me-2" onclick="refreshTasks()">
-                        <i class="bi bi-arrow-clockwise"></i>
-                    </button>
-                    @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                    <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-circle me-1"></i>{{ __('app.projects.add_task') }}
-                    </a>
-                    @endif
-                </div>
+                @if($canManage)
+                <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-sm btn-primary"
+                   data-modal-url="{{ route('tasks.create') }}?project_id={{ $project->id }}" data-modal-title="{{ __('app.projects.add_task') }}">
+                    <i class="bi bi-plus-circle me-1"></i>{{ __('app.projects.add_task') }}
+                </a>
+                @endif
             </div>
             <div class="card-body">
                 <!-- Task Filters -->
-                <form method="GET" action="{{ route('projects.show', $project) }}" class="row mb-3">
+                <form method="GET" action="{{ route('projects.show', $project) }}" class="row g-2 mb-3">
                     <div class="col-md-4">
                         <select class="form-select form-select-sm" name="status" onchange="this.form.submit()">
                             <option value="">{{ __('app.projects.all_tasks') }}</option>
@@ -128,65 +133,68 @@
                 </form>
 
                 <!-- Tasks List -->
-                <div id="tasks-container">
-                    @if($project->tasks->count() > 0)
-                        @foreach($project->tasks as $task)
-                            <div class="card border-start border-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} border-3 mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="flex-grow-1">
-                                            <h6 class="card-title mb-1">
-                                                <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">{{ $task->title }}</a>
-                                            </h6>
-                                            <p class="text-muted small mb-2">{{ $task->description ?: '' }}</p>
-                                            <div class="d-flex align-items-center flex-wrap gap-2">
-                                                <span class="badge status-{{ $task->status }} status-badge">
-                                                    @switch($task->status)
-                                                        @case('pending') {{ __('app.tasks.pending') }} @break
-                                                        @case('in_progress') {{ __('app.tasks.in_progress') }} @break
-                                                        @case('completed') {{ __('app.tasks.completed') }} @break
-                                                        @case('cancelled') {{ __('app.tasks.cancelled') }} @break
-                                                        @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                                                    @endswitch
-                                                </span>
-                                                @if($task->assignedUser)
-                                                    <span class="badge bg-light text-dark">
-                                                        <i class="bi bi-person me-1"></i>{{ $task->assignedUser->name }}
-                                                    </span>
-                                                @endif
-                                                @if($task->due_date)
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-calendar me-1"></i>{{ \Carbon\Carbon::parse($task->due_date)->format('M d') }}
-                                                    </span>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
-                                                    <i class="bi bi-eye me-2"></i>{{ __('app.view') }}
-                                                </a></li>
-                                                @can('update', $task)
-                                                <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
-                                                    <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
-                                                </a></li>
-                                                @endcan
-                                            </ul>
-                                        </div>
+                @forelse($project->tasks as $task)
+                    <div class="card border-start border-{{ $task->status === 'completed' ? 'success' : ($task->status === 'in_progress' ? 'warning' : 'secondary') }} border-3 mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <h6 class="card-title mb-1">
+                                        <a href="{{ route('tasks.show', $task) }}" class="text-decoration-none">{{ $task->title }}</a>
+                                    </h6>
+                                    @if($task->description)
+                                        <p class="text-muted small mb-2">{{ \Illuminate\Support\Str::limit($task->description, 120) }}</p>
+                                    @endif
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <span class="badge status-{{ $task->status }} status-badge">
+                                            @switch($task->status)
+                                                @case('pending') {{ __('app.tasks.pending') }} @break
+                                                @case('in_progress') {{ __('app.tasks.in_progress') }} @break
+                                                @case('completed') {{ __('app.tasks.completed') }} @break
+                                                @case('cancelled') {{ __('app.tasks.cancelled') }} @break
+                                                @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
+                                            @endswitch
+                                        </span>
+                                        @if($task->assignedUser)
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-person me-1"></i>{{ $task->assignedUser->name }}
+                                            </span>
+                                        @endif
+                                        @if($task->due_date)
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-calendar me-1"></i>{{ \Carbon\Carbon::parse($task->due_date)->format('M d') }}
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-label="{{ __('app.tasks.title') }}">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
+                                            <i class="bi bi-eye me-2"></i>{{ __('app.view') }}
+                                        </a></li>
+                                        @can('update', $task)
+                                        <li><a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
+                                            <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
+                                        </a></li>
+                                        @endcan
+                                    </ul>
+                                </div>
                             </div>
-                        @endforeach
-                    @else
-                        <div class="text-center text-muted py-4">
-                            <i class="bi bi-check2-square fs-2"></i>
-                            <p class="mt-2">{{ __('app.projects.no_tasks_found') }}</p>
                         </div>
-                    @endif
-                </div>
+                    </div>
+                @empty
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-check2-square fs-1"></i>
+                        <p class="mt-2 mb-3">{{ __('app.projects.no_tasks_found') }}</p>
+                        @if($canManage)
+                            <a href="{{ route('tasks.create') }}?project_id={{ $project->id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-plus-circle me-1"></i>{{ __('app.projects.add_task') }}
+                            </a>
+                        @endif
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -202,30 +210,24 @@
                 </h5>
             </div>
             <div class="card-body">
-                <div id="team-members">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                             style="width: 32px; height: 32px;">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold">{{ $project->manager->name }}</div>
-                            <small class="text-muted">{{ __('app.projects.project_manager') }}</small>
-                        </div>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="avatar avatar-sm avatar-primary me-2">{{ \Illuminate\Support\Str::substr($project->manager->name ?? '?', 0, 1) }}</div>
+                    <div>
+                        <div class="fw-bold">{{ $project->manager->name ?? '—' }}</div>
+                        <small class="text-muted">{{ __('app.projects.project_manager') }}</small>
                     </div>
-                    @foreach($allTasks->where('assigned_to', '!=', null)->unique('assigned_to') as $task)
+                </div>
+                @forelse($teamMembers as $member)
                     <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                             style="width: 32px; height: 32px;">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
+                        <div class="avatar avatar-sm avatar-success me-2">{{ \Illuminate\Support\Str::substr($member->name, 0, 1) }}</div>
                         <div>
-                            <div class="fw-bold">{{ $task->assignedUser->name ?? __('app.unassigned') }}</div>
+                            <div class="fw-bold">{{ $member->name }}</div>
                             <small class="text-muted">{{ __('app.projects.team_member') }}</small>
                         </div>
                     </div>
-                    @endforeach
-                </div>
+                @empty
+                    <p class="text-muted small mb-0">{{ __('app.unassigned') }}</p>
+                @endforelse
             </div>
         </div>
 
@@ -237,10 +239,22 @@
                     {{ __('app.projects.recent_activity') }}
                 </h5>
             </div>
-            <div class="card-body">
-                <div id="project-activity">
-                    <!-- Activity will be loaded here -->
-                </div>
+            <div class="card-body activity-feed">
+                @forelse($recentActivity as $item)
+                    @php
+                        $dot = $item['status'] === 'completed' ? 'avatar-success' : ($item['status'] === 'in_progress' ? 'avatar-warning' : 'avatar-primary');
+                        $icon = $item['status'] === 'completed' ? 'bi-check' : ($item['status'] === 'in_progress' ? 'bi-arrow-repeat' : 'bi-dot');
+                    @endphp
+                    <a href="{{ $item['url'] }}" class="activity-item d-flex text-decoration-none text-reset py-2">
+                        <div class="avatar avatar-xs {{ $dot }} me-2"><i class="bi {{ $icon }}"></i></div>
+                        <div class="flex-grow-1">
+                            <div class="small">{{ \Illuminate\Support\Str::limit($item['title'], 40) }}</div>
+                            <small class="text-muted">{{ $item['ago'] }}</small>
+                        </div>
+                    </a>
+                @empty
+                    <p class="text-muted small mb-0 text-center py-2">{{ __('app.dashboard.no_recent_activity') }}</p>
+                @endforelse
             </div>
         </div>
     </div>
@@ -250,199 +264,83 @@
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header">
                 <h5 class="mb-0">
                     <i class="bi bi-chat-text me-2"></i>
                     {{ __('app.projects.discussion') }}
+                    @if($project->notes && $project->notes->count() > 0)
+                        <span class="badge bg-secondary ms-1">{{ $project->notes->count() }}</span>
+                    @endif
                 </h5>
             </div>
             <div class="card-body">
                 <!-- Add New Comment Form -->
-                <div class="card bg-light mb-4">
-                    <div class="card-body">
-                        <form method="POST" action="{{ route('projects.notes.store', $project) }}" enctype="multipart/form-data">
-                            @csrf
-                            <div class="mb-3">
-                                <label for="content" class="form-label">{{ __('app.comments.add_comment') }}</label>
-                                <textarea class="form-control" id="content" name="content" rows="3"
-                                          placeholder="{{ __('app.notes.write_comment_placeholder') }}"></textarea>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="attachments" class="form-label">
-                                    <i class="bi bi-camera me-1"></i>
-                                    {{ __('app.notes.attach_photos') }}
-                                </label>
-                                <input type="file" class="form-control" id="attachments" name="attachments[]"
-                                       multiple accept="image/*">
-                            </div>
-
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="bi bi-send me-1"></i>
-                                    {{ __('app.comments.add_comment') }}
-                                </button>
-                                <small class="text-muted">
-                                    {{ __('app.notes.stakeholders_notified') }}
-                                </small>
-                            </div>
-                        </form>
+                <form method="POST" action="{{ route('projects.notes.store', $project) }}" enctype="multipart/form-data"
+                      class="border rounded p-3 mb-4 bg-light ajax-form" data-refresh="#discussionList">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="content" class="form-label">{{ __('app.comments.add_comment') }}</label>
+                        <textarea class="form-control" id="content" name="content" rows="3"
+                                  placeholder="{{ __('app.notes.write_comment_placeholder') }}"></textarea>
                     </div>
-                </div>
+                    <div class="mb-3">
+                        <label for="attachments" class="form-label">
+                            <i class="bi bi-camera me-1"></i>{{ __('app.notes.attach_photos') }}
+                        </label>
+                        <input type="file" class="form-control" id="attachments" name="attachments[]" multiple accept="image/*">
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-1"></i>{{ __('app.comments.add_comment') }}
+                        </button>
+                        <small class="text-muted">{{ __('app.notes.stakeholders_notified') }}</small>
+                    </div>
+                </form>
 
                 <!-- Discussion List -->
-                @if($project->notes && $project->notes->count() > 0)
-                    <div class="discussion-list">
-                        @foreach($project->notes->sortByDesc('created_at') as $note)
-                            <div class="card mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                                                 style="width: 32px; height: 32px;">
-                                                {{ substr($note->user->name, 0, 1) }}
-                                            </div>
-                                            <div>
-                                                <strong>{{ $note->user->name }}</strong>
-                                                <small class="text-muted ms-2">{{ $note->created_at->diffForHumans() }}</small>
-                                            </div>
-                                        </div>
-                                        @if($note->canBeDeletedBy(auth()->user()))
-                                            <form method="POST" action="{{ route('projects.notes.destroy', $note) }}" 
-                                                  onsubmit="return confirm('{{ __('app.messages.confirm_delete') }}')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-link text-danger p-0">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                    
-                                    <div class="note-content">
-                                        {!! nl2br(e($note->content)) !!}
-                                    </div>
-
-                                    @if($note->hasAttachments())
-                                        <div class="note-attachments mt-3">
-                                            <div class="row g-2">
-                                                @foreach($note->image_attachments as $attachment)
-                                                    <div class="col-md-2 col-4">
-                                                        <a href="{{ $attachment['versions']['original']['url'] ?? '#' }}" target="_blank">
-                                                            <img src="{{ $attachment['versions']['thumbnail']['url'] ?? '#' }}"
-                                                                 class="img-thumbnail w-100"
-                                                                 style="height: 80px; object-fit: cover;"
-                                                                 alt="Attachment">
-                                                        </a>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
+                <div id="discussionList">
+                @forelse(($project->notes ?? collect())->sortByDesc('created_at') as $note)
+                    <div class="d-flex mb-4" data-row>
+                        <div class="avatar avatar-sm me-3">{{ \Illuminate\Support\Str::substr($note->user->name ?? '?', 0, 1) }}</div>
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ $note->user->name ?? '—' }}</strong>
+                                    <small class="text-muted ms-2">{{ $note->created_at->diffForHumans() }}</small>
                                 </div>
+                                @if($note->canBeDeletedBy(auth()->user()))
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" aria-label="{{ __('app.delete') }}"
+                                            data-ajax-delete="{{ route('projects.notes.destroy', $note) }}"
+                                            data-confirm="{{ __('app.messages.confirm_delete') }}" data-refresh="#discussionList">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                @endif
                             </div>
-                        @endforeach
+                            <div class="note-content mt-1">{!! nl2br(e($note->content)) !!}</div>
+                            @if($note->hasAttachments())
+                                <div class="row g-2 mt-2">
+                                    @foreach($note->image_attachments as $attachment)
+                                        <div class="col-md-2 col-4">
+                                            <a href="{{ $attachment['versions']['original']['url'] ?? '#' }}" target="_blank">
+                                                <img src="{{ $attachment['versions']['thumbnail']['url'] ?? '#' }}"
+                                                     class="img-thumbnail w-100" style="height: 80px; object-fit: cover;" alt="Attachment">
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                @else
+                @empty
                     <div class="text-center py-4 text-muted">
                         <i class="bi bi-chat-text fs-1 mb-3"></i>
                         <p>{{ __('app.notes.no_comments_yet') }}</p>
                     </div>
-                @endif
+                @endforelse
+                </div>
+                {{-- /#discussionList --}}
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    initProgressChart();
-    loadProjectActivity();
-});
-
-function initProgressChart() {
-    const ctx = document.getElementById('progressChart').getContext('2d');
-    const progress = {{ $stats['progress_percentage'] }};
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            datasets: [{
-                data: [progress, 100 - progress],
-                backgroundColor: ['#198754', '#e9ecef'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            cutout: '70%',
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: false
-                }
-            },
-            responsive: false,
-            maintainAspectRatio: false
-        }
-    });
-}
-
-
-function loadProjectActivity() {
-    const container = document.getElementById('project-activity');
-
-    // Show loader
-    container.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center py-3">
-            <div class="spinner-border spinner-border-sm text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-            <span class="ms-2 text-muted small">{{ __('app.projects.loading_activity') }}</span>
-        </div>
-    `;
-
-    // Load project activity (using static data for now, but structure is ready for API)
-    setTimeout(() => {
-        container.innerHTML = `
-            <div class="small">
-                <div class="d-flex mb-3">
-                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                         style="width: 24px; height: 24px;">
-                        <i class="bi bi-check" style="font-size: 0.7rem;"></i>
-                    </div>
-                    <div>
-                        <div>{{ __('app.projects.task_completed') }}</div>
-                        <small class="text-muted">{{ __('app.projects.hours_ago', ['hours' => 2]) }}</small>
-                    </div>
-                </div>
-                <div class="d-flex mb-3">
-                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                         style="width: 24px; height: 24px;">
-                        <i class="bi bi-plus" style="font-size: 0.7rem;"></i>
-                    </div>
-                    <div>
-                        <div>{{ __('app.projects.new_task_added') }}</div>
-                        <small class="text-muted">{{ __('app.projects.hours_ago', ['hours' => 5]) }}</small>
-                    </div>
-                </div>
-                <div class="d-flex">
-                    <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center text-white me-2"
-                         style="width: 24px; height: 24px;">
-                        <i class="bi bi-clock" style="font-size: 0.7rem;"></i>
-                    </div>
-                    <div>
-                        <div>{{ __('app.projects.time_logged') }}</div>
-                        <small class="text-muted">{{ __('app.projects.day_ago') }}</small>
-                    </div>
-                </div>
-            </div>
-        `;
-    }, 600);
-}
-</script>
-@endpush

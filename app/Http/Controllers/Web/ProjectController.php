@@ -48,7 +48,7 @@ class ProjectController extends Controller
         // Get filters from request
         $filters = $request->only(['status', 'search']);
 
-        // Load project with relationships
+        // Load project with the (optionally filtered) task list shown in the page.
         $project->load([
             'manager',
             'tasks' => function ($query) use ($filters) {
@@ -61,44 +61,36 @@ class ProjectController extends Controller
                           ->orWhere('description', 'like', '%' . $filters['search'] . '%');
                     });
                 }
-                return $query->with(['assignedUser', 'timeEntries']);
+                return $query->with(['assignedUser', 'timeEntries'])->orderByDesc('updated_at');
             },
-            'tasks.assignedUser',
-            'tasks.timeEntries',
+            'notes.user',
         ]);
 
-        // Calculate stats based on all tasks (not filtered)
-        $allTasks = $project->tasks()->with(['timeEntries'])->get();
+        // Single unfiltered query reused for stats, team and activity (no N+1, no dup queries).
+        $allTasks = $project->tasks()->with(['assignedUser', 'timeEntries'])->get();
+
+        $completed = $allTasks->where('status', 'completed')->count();
         $stats = [
             'total_tasks' => $allTasks->count(),
-            'completed_tasks' => $allTasks->where('status', 'completed')->count(),
-            'total_hours' => $allTasks->sum(function ($task) {
-                return $task->timeEntries->sum('duration_hours');
-            }),
+            'completed_tasks' => $completed,
+            'total_hours' => round($allTasks->sum(fn ($task) => $task->timeEntries->sum('duration_hours')), 1),
             'progress_percentage' => $allTasks->count() > 0
-                ? round(($allTasks->where('status', 'completed')->count() / $allTasks->count()) * 100)
+                ? (int) round(($completed / $allTasks->count()) * 100)
                 : 0,
         ];
 
-        // Get available users for task assignment (users who can work on tasks)
-        $availableUsers = User::where('organization_id', auth()->user()->organization_id)
-                             ->where(function ($query) {
-                                 $query->where('role', 'member')
-                                       ->orWhere('role', 'developer')
-                                       ->orWhere('role', 'designer')
-                                       ->orWhere('role', 'tester')
-                                       ->orWhere('role', 'manager')
-                                       ->orWhereHas('userRoles', function ($q) {
-                                           $q->whereIn('role', ['member', 'developer', 'designer', 'tester', 'manager'])
-                                             ->where('is_active', true);
-                                       });
-                             })
-                             ->get();
+        // Team = manager + distinct task assignees.
+        $teamMembers = $allTasks->pluck('assignedUser')->filter()->unique('id')->values();
 
-        // Get all tasks for team members display (unfiltered)
-        $allTasks = $project->tasks()->with(['assignedUser'])->get();
+        // Real recent activity from task updates (replaces the old fake/mock feed).
+        $recentActivity = $allTasks->sortByDesc('updated_at')->take(5)->map(fn ($task) => [
+            'title' => $task->title,
+            'status' => $task->status,
+            'ago' => optional($task->updated_at)->diffForHumans(),
+            'url' => route('tasks.show', $task),
+        ])->values();
 
-        return view('projects.show', compact('project', 'stats', 'availableUsers', 'allTasks'));
+        return view('projects.show', compact('project', 'stats', 'teamMembers', 'recentActivity'));
     }
 
     public function create()
@@ -130,6 +122,10 @@ class ProjectController extends Controller
         ]);
 
         $project = $this->projectService->create($request->all(), $request->user());
+
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Project created successfully.'), route('projects.show', $project));
+        }
 
         return redirect()->route('projects.show', $project)
             ->with('success', __('Project created successfully.'));
@@ -166,6 +162,10 @@ class ProjectController extends Controller
 
         $this->projectService->update($project, $request->all(), $request->user());
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Project updated successfully.'), route('projects.show', $project));
+        }
+
         return redirect()->route('projects.show', $project)
             ->with('success', __('Project updated successfully.'));
     }
@@ -175,6 +175,10 @@ class ProjectController extends Controller
         $this->authorize('delete', $project);
 
         $this->projectService->delete($project, auth()->user());
+
+        if (request()->expectsJson()) {
+            return $this->ajaxSuccess(__('Project deleted successfully.'), route('projects.index'));
+        }
 
         return redirect()->route('projects.index')
             ->with('success', __('Project deleted successfully.'));

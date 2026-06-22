@@ -3,43 +3,65 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
+use App\Services\DashboardService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    public function __construct(protected DashboardService $dashboard) {}
+
     public function index(Request $request)
     {
         $user = $request->user();
 
-        $stats = [
-            'total_projects' => $user->accessibleProjects()->count(),
-            'active_projects' => $user->accessibleProjects()->where('status', 'active')->count(),
-            'total_tasks' => $user->accessibleTasks()->count(),
-            'completed_tasks' => $user->accessibleTasks()->where('status', 'completed')->count(),
-            'pending_tasks' => $user->accessibleTasks()->whereIn('status', ['pending', 'in_progress'])->count(),
-            'overdue_tasks' => $user->accessibleTasks()->where('due_date', '<', now())->count(),
-            'total_time_today' => $user->timeEntries()->whereDate('start_time', today())->sum('duration_hours'),
-            'total_time_this_week' => $user->timeEntries()->whereBetween('start_time', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()])->sum('duration_hours'),
-            'total_time_this_month' => $user->timeEntries()->whereBetween('start_time', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])->sum('duration_hours'),
-        ];
-
+        // Cheap, already-eager: render with the page. Heavy widgets load async.
         $myTasks = $user->tasks()
-            ->with(['project'])
+            ->with('project')
             ->orderBy('due_date', 'asc')
             ->take(6)
             ->get();
 
-        $recentActivity = $user->tasks()
-            ->orderBy('updated_at', 'desc')
-            ->limit(5)
-            ->get()
-            ->merge($user->timeEntries()->with('task.project')->orderBy('created_at', 'desc')->limit(5)->get())
-            ->sortByDesc('updated_at')
-            ->take(10);
+        $tasksByStatus = [
+            'pending' => $myTasks->where('status', 'pending'),
+            'in_progress' => $myTasks->where('status', 'in_progress'),
+            'completed' => $myTasks->where('status', 'completed'),
+        ];
 
-        $notifications = \App\Models\Notification::where('user_id', $user->id)->limit(10)->get();
+        return view('dashboard.index', compact('myTasks', 'tasksByStatus'));
+    }
 
-        return view('dashboard.index', compact('stats', 'recentActivity', 'notifications', 'myTasks'));
+    /** Async widget: stat counters. */
+    public function statsWidget(Request $request): JsonResponse
+    {
+        return response()->json($this->dashboard->getStats($request->user()) ?? []);
+    }
+
+    /** Async widget: recent activity feed. */
+    public function activityWidget(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $this->dashboard->getRecentActivity($request->user())
+                ->map(fn ($a) => [
+                    'type' => $a['type'],
+                    'description' => $a['description'],
+                    'url' => $a['url'],
+                    'ago' => optional($a['date'])->diffForHumans(),
+                ])->values(),
+        ]);
+    }
+
+    /** Async widget: notifications. */
+    public function notificationsWidget(Request $request): JsonResponse
+    {
+        $n = $this->dashboard->getNotifications($request->user(), 5);
+
+        return response()->json([
+            'data' => $n['notifications']->map(fn ($x) => [
+                'title' => $x->title,
+                'message' => $x->message,
+            ])->values(),
+            'unread_count' => $n['unread_count'],
+        ]);
     }
 }

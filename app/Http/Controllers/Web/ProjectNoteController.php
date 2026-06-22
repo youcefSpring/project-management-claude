@@ -26,9 +26,10 @@ class ProjectNoteController extends Controller
         ]);
 
         if (empty($request->content) && !$request->hasFile('attachments')) {
-            return redirect()->back()
-                ->withErrors(['content' => __('app.notes.content_or_attachments_required')])
-                ->withInput();
+            // Throw a validation exception so XHR clients get a 422 JSON automatically.
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'content' => __('app.notes.content_or_attachments_required'),
+            ]);
         }
 
         $attachments = [];
@@ -48,6 +49,10 @@ class ProjectNoteController extends Controller
             'attachments' => !empty($attachments) ? $attachments : null,
         ]);
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('app.comments.comment_added_successfully'), route('projects.show', $project));
+        }
+
         return redirect()->route('projects.show', $project)
             ->with('success', __('app.comments.comment_added_successfully'));
     }
@@ -62,6 +67,10 @@ class ProjectNoteController extends Controller
 
         $project = $note->project;
         $note->delete();
+
+        if (request()->expectsJson()) {
+            return $this->ajaxSuccess(__('app.comments.comment_deleted_successfully'), route('projects.show', $project));
+        }
 
         return redirect()->route('projects.show', $project)
             ->with('success', __('app.comments.comment_deleted_successfully'));

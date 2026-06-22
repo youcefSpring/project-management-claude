@@ -177,6 +177,10 @@ class TimeEntryController extends Controller
 
         $timeEntry = $this->timeTrackingService->createTimeEntry($data, $request->user());
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Time entry created successfully'), route('timesheet.index'));
+        }
+
         return redirect()->route('timesheet.index')
             ->with('success', __('Time entry created successfully'));
     }
@@ -244,6 +248,10 @@ class TimeEntryController extends Controller
 
         $timeEntry = $this->timeTrackingService->update($timeEntry, $data, $request->user());
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Time entry updated successfully'), route('timesheet.index'));
+        }
+
         return redirect()->route('timesheet.index')
             ->with('success', __('Time entry updated successfully'));
     }
@@ -253,6 +261,10 @@ class TimeEntryController extends Controller
         $this->authorize('delete', $timeEntry);
 
         $this->timeTrackingService->delete($timeEntry, $request->user());
+
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Time entry deleted successfully'), route('timesheet.index'));
+        }
 
         return redirect()->route('timesheet.index')
             ->with('success', __('Time entry deleted successfully'));

@@ -38,6 +38,17 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
         <!-- Main Content -->
         <div class="main-content">
+            <!-- Mobile top bar -->
+            <div class="app-topbar">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="sidebarToggle" aria-label="{{ __('app.Menu') ?? 'Menu' }}">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2 text-decoration-none text-dark fw-bold">
+                    <i class="bi bi-kanban-fill text-primary"></i>
+                    <span>@yield('page-title', __('app.Dashboard'))</span>
+                </a>
+            </div>
+
             <!-- Alerts -->
             @include('partials.alerts')
 
@@ -56,6 +67,9 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
     <!-- Component Scripts -->
     @include('components.scripts')
+
+    <!-- Global AJAX modal engine -->
+    @include('components.ajax')
 
     @stack('scripts')
 </body>

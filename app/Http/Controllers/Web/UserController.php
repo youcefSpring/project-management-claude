@@ -90,6 +90,10 @@ class UserController extends Controller
             }
         }
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('User created successfully.'), route('users.index'));
+        }
+
         return redirect()->route('users.index')
             ->with('success', __('User created successfully.'));
     }
@@ -189,6 +193,10 @@ class UserController extends Controller
             $user->setAdditionalRoles([]);
         }
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('User updated successfully.'), route('users.show', $user));
+        }
+
         return redirect()->route('users.show', $user)
             ->with('success', __('User updated successfully.'));
     }
@@ -200,8 +208,14 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
+        $expectsJson = request()->expectsJson();
+
         // Prevent deleting the last admin in the organization
         if ($user->isAdmin() && User::where('role', 'admin')->where('organization_id', $user->organization_id)->count() <= 1) {
+            if ($expectsJson) {
+                return $this->ajaxError(__('app.messages.cannot_delete_last_admin'));
+            }
+
             return redirect()->route('users.index')
                 ->with('error', __('app.messages.cannot_delete_last_admin'));
         }
@@ -212,11 +226,19 @@ class UserController extends Controller
         $hasTimeEntries = $user->timeEntries()->count() > 0;
 
         if ($hasProjects || $hasTasks || $hasTimeEntries) {
+            if ($expectsJson) {
+                return $this->ajaxError(__('app.messages.cannot_delete_user_with_data'));
+            }
+
             return redirect()->route('users.index')
                 ->with('error', __('app.messages.cannot_delete_user_with_data'));
         }
 
         $user->delete();
+
+        if ($expectsJson) {
+            return $this->ajaxSuccess(__('User deleted successfully.'), route('users.index'));
+        }
 
         return redirect()->route('users.index')
             ->with('success', __('User deleted successfully.'));

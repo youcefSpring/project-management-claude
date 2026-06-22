@@ -14,7 +14,8 @@
             </div>
             <div>
                 @can('create', App\Models\User::class)
-                <a href="{{ route('users.create') }}" class="btn btn-primary">
+                <a href="{{ route('users.create') }}" class="btn btn-primary"
+                   data-modal-url="{{ route('users.create') }}" data-modal-title="{{ __('app.users.create') }}" data-refresh="#usersList">
                     <i class="bi bi-person-plus me-2"></i>
                     {{ __('app.users.create') }}
                 </a>
@@ -78,7 +79,7 @@
                     <span class="badge bg-secondary ms-2">{{ $users->total() }}</span>
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body" id="usersList">
                 @if($users->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
@@ -95,7 +96,7 @@
                             </thead>
                             <tbody>
                                 @foreach($users as $user)
-                                    <tr>
+                                    <tr data-row>
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-circle me-3">
@@ -152,33 +153,20 @@
                                             <small class="text-muted">{{ $user->created_at->format('M d, Y') }}</small>
                                         </td>
                                         <td>
-                                            <div class="dropdown dropstart">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 140px;">
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('users.show', $user) }}">
-                                                            <i class="bi bi-eye me-2"></i>{{ __('app.view') }}
-                                                        </a>
-                                                    </li>
-                                                    @can('update', $user)
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('users.edit', $user) }}">
-                                                                <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
-                                                            </a>
-                                                        </li>
-                                                    @endcan
-                                                    @can('delete', $user)
-                                                        <li><hr class="dropdown-divider"></li>
-                                                        <li>
-                                                            <button type="button" class="dropdown-item text-danger"
-                                                                    onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')">
-                                                                <i class="bi bi-trash me-2"></i>{{ __('app.delete') }}
-                                                            </button>
-                                                        </li>
-                                                    @endcan
-                                                </ul>
+                                            <div class="d-inline-flex gap-1">
+                                                <a class="btn btn-sm btn-light" href="{{ route('users.show', $user) }}"
+                                                   title="{{ __('app.view') }}" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>
+                                                @can('update', $user)
+                                                    <a class="btn btn-sm btn-light text-primary" href="{{ route('users.edit', $user) }}"
+                                                       data-modal-url="{{ route('users.edit', $user) }}" data-modal-title="{{ __('app.edit') }}" data-refresh="#usersList"
+                                                       title="{{ __('app.edit') }}" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></a>
+                                                @endcan
+                                                @can('delete', $user)
+                                                    <button type="button" class="btn btn-sm btn-light text-danger"
+                                                            data-ajax-delete="{{ route('users.destroy', $user) }}"
+                                                            data-confirm="{{ __('app.messages.confirm_delete') }}" data-refresh="#usersList"
+                                                            title="{{ __('app.delete') }}" data-bs-toggle="tooltip"><i class="bi bi-trash"></i></button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>
@@ -204,7 +192,8 @@
                             @endif
                         </p>
                         @can('create', App\Models\User::class)
-                            <a href="{{ route('users.create') }}" class="btn btn-primary">
+                            <a href="{{ route('users.create') }}" class="btn btn-primary"
+                               data-modal-url="{{ route('users.create') }}" data-modal-title="{{ __('app.users.create') }}" data-refresh="#usersList">
                                 <i class="bi bi-person-plus me-2"></i>
                                 {{ __('app.users.add_first') }}
                             </a>

@@ -92,6 +92,29 @@ Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['lo
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/widgets/stats', [DashboardController::class, 'statsWidget'])->name('dashboard.widgets.stats');
+    Route::get('/dashboard/widgets/activity', [DashboardController::class, 'activityWidget'])->name('dashboard.widgets.activity');
+    Route::get('/dashboard/widgets/notifications', [DashboardController::class, 'notificationsWidget'])->name('dashboard.widgets.notifications');
+
+    // Trash / recycle bin (restore your own soft-deleted records)
+    Route::prefix('trash')->name('trash.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\TrashController::class, 'index'])->name('index');
+        Route::post('/{type}/{id}/restore', [\App\Http\Controllers\Web\TrashController::class, 'restore'])->whereNumber('id')->name('restore');
+        Route::delete('/{type}/{id}', [\App\Http\Controllers\Web\TrashController::class, 'forceDelete'])->whereNumber('id')->name('force');
+    });
+
+    // Chat (project channels, direct messages, announcements)
+    Route::prefix('chat')->name('chat.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Web\ChatController::class, 'index'])->name('index');
+        Route::get('/conversations', [\App\Http\Controllers\Web\ChatController::class, 'conversations'])->name('conversations');
+        Route::get('/project/{project}', [\App\Http\Controllers\Web\ChatController::class, 'projectChat'])->name('project');
+        Route::get('/poll', [\App\Http\Controllers\Web\ChatController::class, 'poll'])->name('poll');
+        Route::post('/direct', [\App\Http\Controllers\Web\ChatController::class, 'startDirect'])->name('direct');
+        Route::post('/announcements', [\App\Http\Controllers\Web\ChatController::class, 'storeAnnouncement'])->name('announcements.store');
+        Route::get('/attachments/{message}/{index}', [\App\Http\Controllers\Web\ChatController::class, 'attachment'])->whereNumber('index')->name('attachment');
+        Route::get('/{conversation}/messages', [\App\Http\Controllers\Web\ChatController::class, 'messages'])->name('messages');
+        Route::post('/{conversation}/messages', [\App\Http\Controllers\Web\ChatController::class, 'send'])->name('send');
+    });
 
     // Projects
     Route::prefix('projects')->name('projects.')->group(function () {

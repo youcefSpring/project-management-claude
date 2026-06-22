@@ -1,122 +1,124 @@
-<!-- Horizontal Sidebar Navigation -->
-<nav class="sidebar d-flex flex-column flex-md-row align-items-center p-3 shadow-sm">
-    <!-- Organization Name / Brand -->
-    <div class="d-flex align-items-center mb-2 mb-md-0 me-md-auto text-white text-decoration-none">
-        <div class="bg-white rounded-circle d-flex align-items-center justify-content-center me-2"
-             style="width: 40px; height: 40px; min-width: 40px;">
-            <i class="bi bi-building text-primary" style="font-size: 1.2rem;"></i>
-        </div>
-        <h6 class="mb-0 text-white fw-bold text-truncate" style="max-width: 200px;">
-            @if(auth()->user() && auth()->user()->organization)
-                {{ auth()->user()->organization->name }}
-            @else
-                {{ __('app.organization') }}
-            @endif
-        </h6>
+@php
+    use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+@endphp
+
+<!-- Vertical Sidebar Navigation -->
+<aside class="sidebar" id="appSidebar">
+    <!-- Brand + desktop collapse toggle -->
+    <div class="sidebar-header">
+        <a href="{{ route('dashboard') }}" class="sidebar-brand text-decoration-none">
+            <span class="brand-mark"><i class="bi bi-kanban-fill"></i></span>
+            <span class="brand-name text-truncate">
+                @if(auth()->user() && auth()->user()->organization)
+                    {{ auth()->user()->organization->name }}
+                @else
+                    ProManage
+                @endif
+            </span>
+        </a>
+        <button type="button" class="sidebar-collapse-btn d-none d-lg-inline-flex" id="sidebarCollapse"
+                aria-label="{{ __('app.Menu') ?? 'Menu' }}">
+            <i class="bi bi-list"></i>
+        </button>
     </div>
 
     <!-- Navigation Menu -->
-    <ul class="nav nav-pills flex-row justify-content-center flex-wrap gap-1 my-2 my-md-0 mx-md-3">
+    <ul class="nav nav-pills">
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
-               href="{{ route('dashboard') }}" title="{{ __('app.Dashboard') }}">
-                <i class="bi bi-speedometer2"></i>
-                <span class="d-none d-lg-inline">{{ __('app.Dashboard') }}</span>
+            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                <i class="bi bi-speedometer2"></i><span>{{ __('app.Dashboard') }}</span>
             </a>
         </li>
-
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}"
-               href="{{ route('projects.index') }}" title="{{ __('app.nav.projects') }}">
-                <i class="bi bi-folder"></i>
-                <span class="d-none d-lg-inline">{{ __('app.nav.projects') }}</span>
+            <a class="nav-link {{ request()->routeIs('projects.*') ? 'active' : '' }}" href="{{ route('projects.index') }}">
+                <i class="bi bi-folder"></i><span>{{ __('app.nav.projects') }}</span>
             </a>
         </li>
-
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}"
-               href="{{ route('tasks.index') }}" title="{{ __('app.nav.tasks') }}">
-                <i class="bi bi-check2-square"></i>
-                <span class="d-none d-lg-inline">{{ __('app.nav.tasks') }}</span>
+            <a class="nav-link {{ request()->routeIs('tasks.*') ? 'active' : '' }}" href="{{ route('tasks.index') }}">
+                <i class="bi bi-check2-square"></i><span>{{ __('app.nav.tasks') }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('chat.*') ? 'active' : '' }}" href="{{ route('chat.index') }}">
+                <i class="bi bi-chat-dots"></i><span>{{ __('app.nav.chat') }}</span>
+                <span class="badge rounded-pill bg-danger ms-auto d-none" id="chatUnreadBadge"></span>
             </a>
         </li>
 
         @hasPermission('view.timetracking')
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}"
-               href="{{ route('timesheet.index') }}" title="{{ __('app.nav.timesheet') }}">
-                <i class="bi bi-clock"></i>
-                <span class="d-none d-lg-inline">{{ __('app.nav.timesheet') }}</span>
+            <a class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}" href="{{ route('timesheet.index') }}">
+                <i class="bi bi-clock"></i><span>{{ __('app.nav.timesheet') }}</span>
             </a>
         </li>
         @endhasPermission
 
         @hasPermission('view.reports')
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}"
-               href="{{ route('reports.index') }}" title="{{ __('app.nav.reports') }}">
-                <i class="bi bi-graph-up"></i>
-                <span class="d-none d-lg-inline">{{ __('app.nav.reports') }}</span>
+            <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
+                <i class="bi bi-graph-up"></i><span>{{ __('app.nav.reports') }}</span>
             </a>
         </li>
         @endhasPermission
 
         @hasPermission('view.users')
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
-               href="{{ route('users.index') }}" title="{{ __('app.User Management') }}">
-                <i class="bi bi-people"></i>
-                <span class="d-none d-lg-inline">{{ __('app.User Management') }}</span>
+            <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
+                <i class="bi bi-people"></i><span>{{ __('app.User Management') }}</span>
             </a>
         </li>
         @endhasPermission
 
         <li class="nav-item">
-            <a class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}"
-               href="{{ route('profile.index') }}" title="{{ __('app.Profile') }}">
-                <i class="bi bi-person"></i>
-                <span class="d-none d-lg-inline">{{ __('app.Profile') }}</span>
+            <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}">
+                <i class="bi bi-trash"></i><span>{{ __('app.nav.trash') }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.index') }}">
+                <i class="bi bi-person"></i><span>{{ __('app.Profile') }}</span>
             </a>
         </li>
     </ul>
 
-    <!-- Right Side Actions -->
-    <div class="d-flex align-items-center ms-md-auto">
-        <!-- Language Switcher -->
-        <div class="dropdown me-2">
-            <a class="nav-link dropdown-toggle text-white" href="#" id="sidebarLanguageDropdown"
-               data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-globe"></i>
+    <!-- Footer: language + logout -->
+    <div class="sidebar-footer">
+        @php
+            // Map app locales to ISO country codes for real flag images (reliable cross-platform).
+            $localeCountry = ['en' => 'gb', 'fr' => 'fr', 'ar' => 'sa', 'es' => 'es'];
+            $flag = fn ($code) => 'https://flagcdn.com/' . ($localeCountry[$code] ?? $code) . '.svg';
+        @endphp
+        <div class="dropdown dropup">
+            <a class="nav-link dropdown-toggle text-white p-2" href="#" id="sidebarLanguageDropdown"
+               data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('app.language') ?? 'Language' }}">
+                <img src="{{ $flag(app()->getLocale()) }}" alt="{{ app()->getLocale() }}" class="lang-flag">
             </a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
-                @php
-                    use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-                @endphp
+            <ul class="dropdown-menu shadow" aria-labelledby="sidebarLanguageDropdown">
                 @foreach(LaravelLocalization::getSupportedLocales() as $localeCode => $properties)
                     <li>
-                        <a class="dropdown-item {{ app()->getLocale() == $localeCode ? 'active' : '' }}"
-                           rel="alternate"
-                           hreflang="{{ $localeCode }}"
+                        <a class="dropdown-item d-flex align-items-center gap-2 {{ app()->getLocale() == $localeCode ? 'active' : '' }}"
+                           rel="alternate" hreflang="{{ $localeCode }}"
+                           title="{{ $properties['native'] }}"
                            href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
-                            <div class="d-flex align-items-center">
-                                <i class="bi bi-flag me-2"></i>
-                                <span class="flex-grow-1">{{ $properties['native'] }}</span>
-                                @if(app()->getLocale() == $localeCode)
-                                    <i class="bi bi-check-circle-fill text-success ms-2"></i>
-                                @endif
-                            </div>
+                            <img src="{{ $flag($localeCode) }}" alt="{{ $localeCode }}" class="lang-flag">
+                            @if(app()->getLocale() == $localeCode)
+                                <i class="bi bi-check-circle-fill text-success ms-auto"></i>
+                            @endif
                         </a>
                     </li>
                 @endforeach
             </ul>
         </div>
 
-        <!-- Logout -->
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="m-0">
             @csrf
             <button type="submit" class="btn btn-outline-light btn-sm" title="{{ __('app.logout') }}">
-                <i class="bi bi-box-arrow-right"></i>
+                <i class="bi bi-box-arrow-right me-1"></i><span class="logout-text">{{ __('app.logout') }}</span>
             </button>
         </form>
     </div>
-</nav>
+</aside>
+
+<!-- Overlay for mobile drawer -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>

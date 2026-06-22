@@ -16,7 +16,8 @@
                 <a href="{{ route('timesheet.index', ['show_all' => 1]) }}" class="btn btn-outline-info">
                     <i class="bi bi-eye me-2"></i>{{ __('app.timesheet.show_all') }}
                 </a>
-                <a href="{{ route('timesheet.create') }}" class="btn btn-primary">
+                <a href="{{ route('timesheet.create') }}" class="btn btn-primary"
+                   data-modal-url="{{ route('timesheet.create') }}" data-modal-title="{{ __('app.timesheet.add_entry') }}" data-refresh="#timesheet-tbody">
                     <i class="bi bi-plus-circle me-2"></i>{{ __('app.timesheet.add_entry') }}
                 </a>
                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#timesheetFilterModal">
@@ -275,51 +276,27 @@
                                         <span class="badge bg-success">{{ __('Logged') }}</span>
                                     </td>
                                     <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                @php
-                                                    $canView = $timeEntry->canBeViewedBy(auth()->user());
-                                                    $canEdit = $timeEntry->canBeEditedBy(auth()->user());
-                                                    $canDelete = $timeEntry->canBeDeletedBy(auth()->user());
-                                                @endphp
-
-                                                @if($canView)
-                                                    <li>
-                                                        <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#viewModal{{ $timeEntry->id }}">
-                                                            <i class="bi bi-eye me-2"></i>{{ __('View') }}
-                                                        </a>
-                                                    </li>
-                                                @endif
-
-                                                @if($canEdit)
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('timesheet.edit', $timeEntry->id) }}">
-                                                            <i class="bi bi-pencil me-2"></i>{{ __('Edit') }}
-                                                        </a>
-                                                    </li>
-                                                @endif
-
-                                                @if($canDelete)
-                                                    @if($canView || $canEdit)<li><hr class="dropdown-divider"></li>@endif
-                                                    <li>
-                                                        <a class="dropdown-item text-danger" href="#"
-                                                           onclick="if(confirm('{{ __('Are you sure?') }}')) {
-                                                               document.getElementById('delete-form-{{ $timeEntry->id }}').submit();
-                                                           }">
-                                                            <i class="bi bi-trash me-2"></i>{{ __('Delete') }}
-                                                        </a>
-                                                        <form id="delete-form-{{ $timeEntry->id }}"
-                                                              action="{{ route('timesheet.destroy', $timeEntry->id) }}"
-                                                              method="POST" style="display: none;">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                        </form>
-                                                    </li>
-                                                @endif
-                                            </ul>
+                                        @php
+                                            $canView = $timeEntry->canBeViewedBy(auth()->user());
+                                            $canEdit = $timeEntry->canBeEditedBy(auth()->user());
+                                            $canDelete = $timeEntry->canBeDeletedBy(auth()->user());
+                                        @endphp
+                                        <div class="d-inline-flex gap-1">
+                                            @if($canView)
+                                                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#viewModal{{ $timeEntry->id }}"
+                                                        title="{{ __('View') }}"><i class="bi bi-eye"></i></button>
+                                            @endif
+                                            @if($canEdit)
+                                                <a class="btn btn-sm btn-light text-primary" href="{{ route('timesheet.edit', $timeEntry->id) }}"
+                                                   data-modal-url="{{ route('timesheet.edit', $timeEntry->id) }}" data-modal-title="{{ __('Edit') }}" data-refresh="#timesheet-tbody"
+                                                   title="{{ __('Edit') }}" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></a>
+                                            @endif
+                                            @if($canDelete)
+                                                <button type="button" class="btn btn-sm btn-light text-danger"
+                                                        data-ajax-delete="{{ route('timesheet.destroy', $timeEntry->id) }}"
+                                                        data-confirm="{{ __('Are you sure?') }}" data-refresh="#timesheet-tbody"
+                                                        title="{{ __('Delete') }}" data-bs-toggle="tooltip"><i class="bi bi-trash"></i></button>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

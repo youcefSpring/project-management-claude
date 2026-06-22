@@ -138,6 +138,10 @@ class TaskController extends Controller
 
         $task = $this->taskService->create($request->all(), $request->user());
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Task created successfully.'), route('tasks.show', $task));
+        }
+
         return redirect()->route('tasks.show', $task)
             ->with('success', __('Task created successfully.'));
     }
@@ -185,6 +189,10 @@ class TaskController extends Controller
 
         $this->taskService->update($task, $request->all(), $request->user());
 
+        if ($request->expectsJson()) {
+            return $this->ajaxSuccess(__('Task updated successfully.'), route('tasks.show', $task));
+        }
+
         return redirect()->route('tasks.show', $task)
             ->with('success', __('Task updated successfully.'));
     }
@@ -194,6 +202,10 @@ class TaskController extends Controller
         $this->authorize('delete', $task);
 
         $this->taskService->delete($task, auth()->user());
+
+        if (request()->expectsJson()) {
+            return $this->ajaxSuccess(__('Task deleted successfully.'), route('tasks.index'));
+        }
 
         return redirect()->route('tasks.index')
             ->with('success', __('Task deleted successfully.'));

@@ -9,6 +9,7 @@ use App\Models\TimeEntry;
 use App\Models\User;
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
@@ -23,21 +24,27 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        // Admin-specific stats
-        $stats = [
-            'courses' => 0, // This would come from a courses table if it exists
-            'projects' => Project::count(),
-            'publications' => 0, // This would come from a publications table if it exists
-            'blog_posts' => 0, // This would come from a blog_posts table if it exists
-            'unread_messages' => 0, // This would come from a messages table if it exists
-            'total_messages' => 0, // This would come from a messages table if it exists
-            'profile_completion' => 85,
-            'response_rate' => 95,
-            'total_users' => User::count(),
-            'active_projects' => Project::where('status', 'active')->count(),
-            'completed_tasks' => Task::where('status', 'completed')->count(),
-            'total_time_logged' => TimeEntry::sum('duration_hours'),
-        ];
+        // Admin-specific stats (cached 5 min; eventually-consistent within TTL).
+        $stats = Cache::remember('dash:admin:stats', 300, function () {
+            $projects = Project::selectRaw('COUNT(*) as total')
+                ->selectRaw("SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active")
+                ->first();
+
+            return [
+                'courses' => 0, // This would come from a courses table if it exists
+                'projects' => (int) $projects->total,
+                'publications' => 0, // This would come from a publications table if it exists
+                'blog_posts' => 0, // This would come from a blog_posts table if it exists
+                'unread_messages' => 0, // This would come from a messages table if it exists
+                'total_messages' => 0, // This would come from a messages table if it exists
+                'profile_completion' => 85,
+                'response_rate' => 95,
+                'total_users' => User::count(),
+                'active_projects' => (int) $projects->active,
+                'completed_tasks' => Task::where('status', 'completed')->count(),
+                'total_time_logged' => (float) TimeEntry::sum('duration_hours'),
+            ];
+        });
 
         // Recent activity (admin view of all system activity)
         $recentActivity = $this->getAdminRecentActivity();

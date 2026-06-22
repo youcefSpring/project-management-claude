@@ -195,10 +195,9 @@
 <script>
 function exportReport(format) {
     const params = new URLSearchParams(window.location.search);
-    params.set('export', format);
-
-    const url = `{{ route('reports.projects') }}?${params.toString()}`;
-    window.open(url, '_blank');
+    params.set('type', 'projects');
+    params.set('format', format);
+    window.open(`{{ route('reports.export') }}?${params.toString()}`, '_blank');
 }
 </script>
 @endpush

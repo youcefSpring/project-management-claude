@@ -14,7 +14,8 @@
             </div>
             <div>
                 @can('create', App\Models\Project::class)
-                <a href="{{ route('projects.create') }}" class="btn btn-primary">
+                <a href="{{ route('projects.create') }}" class="btn btn-primary"
+                   data-modal-url="{{ route('projects.create') }}" data-modal-title="{{ __('app.projects.new_project') }}" data-refresh="#projectsList">
                     <i class="bi bi-plus-circle me-2"></i>
                     {{ __('app.projects.new_project') }}
                 </a>
@@ -102,7 +103,7 @@
                     <span class="badge bg-secondary ms-2">{{ $projects->count() }}</span>
                 </h5>
             </div>
-            <div class="card-body">
+            <div class="card-body" id="projectsList">
                 @if($projects->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
@@ -124,7 +125,7 @@
                                         $completedTasks = $project->completed_tasks_count ?? $project->tasks->where('status', 'completed')->count();
                                         $progress = $tasksCount > 0 ? round(($completedTasks / $tasksCount) * 100) : 0;
                                     @endphp
-                                    <tr>
+                                    <tr data-row>
                                         <td>
                                             <div>
                                                 <a href="{{ route('projects.show', $project) }}" class="fw-bold text-decoration-none">
@@ -183,30 +184,23 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="dropdown dropstart">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    <i class="bi bi-three-dots"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end" style="min-width: 160px;">
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('projects.show', $project) }}">
-                                                            <i class="bi bi-eye me-2"></i>{{ __('app.projects.view') }}
-                                                        </a>
-                                                    </li>
-                                                    @can('update', $project)
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('projects.edit', $project) }}">
-                                                                <i class="bi bi-pencil me-2"></i>{{ __('app.edit') }}
-                                                            </a>
-                                                        </li>
-                                                    @endcan
-                                                    <li><hr class="dropdown-divider"></li>
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('tasks.create') }}?project_id={{ $project->id }}">
-                                                            <i class="bi bi-plus-circle me-2"></i>{{ __('app.projects.add_task') }}
-                                                        </a>
-                                                    </li>
-                                                </ul>
+                                            <div class="d-inline-flex gap-1">
+                                                <a class="btn btn-sm btn-light" href="{{ route('projects.show', $project) }}"
+                                                   title="{{ __('app.projects.view') }}" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>
+                                                <a class="btn btn-sm btn-light text-success" href="{{ route('tasks.create') }}?project_id={{ $project->id }}"
+                                                   data-modal-url="{{ route('tasks.create') }}?project_id={{ $project->id }}" data-modal-title="{{ __('app.projects.add_task') }}"
+                                                   title="{{ __('app.projects.add_task') }}" data-bs-toggle="tooltip"><i class="bi bi-plus-circle"></i></a>
+                                                @can('update', $project)
+                                                    <a class="btn btn-sm btn-light text-primary" href="{{ route('projects.edit', $project) }}"
+                                                       data-modal-url="{{ route('projects.edit', $project) }}" data-modal-title="{{ __('app.edit') }}" data-refresh="#projectsList"
+                                                       title="{{ __('app.edit') }}" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></a>
+                                                @endcan
+                                                @can('delete', $project)
+                                                    <button type="button" class="btn btn-sm btn-light text-danger"
+                                                            data-ajax-delete="{{ route('projects.destroy', $project) }}"
+                                                            data-confirm="{{ __('app.messages.confirm_delete') }}" data-refresh="#projectsList"
+                                                            title="{{ __('app.delete') }}" data-bs-toggle="tooltip"><i class="bi bi-trash"></i></button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>
@@ -227,7 +221,8 @@
                             @endif
                         </p>
                         @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                            <a href="{{ route('projects.create') }}" class="btn btn-primary">
+                            <a href="{{ route('projects.create') }}" class="btn btn-primary"
+                               data-modal-url="{{ route('projects.create') }}" data-modal-title="{{ __('app.projects.new_project') }}" data-refresh="#projectsList">
                                 <i class="bi bi-plus-circle me-2"></i>
                                 {{ __('app.projects.create') }}
                             </a>

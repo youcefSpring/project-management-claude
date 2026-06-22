@@ -29,7 +29,8 @@
                 </div>
 
                 @can('create', App\Models\Task::class)
-                <a href="{{ route('tasks.create') }}" class="btn btn-primary">
+                <a href="{{ route('tasks.create') }}" class="btn btn-primary"
+                   data-modal-url="{{ route('tasks.create') }}" data-modal-title="{{ __('app.tasks.new_task') }}" data-refresh="#tableView">
                     <i class="bi bi-plus-circle me-2"></i>
                     {{ __('app.tasks.new_task') }}
                 </a>
@@ -83,7 +84,7 @@
                             </thead>
                             <tbody>
                                 @foreach($tasks as $task)
-                                    <tr>
+                                    <tr data-row>
                                         <td class="ps-4">
                                             <div>
                                                 <a href="{{ route('tasks.show', $task) }}" class="fw-bold text-dark text-decoration-none">
@@ -174,24 +175,26 @@
                                             @endif
                                         </td>
                                         <td class="text-end pe-4">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                                    <li>
-                                                        <a class="dropdown-item" href="{{ route('tasks.show', $task) }}">
-                                                            <i class="bi bi-eye me-2 text-muted"></i>{{ __('app.tasks.view') }}
-                                                        </a>
-                                                    </li>
-                                                    @can('update', $task)
-                                                        <li>
-                                                            <a class="dropdown-item" href="{{ route('tasks.edit', $task) }}">
-                                                                <i class="bi bi-pencil me-2 text-muted"></i>{{ __('app.edit') }}
-                                                            </a>
-                                                        </li>
-                                                    @endcan
-                                                </ul>
+                                            <div class="d-inline-flex gap-1">
+                                                <a class="btn btn-sm btn-light" href="{{ route('tasks.show', $task) }}"
+                                                   title="{{ __('app.tasks.view') }}" data-bs-toggle="tooltip">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                @can('update', $task)
+                                                    <a class="btn btn-sm btn-light text-primary" href="{{ route('tasks.edit', $task) }}"
+                                                       data-modal-url="{{ route('tasks.edit', $task) }}" data-modal-title="{{ __('app.edit') }}" data-refresh="#tableView"
+                                                       title="{{ __('app.edit') }}" data-bs-toggle="tooltip">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                @endcan
+                                                @can('delete', $task)
+                                                    <button type="button" class="btn btn-sm btn-light text-danger"
+                                                            data-ajax-delete="{{ route('tasks.destroy', $task) }}"
+                                                            data-confirm="{{ __('app.messages.confirm_delete') }}" data-refresh="#tableView"
+                                                            title="{{ __('app.delete') }}" data-bs-toggle="tooltip">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                @endcan
                                             </div>
                                         </td>
                                     </tr>
@@ -206,7 +209,8 @@
                         </div>
                         <h5 class="text-muted">{{ __('app.tasks.no_tasks') }}</h5>
                         @if(auth()->user()->isAdmin() || auth()->user()->isManager())
-                            <a href="{{ route('tasks.create') }}" class="btn btn-primary mt-2">
+                            <a href="{{ route('tasks.create') }}" class="btn btn-primary mt-2"
+                               data-modal-url="{{ route('tasks.create') }}" data-modal-title="{{ __('app.tasks.new_task') }}" data-refresh="#tableView">
                                 <i class="bi bi-plus-circle me-2"></i>{{ __('app.tasks.create') }}
                             </a>
                         @endif
@@ -248,16 +252,14 @@
                                         <span class="badge bg-{{ $priorityColor }} bg-opacity-10 text-{{ $priorityColor }}">
                                             {{ ucfirst($task->priority) }}
                                         </span>
-                                        <div class="dropdown">
-                                            <button class="btn btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots"></i>
-                                            </button>
-                                            <ul class="dropdown-menu dropdown-menu-end border-0 shadow-sm">
-                                                <li><a class="dropdown-item small" href="{{ route('tasks.show', $task) }}">{{ __('app.tasks.view') }}</a></li>
-                                                @can('update', $task)
-                                                    <li><a class="dropdown-item small" href="{{ route('tasks.edit', $task) }}">{{ __('app.edit') }}</a></li>
-                                                @endcan
-                                            </ul>
+                                        <div class="d-inline-flex gap-1">
+                                            <a class="btn btn-sm btn-light p-1 lh-1" href="{{ route('tasks.show', $task) }}"
+                                               title="{{ __('app.tasks.view') }}" data-bs-toggle="tooltip"><i class="bi bi-eye"></i></a>
+                                            @can('update', $task)
+                                                <a class="btn btn-sm btn-light p-1 lh-1 text-primary" href="{{ route('tasks.edit', $task) }}"
+                                                   data-modal-url="{{ route('tasks.edit', $task) }}" data-modal-title="{{ __('app.edit') }}"
+                                                   title="{{ __('app.edit') }}" data-bs-toggle="tooltip"><i class="bi bi-pencil"></i></a>
+                                            @endcan
                                         </div>
                                     </div>
                                     <h6 class="card-title mb-2">
