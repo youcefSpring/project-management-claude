@@ -76,6 +76,9 @@ return array (
     'users' => 'Users',
     'chat' => 'Chat',
     'trash' => 'Trash',
+    'plans' => 'Plans',
+    'landing' => 'Landing page',
+    'task_statuses' => 'Task Statuses',
   ),
   'trash' => 
   array (

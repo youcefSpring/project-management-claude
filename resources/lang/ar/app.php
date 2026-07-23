@@ -76,6 +76,9 @@ return array (
     'users' => 'المستخدمين',
     'chat' => 'المحادثة',
     'trash' => 'المحذوفات',
+    'plans' => 'الباقات',
+    'landing' => 'الصفحة الرئيسية',
+    'task_statuses' => 'حالات المهام',
   ),
   'trash' => 
   array (

@@ -125,6 +125,24 @@
         right: auto;
     }
 
+    /* RTL close buttons (Bootstrap ships the LTR stylesheet) */
+    [dir="rtl"] .modal-header .btn-close,
+    [dir="rtl"] .offcanvas-header .btn-close,
+    [dir="rtl"] .toast-header .btn-close {
+        margin-right: auto;
+        margin-left: -0.5rem;
+    }
+
+    [dir="rtl"] .alert-dismissible {
+        padding-right: 1rem;
+        padding-left: 3rem;
+    }
+
+    [dir="rtl"] .alert-dismissible .btn-close {
+        right: auto;
+        left: 0;
+    }
+
     /* RTL Tables */
     [dir="rtl"] .table th,
     [dir="rtl"] .table td {

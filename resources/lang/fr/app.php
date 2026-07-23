@@ -76,6 +76,9 @@ return array (
     'users' => 'Utilisateurs',
     'chat' => 'Messagerie',
     'trash' => 'Corbeille',
+    'plans' => 'Abonnements',
+    'landing' => 'Page d\'accueil',
+    'task_statuses' => 'Statuts des tâches',
   ),
   'trash' => 
   array (

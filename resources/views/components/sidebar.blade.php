@@ -42,12 +42,12 @@
         @if(auth()->user()?->isSuperAdmin())
         <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('superadmin.plans.*') ? 'active' : '' }}" href="{{ route('superadmin.plans.index') }}">
-                <i class="bi bi-credit-card"></i><span>{{ __('Plans') }}</span>
+                <i class="bi bi-credit-card"></i><span>{{ __('app.nav.plans') }}</span>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('superadmin.landing.*') ? 'active' : '' }}" href="{{ route('superadmin.landing.index') }}">
-                <i class="bi bi-window-stack"></i><span>{{ __('Landing page') }}</span>
+                <i class="bi bi-window-stack"></i><span>{{ __('app.nav.landing') }}</span>
             </a>
         </li>
         @endif
@@ -55,7 +55,7 @@
         @if(auth()->user()?->isAdmin())
         <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('task-statuses.*') ? 'active' : '' }}" href="{{ route('task-statuses.index') }}">
-                <i class="bi bi-tags"></i><span>{{ __('Task Statuses') }}</span>
+                <i class="bi bi-tags"></i><span>{{ __('app.nav.task_statuses') }}</span>
             </a>
         </li>
         @endif

@@ -76,6 +76,9 @@ return array (
     'users' => 'Usuarios',
     'chat' => 'Chat',
     'trash' => 'Papelera',
+    'plans' => 'Planes',
+    'landing' => 'Página de inicio',
+    'task_statuses' => 'Estados de tareas',
   ),
   'trash' => 
   array (

@@ -16,7 +16,15 @@ class TaskStatusController extends Controller
     {
         $this->authorizeOrganizationAdmin($request);
 
-        $statuses = TaskStatus::forOrganization($request->user()->organization_id);
+        $organizationId = $request->user()->organization_id;
+
+        $statuses = TaskStatus::forOrganization($organizationId);
+
+        // A fresh organization has no status yet: seed the default set once.
+        if ($statuses->isEmpty()) {
+            TaskStatus::seedDefaultsFor($organizationId);
+            $statuses = TaskStatus::forOrganization($organizationId);
+        }
 
         $usage = $statuses->mapWithKeys(fn (TaskStatus $status) => [$status->id => $status->tasksCount()]);
 
@@ -153,12 +161,14 @@ class TaskStatusController extends Controller
 
     private function authorizeOrganizationAdmin(Request $request): void
     {
-        abort_unless($request->user()?->isAdmin(), 403);
-        abort_if($request->user()->organization_id === null, 403, __('Your account is not linked to an organization.'));
+        $user = $request->user();
+
+        abort_unless($user?->isAdmin() || $user?->isSuperAdmin(), 403);
+        abort_if($user->organization_id === null, 403, __('Your account is not linked to an organization.'));
     }
 
     private function authorizeSameOrganization(Request $request, TaskStatus $taskStatus): void
     {
-        abort_unless($taskStatus->organization_id === $request->user()->organization_id, 403);
+        abort_unless((int) $taskStatus->organization_id === (int) $request->user()->organization_id, 403);
     }
 }
