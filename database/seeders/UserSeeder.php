@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,15 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Every demo user belongs to the same organization
+        $organization = Organization::firstOrCreate(
+            ['name' => 'Demo Organization'],
+            [
+                'description' => 'Default organization for the demo users',
+                'is_active' => true,
+            ]
+        );
+
         // Create admin user
         User::create([
             'name' => 'System Administrator',
@@ -21,6 +31,7 @@ class UserSeeder extends Seeder
             'role' => 'admin',
             'language' => 'en',
             'email_verified_at' => now(),
+            'organization_id' => $organization->id,
         ]);
 
         // Create project manager
@@ -31,6 +42,7 @@ class UserSeeder extends Seeder
             'role' => 'manager',
             'language' => 'en',
             'email_verified_at' => now(),
+            'organization_id' => $organization->id,
         ]);
 
         // Create team members
@@ -70,6 +82,7 @@ class UserSeeder extends Seeder
                 'role' => $member['role'],
                 'language' => 'en',
                 'email_verified_at' => now(),
+                'organization_id' => $organization->id,
             ]);
         }
 
@@ -81,6 +94,7 @@ class UserSeeder extends Seeder
             'role' => 'member',
             'language' => 'en',
             'email_verified_at' => now(),
+            'organization_id' => $organization->id,
         ]);
     }
 }

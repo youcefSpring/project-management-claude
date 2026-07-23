@@ -1,18 +1,25 @@
 <!-- Component Styles -->
 <style>
     :root {
-        --primary-color: #4f46e5;
-        --primary-hover: #4338ca;
-        --secondary-color: #64748b;
-        --success-color: #198754;
-        --danger-color: #dc3545;
-        --warning-color: #ffc107;
-        --info-color: #0dcaf0;
+        /* Palette shared with the landing page (see resources/views/landing.blade.php) */
+        --dz-deep: #0B2A22;
+        --dz-green: #0F6B4F;
+        --dz-bright: #21A97C;
+        --dz-sand: #F3EFE4;
+        --dz-clay: #C1592B;
+
+        --primary-color: #0F6B4F;
+        --primary-hover: #21A97C;
+        --secondary-color: #6b7d76;
+        --success-color: #21A97C;
+        --danger-color: #C1592B;
+        --warning-color: #E9B949;
+        --info-color: #5B9BD5;
         --sidebar-width: 260px;
-        --brand-gradient: linear-gradient(160deg, #4f46e5 0%, #7c3aed 100%);
+        --brand-gradient: linear-gradient(160deg, #0B2A22 0%, #0F6B4F 100%);
     }
 
-    /* Align core accents with the login design (indigo/violet) */
+    /* Align core accents with the landing page (deep green / zellige clay) */
     .btn-primary {
         background-color: var(--primary-color);
         border-color: var(--primary-color);
@@ -491,6 +498,10 @@
         display: none;
     }
 
+    .lang-name {
+        white-space: nowrap;
+    }
+
     .lang-flag {
         width: 22px;
         height: 16px;
@@ -772,7 +783,7 @@
 
     /* Dashboard stat tiles */
     .stats-card {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #0a58ca 100%);
+        background: linear-gradient(135deg, var(--dz-green) 0%, var(--dz-deep) 100%);
         border: none;
         border-radius: 0.75rem;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);

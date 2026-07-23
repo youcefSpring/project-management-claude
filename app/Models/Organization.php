@@ -25,6 +25,16 @@ class Organization extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Seed the default task statuses for every new organization
+     */
+    protected static function booted(): void
+    {
+        static::created(function (Organization $organization) {
+            TaskStatus::seedDefaultsFor($organization->id);
+        });
+    }
+
     public function users()
     {
         return $this->hasMany(User::class);
@@ -33,6 +43,11 @@ class Organization extends Model
     public function projects()
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function taskStatuses()
+    {
+        return $this->hasMany(TaskStatus::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function owner()

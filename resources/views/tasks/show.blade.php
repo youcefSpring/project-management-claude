@@ -14,22 +14,11 @@
                     <div>
                         <div class="mb-2">
                             @php
-                                $statusColor = match($task->status) {
-                                    'completed' => 'success',
-                                    'in_progress' => 'primary',
-                                    'pending' => 'warning',
-                                    'cancelled' => 'danger',
-                                    default => 'secondary'
-                                };
-                                $statusLabel = match($task->status) {
-                                    'completed' => __('app.tasks.completed'),
-                                    'in_progress' => __('app.tasks.in_progress'),
-                                    'pending' => __('app.tasks.pending'),
-                                    'cancelled' => __('app.tasks.cancelled'),
-                                    default => ucfirst(str_replace('_', ' ', $task->status))
-                                };
+                                $statusDef = $statuses->firstWhere('slug', $task->status);
+                                $statusColor = $statusDef->color ?? '#6c757d';
+                                $statusLabel = $statusDef->name ?? ucfirst(str_replace('_', ' ', $task->status));
                             @endphp
-                            <span class="badge bg-{{ $statusColor }} me-2">{{ $statusLabel }}</span>
+                            <span class="badge me-2" style="background-color: {{ $statusColor }}">{{ $statusLabel }}</span>
                             <a href="{{ route('projects.show', $task->project) }}" class="text-decoration-none text-muted small">
                                 <i class="bi bi-folder me-1"></i>{{ $task->project->title }}
                             </a>
@@ -50,14 +39,14 @@
                                         <i class="bi bi-pencil me-2 text-primary"></i>{{ __('app.edit') }}
                                     </a>
                                 </li>
-                                @if($task->status === 'pending')
+                                @if($statuses->contains('slug', 'in_progress') && $task->status !== 'in_progress')
                                     <li>
                                         <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#startTaskModal">
                                             <i class="bi bi-play me-2 text-warning"></i>{{ __('app.tasks.start_task') }}
                                         </button>
                                     </li>
                                 @endif
-                                @if($task->status === 'in_progress')
+                                @if($statuses->contains('slug', 'completed') && $task->status !== 'completed')
                                     <li>
                                         <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#completeTaskModal">
                                             <i class="bi bi-check-circle me-2 text-success"></i>{{ __('app.tasks.mark_complete') }}
@@ -141,7 +130,7 @@
                             <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.75rem;">{{ __('app.tasks.due_date') }}</small>
                             @php
                                 $dueDate = $task->due_date ? (is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date) : null;
-                                $isOverdue = $dueDate && $dueDate->isPast() && $task->status !== 'completed';
+                                $isOverdue = $dueDate && $dueDate->isPast() && ! ($statuses->firstWhere('slug', $task->status)?->is_final);
                                 $isDueToday = $dueDate && $dueDate->isToday();
                             @endphp
                             @if($dueDate)
@@ -553,10 +542,9 @@
                         <div class="mb-3">
                             <label class="form-label">{{ __('app.status') }}</label>
                             <select class="form-select" name="status">
-                                <option value="pending" {{ $task->status === 'pending' ? 'selected' : '' }}>{{ __('app.tasks.pending') }}</option>
-                                <option value="in_progress" {{ $task->status === 'in_progress' ? 'selected' : '' }}>{{ __('app.tasks.in_progress') }}</option>
-                                <option value="completed" {{ $task->status === 'completed' ? 'selected' : '' }}>{{ __('app.tasks.completed') }}</option>
-                                <option value="cancelled" {{ $task->status === 'cancelled' ? 'selected' : '' }}>{{ __('app.tasks.cancelled') }}</option>
+                                @foreach($statuses as $statusOption)
+                                    <option value="{{ $statusOption->slug }}" {{ $task->status === $statusOption->slug ? 'selected' : '' }}>{{ $statusOption->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                     </div>

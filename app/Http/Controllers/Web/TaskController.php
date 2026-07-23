@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskStatus;
 use App\Models\User;
 use App\Services\TaskService;
 use App\Services\TaskNoteService;
@@ -66,7 +67,9 @@ class TaskController extends Controller
             })->where('organization_id', $user->organization_id)->get();
         }
 
-        return view('tasks.index', compact('tasks', 'projects', 'users'));
+        $statuses = TaskStatus::forOrganization($user->organization_id);
+
+        return view('tasks.index', compact('tasks', 'projects', 'users', 'statuses'));
     }
 
     public function show(Task $task)
@@ -89,7 +92,9 @@ class TaskController extends Controller
             'timeEntries.user',
         ]);
 
-        return view('tasks.show', compact('task'));
+        $statuses = TaskStatus::forOrganization($task->project->organization_id);
+
+        return view('tasks.show', compact('task', 'statuses'));
     }
 
     public function create(Request $request)
@@ -120,7 +125,9 @@ class TaskController extends Controller
                                                ->where('organization_id', auth()->user()->organization_id)
                                                ->first() : null;
 
-        return view('tasks.create', compact('projects', 'users', 'selectedProject'));
+        $statuses = TaskStatus::forOrganization(auth()->user()->organization_id);
+
+        return view('tasks.create', compact('projects', 'users', 'selectedProject', 'statuses'));
     }
 
     public function store(Request $request)
@@ -170,7 +177,9 @@ class TaskController extends Controller
                               ->get();
         }
 
-        return view('tasks.edit', compact('task', 'projects', 'users'));
+        $statuses = TaskStatus::forOrganization($user->organization_id);
+
+        return view('tasks.edit', compact('task', 'projects', 'users', 'statuses'));
     }
 
     public function update(Request $request, Task $task)
@@ -184,7 +193,7 @@ class TaskController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
             'due_date' => 'nullable|date',
             'priority' => 'required|in:low,medium,high,urgent',
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'status' => ['required', \Illuminate\Validation\Rule::in(Task::getStatuses($request->user()->organization_id))],
         ]);
 
         $this->taskService->update($task, $request->all(), $request->user());
@@ -216,7 +225,7 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         $request->validate([
-            'status' => 'required|in:pending,in_progress,completed,cancelled',
+            'status' => ['required', \Illuminate\Validation\Rule::in(Task::getStatuses($request->user()->organization_id))],
         ]);
 
         $oldStatus = $task->status;

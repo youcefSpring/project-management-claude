@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class Task extends Model
 {
@@ -53,11 +54,16 @@ class Task extends Model
     const STATUS_CANCELLED = 'cancelled';
 
     /**
-     * Get all available statuses
+     * Get all available status slugs for an organization.
+     * Falls back to the built-in defaults when no organization is given.
      */
-    public static function getStatuses(): array
+    public static function getStatuses(?int $organizationId = null): array
     {
-        return [
+        $organizationId = $organizationId ?? auth()->user()?->organization_id;
+
+        $slugs = TaskStatus::forOrganization($organizationId)->pluck('slug')->all();
+
+        return $slugs ?: [
             self::STATUS_PENDING,
             self::STATUS_IN_PROGRESS,
             self::STATUS_COMPLETED,
@@ -66,16 +72,45 @@ class Task extends Model
     }
 
     /**
-     * Get allowed status transitions
+     * Status definitions (models) of the task's organization
+     */
+    public static function statusesForOrganization(?int $organizationId)
+    {
+        return TaskStatus::forOrganization($organizationId);
+    }
+
+    /**
+     * Status definition of this task
+     */
+    public function statusDefinition(): ?TaskStatus
+    {
+        return TaskStatus::where('organization_id', $this->project?->organization_id)
+            ->where('slug', $this->status)
+            ->first();
+    }
+
+    /**
+     * Human label of the current status
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        return $this->statusDefinition()?->name ?? Str::headline($this->status);
+    }
+
+    /**
+     * Hex color of the current status
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return $this->statusDefinition()?->color ?? '#6c757d';
+    }
+
+    /**
+     * Any status may follow any other; transitions are no longer hard-coded.
      */
     public static function getAllowedTransitions(): array
     {
-        return [
-            self::STATUS_PENDING => [self::STATUS_IN_PROGRESS],
-            self::STATUS_IN_PROGRESS => [self::STATUS_PENDING, self::STATUS_COMPLETED],
-            self::STATUS_COMPLETED => [self::STATUS_IN_PROGRESS],
-            self::STATUS_CANCELLED => [],
-        ];
+        return [];
     }
 
     /**
@@ -137,9 +172,7 @@ class Task extends Model
      */
     public function canTransitionTo(string $newStatus): bool
     {
-        $allowedTransitions = self::getAllowedTransitions();
-
-        return in_array($newStatus, $allowedTransitions[$this->status] ?? []);
+        return in_array($newStatus, self::getStatuses($this->project?->organization_id));
     }
 
     /**
@@ -280,8 +313,11 @@ class Task extends Model
      */
     public function scopeOverdue($query)
     {
+        $closedSlugs = TaskStatus::where('is_final', true)->pluck('slug')->unique()->all()
+            ?: [self::STATUS_COMPLETED, self::STATUS_CANCELLED];
+
         return $query->where('due_date', '<', now())
-            ->whereNotIn('status', [self::STATUS_COMPLETED, self::STATUS_CANCELLED]);
+            ->whereNotIn('status', $closedSlugs);
     }
 
     /**

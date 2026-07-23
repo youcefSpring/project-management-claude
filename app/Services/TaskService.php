@@ -29,7 +29,7 @@ class TaskService
             'project_id' => $data['project_id'],
             'title' => $data['title'],
             'description' => $data['description'] ?? null,
-            'status' => Task::STATUS_PENDING,
+            'status' => \App\Models\TaskStatus::defaultSlugFor($project->organization_id),
             'due_date' => ! empty($data['due_date']) ? Carbon::parse($data['due_date']) : null,
             'assigned_to' => $data['assigned_to'] ?? null,
         ]);

@@ -23,6 +23,7 @@ class User extends Authenticatable
         'role',
         'language',
         'organization_id',
+        'is_super_admin',
     ];
 
     /**
@@ -45,6 +46,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -188,6 +190,14 @@ class User extends Authenticatable
                 'is_active' => true,
             ]);
         }
+    }
+
+    /**
+     * Check if user owns the platform (plans, landing page content)
+     */
+    public function isSuperAdmin(): bool
+    {
+        return (bool) $this->is_super_admin;
     }
 
     /**

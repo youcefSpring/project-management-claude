@@ -14,13 +14,14 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
-        :root { --primary-color: #4f46e5; --primary-hover: #4338ca; --secondary-color: #64748b; --bg-light: #f8fafc; --text-main: #1e293b; --text-muted: #64748b; --border-color: #e2e8f0; --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        /* Palette shared with the landing page (see resources/views/landing.blade.php) */
+        :root { --dz-deep: #0B2A22; --dz-green: #0F6B4F; --dz-bright: #21A97C; --dz-sand: #F3EFE4; --dz-clay: #C1592B; --primary-color: #0F6B4F; --primary-hover: #21A97C; --secondary-color: #6b7d76; --bg-light: #F3EFE4; --text-main: #0B2A22; --text-muted: #6b7d76; --border-color: rgba(11, 42, 34, 0.14); --card-shadow: 0 16px 40px rgba(11, 42, 34, 0.10); }
         body { background-color: var(--bg-light); min-height: 100vh; font-family: 'Figtree', sans-serif; color: var(--text-main); margin: 0; overflow-x: hidden; }
         [dir="rtl"] { text-align: right; }
         [lang="ar"], [dir="rtl"] { font-family: 'Noto Sans Arabic', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .auth-wrapper { display: flex; min-height: 100vh; width: 100%; }
-        .auth-brand-side { flex: 1; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 4rem; position: relative; overflow: hidden; }
-        .auth-brand-side::before { content: ''; position: absolute; top: -10%; right: -10%; width: 40%; height: 40%; background: rgba(255, 255, 255, 0.1); border-radius: 50%; filter: blur(80px); }
+        .auth-brand-side { flex: 1; background: linear-gradient(160deg, var(--dz-deep) 0%, var(--dz-green) 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 4rem; position: relative; overflow: hidden; }
+        .auth-brand-side::before { content: ''; position: absolute; inset: 0; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 26px), repeating-linear-gradient(-45deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 26px), repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 26px), repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 26px); mask-image: radial-gradient(120% 90% at 70% 10%, #000 20%, transparent 75%); -webkit-mask-image: radial-gradient(120% 90% at 70% 10%, #000 20%, transparent 75%); pointer-events: none; }
         .brand-content { position: relative; z-index: 2; max-width: 500px; }
         .brand-logo { font-size: 2.5rem; font-weight: 700; margin-bottom: 2rem; display: flex; align-items: center; }
         .brand-logo i { margin-right: 1rem; }
@@ -33,12 +34,12 @@ use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
         .auth-form-container { width: 100%; max-width: 480px; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .auth-header { margin-bottom: 2.5rem; }
-        .auth-header h2 { font-weight: 700; color: #0f172a; margin-bottom: 0.5rem; }
+        .auth-header h2 { font-weight: 700; color: var(--dz-deep); margin-bottom: 0.5rem; }
         .auth-header .subtitle { color: var(--text-muted); margin-bottom: 0; }
-        .form-label { font-weight: 500; color: #334155; margin-bottom: 0.5rem; }
+        .form-label { font-weight: 500; color: var(--dz-deep); margin-bottom: 0.5rem; }
         .input-group { border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); transition: all 0.2s; }
-        .input-group:focus-within { border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
-        .input-group-text { background-color: #f8fafc; border: none; color: var(--text-muted); padding-left: 1rem; padding-right: 1rem; }
+        .input-group:focus-within { border-color: var(--primary-color); box-shadow: 0 0 0 4px rgba(33, 169, 124, 0.16); }
+        .input-group-text { background-color: rgba(11, 42, 34, 0.04); border: none; color: var(--text-muted); padding-left: 1rem; padding-right: 1rem; }
         .form-control, .form-select { border: none; padding: 0.75rem 1rem; font-size: 1rem; }
         .form-control:focus, .form-select:focus { box-shadow: none; background-color: white; }
         .btn-primary { background-color: var(--primary-color); border: none; border-radius: 12px; padding: 0.75rem 1.5rem; font-weight: 600; transition: all 0.2s; }

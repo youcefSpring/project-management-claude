@@ -39,6 +39,26 @@
                 <i class="bi bi-check2-square"></i><span>{{ __('app.nav.tasks') }}</span>
             </a>
         </li>
+        @if(auth()->user()?->isSuperAdmin())
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('superadmin.plans.*') ? 'active' : '' }}" href="{{ route('superadmin.plans.index') }}">
+                <i class="bi bi-credit-card"></i><span>{{ __('Plans') }}</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('superadmin.landing.*') ? 'active' : '' }}" href="{{ route('superadmin.landing.index') }}">
+                <i class="bi bi-window-stack"></i><span>{{ __('Landing page') }}</span>
+            </a>
+        </li>
+        @endif
+
+        @if(auth()->user()?->isAdmin())
+        <li class="nav-item">
+            <a class="nav-link {{ request()->routeIs('task-statuses.*') ? 'active' : '' }}" href="{{ route('task-statuses.index') }}">
+                <i class="bi bi-tags"></i><span>{{ __('Task Statuses') }}</span>
+            </a>
+        </li>
+        @endif
         <li class="nav-item">
             <a class="nav-link {{ request()->routeIs('chat.*') ? 'active' : '' }}" href="{{ route('chat.index') }}">
                 <i class="bi bi-chat-dots"></i><span>{{ __('app.nav.chat') }}</span>
@@ -86,7 +106,7 @@
     <div class="sidebar-footer">
         @php
             // Map app locales to ISO country codes for real flag images (reliable cross-platform).
-            $localeCountry = ['en' => 'gb', 'fr' => 'fr', 'ar' => 'sa', 'es' => 'es'];
+            $localeCountry = ['en' => 'us', 'fr' => 'fr', 'ar' => 'sa', 'es' => 'es'];
             $flag = fn ($code) => 'https://flagcdn.com/' . ($localeCountry[$code] ?? $code) . '.svg';
         @endphp
         <div class="dropdown dropup">
@@ -102,6 +122,7 @@
                            title="{{ $properties['native'] }}"
                            href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
                             <img src="{{ $flag($localeCode) }}" alt="{{ $localeCode }}" class="lang-flag">
+                            <span class="lang-name">{{ $properties['native'] }}</span>
                             @if(app()->getLocale() == $localeCode)
                                 <i class="bi bi-check-circle-fill text-success ms-auto"></i>
                             @endif

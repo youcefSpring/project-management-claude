@@ -10,6 +10,9 @@ use App\Http\Controllers\Web\ProjectNoteController; // Added this use statement
 use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\TaskController;
 use App\Http\Controllers\Web\TaskNoteController;
+use App\Http\Controllers\SuperAdmin\LandingContentController;
+use App\Http\Controllers\SuperAdmin\PlanController;
+use App\Http\Controllers\Web\TaskStatusController;
 use App\Http\Controllers\Web\TimeEntryController;
 use App\Http\Controllers\Web\UserController;
 use Illuminate\Http\Request;
@@ -26,10 +29,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Root redirect to default language
+// Root redirect to the landing page in the visitor's language
 Route::get('/', function () {
     $locale = session('locale', config('app.locale', 'en'));
-    return redirect("/{$locale}/login");
+    return redirect("/{$locale}");
 })->name('home');
 
 // Language switching route (outside prefix)
@@ -55,6 +58,13 @@ Route::post('/language', function () {
 
 // Routes with MCamara language prefix
 Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['localeSessionRedirect', 'localizationRedirect', 'localeViewPath']], function () {
+
+    // Public landing page
+    Route::get('/', function () {
+        return auth()->check()
+            ? redirect()->route('dashboard')
+            : view('landing');
+    })->name('landing');
 
     // Authentication Routes (Guest only)
     Route::middleware('guest')->group(function () {
@@ -143,6 +153,28 @@ Route::group(['prefix' => LaravelLocalization::setLocale(), 'middleware' => ['lo
             ->name('notes.store');
         Route::delete('/notes/{note}', [ProjectNoteController::class, 'destroy'])
             ->name('notes.destroy');
+    });
+
+    // Platform owner: subscription plans and landing page copy
+    Route::middleware('superadmin')->prefix('superadmin')->name('superadmin.')->group(function () {
+        Route::get('/plans', [PlanController::class, 'index'])->name('plans.index');
+        Route::get('/plans/create', [PlanController::class, 'create'])->name('plans.create');
+        Route::post('/plans', [PlanController::class, 'store'])->name('plans.store');
+        Route::get('/plans/{plan}/edit', [PlanController::class, 'edit'])->name('plans.edit');
+        Route::put('/plans/{plan}', [PlanController::class, 'update'])->name('plans.update');
+        Route::delete('/plans/{plan}', [PlanController::class, 'destroy'])->name('plans.destroy');
+
+        Route::get('/landing', [LandingContentController::class, 'index'])->name('landing.index');
+        Route::put('/landing', [LandingContentController::class, 'update'])->name('landing.update');
+        Route::delete('/landing', [LandingContentController::class, 'reset'])->name('landing.reset');
+    });
+
+    // Task statuses (per organization, admin only)
+    Route::prefix('task-statuses')->name('task-statuses.')->group(function () {
+        Route::get('/', [TaskStatusController::class, 'index'])->name('index');
+        Route::post('/', [TaskStatusController::class, 'store'])->name('store');
+        Route::put('/{taskStatus}', [TaskStatusController::class, 'update'])->name('update');
+        Route::delete('/{taskStatus}', [TaskStatusController::class, 'destroy'])->name('destroy');
     });
 
     // Tasks

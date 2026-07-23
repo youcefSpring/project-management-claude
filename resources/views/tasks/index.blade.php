@@ -84,7 +84,9 @@
                             </thead>
                             <tbody>
                                 @foreach($tasks as $task)
-                                    <tr data-row>
+                                    @php $rowColor = $statuses->firstWhere('slug', $task->status)?->color ?? '#6c757d'; @endphp
+                                    <tr data-row class="status-row"
+                                        style="--status-color: {{ $rowColor }}; background-color: {{ $rowColor }}14;">
                                         <td class="ps-4">
                                             <div>
                                                 <a href="{{ route('tasks.show', $task) }}" class="fw-bold text-dark text-decoration-none">
@@ -120,22 +122,12 @@
                                         </td>
                                         <td>
                                             @php
-                                                $statusColors = [
-                                                    'pending' => 'warning',
-                                                    'in_progress' => 'primary',
-                                                    'completed' => 'success',
-                                                    'cancelled' => 'secondary'
-                                                ];
-                                                $color = $statusColors[$task->status] ?? 'secondary';
+                                                $statusDef = $statuses->firstWhere('slug', $task->status);
+                                                $statusColor = $statusDef->color ?? '#6c757d';
                                             @endphp
-                                            <span class="badge bg-{{ $color }} bg-opacity-10 text-{{ $color }} px-2 py-1">
-                                                @switch($task->status)
-                                                    @case('pending') {{ __('app.tasks.pending') }} @break
-                                                    @case('in_progress') {{ __('app.tasks.in_progress') }} @break
-                                                    @case('completed') {{ __('app.tasks.completed') }} @break
-                                                    @case('cancelled') {{ __('app.tasks.cancelled') }} @break
-                                                    @default {{ ucfirst(str_replace('_', ' ', $task->status)) }}
-                                                @endswitch
+                                            <span class="badge px-2 py-1"
+                                                  style="background-color: {{ $statusColor }}1a; color: {{ $statusColor }};">
+                                                {{ $statusDef->name ?? ucfirst(str_replace('_', ' ', $task->status)) }}
                                             </span>
                                         </td>
                                         <td class="d-none d-md-table-cell">
@@ -164,7 +156,7 @@
                                             @if($task->due_date)
                                                 @php
                                                     $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
-                                                    $isOverdue = $dueDate->isPast() && $task->status !== 'completed';
+                                                    $isOverdue = $dueDate->isPast() && ! ($statuses->firstWhere('slug', $task->status)?->is_final);
                                                     $isDueToday = $dueDate->isToday();
                                                 @endphp
                                                 <span class="{{ $isOverdue ? 'text-danger fw-bold' : ($isDueToday ? 'text-warning fw-bold' : 'text-muted') }}">
@@ -223,22 +215,20 @@
     <!-- Kanban Board View -->
     <div class="col-12" id="boardView" style="display: none;">
         <div class="kanban-board">
-            @foreach(['pending', 'in_progress', 'completed', 'cancelled'] as $status)
-                <div class="kanban-column">
-                    <div class="kanban-header status-{{ $status }} d-flex justify-content-between align-items-center">
+            @foreach($statuses as $statusColumn)
+                @php $status = $statusColumn->slug; @endphp
+                <div class="kanban-column" style="--status-color: {{ $statusColumn->color }}; background-color: {{ $statusColumn->color }}14;">
+                    <div class="kanban-header d-flex justify-content-between align-items-center"
+                         style="border-top: 4px solid {{ $statusColumn->color }}; background-color: {{ $statusColumn->color }}26;">
                         <h6 class="mb-0 text-uppercase fw-bold text-muted" style="font-size: 0.8rem;">
-                            @switch($status)
-                                @case('pending') {{ __('app.tasks.pending') }} @break
-                                @case('in_progress') {{ __('app.tasks.in_progress') }} @break
-                                @case('completed') {{ __('app.tasks.completed') }} @break
-                                @case('cancelled') {{ __('app.tasks.cancelled') }} @break
-                            @endswitch
+                            {{ $statusColumn->name }}
                         </h6>
                         <span class="badge bg-white text-dark shadow-sm border">{{ $tasks->where('status', $status)->count() }}</span>
                     </div>
                     <div class="kanban-body" data-status="{{ $status }}">
                         @foreach($tasks->where('status', $status) as $task)
-                            <div class="kanban-card card mb-3 border-0 shadow-sm" data-task-id="{{ $task->id }}">
+                            <div class="kanban-card card mb-3 border-0 shadow-sm" data-task-id="{{ $task->id }}"
+                                 style="border-left: 4px solid {{ $statusColumn->color }} !important;">
                                 <div class="card-body p-3">
                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                         @php
@@ -287,7 +277,7 @@
                                             @php
                                                 $dueDate = is_string($task->due_date) ? \Carbon\Carbon::parse($task->due_date) : $task->due_date;
                                             @endphp
-                                            <span class="small {{ $dueDate->isPast() && $task->status !== 'completed' ? 'text-danger fw-bold' : 'text-muted' }}">
+                                            <span class="small {{ $dueDate->isPast() && ! ($statuses->firstWhere('slug', $task->status)?->is_final) ? 'text-danger fw-bold' : 'text-muted' }}">
                                                 <i class="bi bi-calendar me-1"></i>{{ $dueDate->format('M d') }}
                                             </span>
                                         @endif
@@ -328,10 +318,9 @@
                             <label for="status" class="form-label small text-muted text-uppercase fw-bold">{{ __('app.status') }}</label>
                             <select class="form-select" id="status" name="status">
                                 <option value="">{{ __('app.tasks.all_statuses') }}</option>
-                                <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>{{ __('app.tasks.pending') }}</option>
-                                <option value="in_progress" {{ request('status') === 'in_progress' ? 'selected' : '' }}>{{ __('app.tasks.in_progress') }}</option>
-                                <option value="completed" {{ request('status') === 'completed' ? 'selected' : '' }}>{{ __('app.tasks.completed') }}</option>
-                                <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>{{ __('app.tasks.cancelled') }}</option>
+                                @foreach($statuses as $statusOption)
+                                    <option value="{{ $statusOption->slug }}" {{ request('status') === $statusOption->slug ? 'selected' : '' }}>{{ $statusOption->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-6">
@@ -462,11 +451,22 @@ function setupKanbanSortable() {
 
                 // Only update if status changed
                 if (newStatus !== oldStatus) {
+                    applyStatusColor(itemEl, evt.to);
                     updateTaskStatus(taskId, newStatus, itemEl, evt.from);
                 }
             }
         });
     });
+
+    // Repaint a card's accent with the color of the column it now sits in
+    function applyStatusColor(itemEl, container) {
+        const column = container.closest('.kanban-column');
+        const color = column ? getComputedStyle(column).getPropertyValue('--status-color').trim() : '';
+
+        if (color) {
+            itemEl.style.borderLeft = '4px solid ' + color;
+        }
+    }
 
     function updateTaskStatus(taskId, status, itemEl, originalContainer) {
         const oldStatus = originalContainer.getAttribute('data-status');
@@ -492,6 +492,7 @@ function setupKanbanSortable() {
         .catch(error => {
             // Revert change on error
             originalContainer.appendChild(itemEl);
+            applyStatusColor(itemEl, originalContainer);
             
             toastEl.classList.remove('bg-success');
             toastEl.classList.add('bg-danger');
@@ -537,7 +538,6 @@ function setupKanbanSortable() {
 
 .kanban-column {
     flex: 0 0 320px;
-    background-color: #f8f9fa;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -550,11 +550,6 @@ function setupKanbanSortable() {
     border-bottom: 1px solid rgba(0,0,0,0.05);
     border-radius: 12px 12px 0 0;
 }
-
-.kanban-header.status-pending { border-top: 4px solid #ffc107; }
-.kanban-header.status-in_progress { border-top: 4px solid #0d6efd; }
-.kanban-header.status-completed { border-top: 4px solid #198754; }
-.kanban-header.status-cancelled { border-top: 4px solid #6c757d; }
 
 .kanban-body {
     padding: 1rem;
@@ -574,6 +569,19 @@ function setupKanbanSortable() {
 .kanban-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
+}
+
+.status-row td {
+    background-color: transparent;
+    box-shadow: none;
+}
+
+.status-row:hover td {
+    background-color: rgba(0,0,0,0.03);
+}
+
+.kanban-card {
+    background-color: #fff;
 }
 
 /* Custom Scrollbar */

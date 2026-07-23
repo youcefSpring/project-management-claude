@@ -184,6 +184,11 @@
                 <span>{{ __('app.nav.tasks') }}</span>
             </a>
 
+            <a href="{{ route('task-statuses.index') }}" class="nav-link {{ request()->routeIs('task-statuses.*') ? 'active' : '' }}">
+                <i class="bi bi-tags"></i>
+                <span>{{ __('Task Statuses') }}</span>
+            </a>
+
             <a href="{{ route('timesheet.index') }}" class="nav-link {{ request()->routeIs('timesheet.*') ? 'active' : '' }}">
                 <i class="bi bi-clock"></i>
                 <span>{{ __('app.time.title') }}</span>

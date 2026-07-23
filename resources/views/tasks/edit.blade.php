@@ -97,10 +97,9 @@
                             <div class="mb-3">
                                 <label for="status" class="form-label">{{ __('app.status') }} <span class="text-danger">*</span></label>
                                 <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
-                                    <option value="pending" {{ old('status', $task->status) === 'pending' ? 'selected' : '' }}>{{ __('app.tasks.pending') }}</option>
-                                    <option value="in_progress" {{ old('status', $task->status) === 'in_progress' ? 'selected' : '' }}>{{ __('app.tasks.in_progress') }}</option>
-                                    <option value="completed" {{ old('status', $task->status) === 'completed' ? 'selected' : '' }}>{{ __('app.tasks.completed') }}</option>
-                                    <option value="cancelled" {{ old('status', $task->status) === 'cancelled' ? 'selected' : '' }}>{{ __('app.tasks.cancelled') }}</option>
+                                    @foreach($statuses as $statusOption)
+                                        <option value="{{ $statusOption->slug }}" {{ old('status', $task->status) === $statusOption->slug ? 'selected' : '' }}>{{ $statusOption->name }}</option>
+                                    @endforeach
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -198,10 +197,13 @@
             </div>
             <div class="card-body">
                 <ul class="small text-muted">
-                    <li><strong>{{ __('app.tasks.pending') }}:</strong> {{ __('app.tasks.status_pending_desc') }}</li>
-                    <li><strong>{{ __('app.tasks.in_progress') }}:</strong> {{ __('app.tasks.status_in_progress_desc') }}</li>
-                    <li><strong>{{ __('app.tasks.completed') }}:</strong> {{ __('app.tasks.status_completed_desc') }}</li>
-                    <li><strong>{{ __('app.tasks.cancelled') }}:</strong> {{ __('app.tasks.status_cancelled_desc') }}</li>
+                    @foreach($statuses as $statusOption)
+                        <li>
+                            <span class="badge" style="background-color: {{ $statusOption->color }}">{{ $statusOption->name }}</span>
+                            @if($statusOption->is_default) <em>{{ __('Default status for new tasks') }}</em> @endif
+                            @if($statusOption->is_final) <em>{{ __('Closed status (task no longer active)') }}</em> @endif
+                        </li>
+                    @endforeach
                 </ul>
             </div>
         </div>
