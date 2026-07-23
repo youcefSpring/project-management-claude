@@ -158,6 +158,15 @@
             color: rgba(255,255,255,0.82);
         }
 
+        /* ── Hero flag: Algerian flag above the live board ── */
+        .proud {
+            display: block;
+            width: min(220px, 55vw);
+            height: auto;
+            border-radius: 14px;
+            filter: drop-shadow(0 10px 22px rgba(0,0,0,0.28));
+        }
+
         /* ── Hero board: the product itself as the hero image ── */
         .board {
             display: grid;
@@ -404,9 +413,16 @@
                 <p class="small mt-3 mb-0" style="color: rgba(255,255,255,0.6);">
                     <i class="bi bi-shield-check {{ $rtl ? 'ms-1' : 'me-1' }}"></i>{{ $t('hero.note') }}
                 </p>
+
             </div>
 
             <div class="col-lg-6">
+                <picture>
+                    <source srcset="{{ asset('images/hero_image.webp') }}" type="image/webp">
+                    <img src="{{ asset('images/hero_image.png') }}" class="proud mb-3" width="640" height="349"
+                         alt="{{ __('app.landing_admin.proud_alt') }}" loading="lazy">
+                </picture>
+
                 <div class="d-flex align-items-center justify-content-between mb-2 small" style="color: rgba(255,255,255,0.65);">
                     <span><i class="bi bi-broadcast {{ $rtl ? 'ms-1' : 'me-1' }}"></i>{{ $t('hero.board_label') }}</span>
                     <span>{{ $t('hero.board_project') }}</span>

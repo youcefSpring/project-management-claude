@@ -60,7 +60,7 @@ class LandingContentController extends Controller
         LandingContent::flushCache();
 
         return redirect()->route('superadmin.landing.index', ['locale' => $locale])
-            ->with('success', __('Landing page updated.'));
+            ->with('success', __('app.landing_admin.updated'));
     }
 
     /**
@@ -76,6 +76,6 @@ class LandingContentController extends Controller
         LandingContent::flushCache();
 
         return redirect()->route('superadmin.landing.index', ['locale' => $data['locale']])
-            ->with('success', __('Landing page reset to the default text.'));
+            ->with('success', __('app.landing_admin.reset'));
     }
 }

@@ -3,38 +3,65 @@
 @php
     $localeNames = ['en' => 'English', 'fr' => 'Français', 'ar' => 'العربية'];
     $groupTitles = [
-        'hero' => __('Hero'),
-        'proof' => __('Why local'),
-        'features' => __('Features'),
-        'workflow' => __('Workflow'),
-        'pricing' => __('Pricing intro'),
-        'faq' => __('FAQ'),
-        'cta' => __('Closing'),
-        'footer' => __('Footer'),
+        'hero' => __('app.landing_admin.hero'),
+        'proof' => __('app.landing_admin.proof'),
+        'features' => __('app.landing_admin.features'),
+        'workflow' => __('app.landing_admin.workflow'),
+        'pricing' => __('app.landing_admin.pricing'),
+        'faq' => __('app.landing_admin.faq'),
+        'cta' => __('app.landing_admin.cta'),
+        'footer' => __('app.landing_admin.footer'),
     ];
+    $fieldLabel = function (string $key) {
+        $suffix = substr($key, strrpos($key, '.') + 1);
+        $t = fn (string $token) => __('app.landing_admin.fields.'.$token);
+
+        if (preg_match('/^title_line(\d)$/', $suffix, $m)) {
+            return $t('title').' — '.$t('line').' '.$m[1];
+        }
+        if (preg_match('/^item(\d)_(title|body)$/', $suffix, $m)) {
+            return $t('item').' '.$m[1].' — '.$t($m[2]);
+        }
+        if (preg_match('/^f(\d)_(title|body)$/', $suffix, $m)) {
+            return $t('feature').' '.$m[1].' — '.$t($m[2]);
+        }
+        if (preg_match('/^step(\d)$/', $suffix, $m)) {
+            return $t('step').' '.$m[1];
+        }
+        if (preg_match('/^q(\d)$/', $suffix, $m)) {
+            return $t('question').' '.$m[1];
+        }
+        if (preg_match('/^a(\d)$/', $suffix, $m)) {
+            return $t('answer').' '.$m[1];
+        }
+
+        $label = $t($suffix);
+
+        return $label === 'app.landing_admin.fields.'.$suffix ? $suffix : $label;
+    };
 @endphp
 
-@section('title', __('Landing page'))
-@section('page-title', __('Landing page'))
+@section('title', __('app.landing_admin.title'))
+@section('page-title', __('app.landing_admin.title'))
 
 @section('content')
 <div class="row g-4">
     <div class="col-12">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <div>
-                <h2 class="mb-1">{{ __('Landing page') }}</h2>
-                <p class="text-muted mb-0">{{ __('Rewrite the public page. An empty field keeps the default text.') }}</p>
+                <h2 class="mb-1">{{ __('app.landing_admin.title') }}</h2>
+                <p class="text-muted mb-0">{{ __('app.landing_admin.intro') }}</p>
             </div>
             <div class="d-flex gap-2">
                 <a href="{{ LaravelLocalization::getLocalizedURL($locale, '/') }}" target="_blank" class="btn btn-outline-secondary">
-                    <i class="bi bi-box-arrow-up-right me-2"></i>{{ __('View page') }}
+                    <i class="bi bi-box-arrow-up-right me-2"></i>{{ __('app.landing_admin.view_page') }}
                 </a>
                 <form method="POST" action="{{ route('superadmin.landing.reset') }}"
-                      onsubmit="return confirm('{{ __('Reset every text of this language to the default?') }}')">
+                      onsubmit="return confirm('{{ __('app.landing_admin.reset_confirm') }}')">
                     @csrf
                     @method('DELETE')
                     <input type="hidden" name="locale" value="{{ $locale }}">
-                    <button type="submit" class="btn btn-outline-danger">{{ __('Reset language') }}</button>
+                    <button type="submit" class="btn btn-outline-danger">{{ __('app.landing_admin.reset_language') }}</button>
                 </form>
             </div>
         </div>
@@ -78,9 +105,9 @@
                                     @endphp
                                     <div class="mb-3">
                                         <label class="form-label d-flex justify-content-between align-items-center">
-                                            <code class="small text-muted">{{ $key }}</code>
+                                            <span class="fw-semibold">{{ $fieldLabel($key) }}</span>
                                             @if($current !== '')
-                                                <span class="badge bg-success bg-opacity-10 text-success">{{ __('Custom') }}</span>
+                                                <span class="badge bg-success bg-opacity-10 text-success">{{ __('app.landing_admin.custom') }}</span>
                                             @endif
                                         </label>
                                         @if($long)
